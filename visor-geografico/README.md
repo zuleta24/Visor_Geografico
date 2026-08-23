@@ -5,7 +5,7 @@ detectar (con confirmación del usuario) su sistema de coordenadas de origen,
 y visualizar cualquier punto del mapa en distintos sistemas de referencia
 usados en Colombia (WGS84, MAGNA-SIRGAS, Bogotá, Origen Nacional, UTM).
 
-🔗 **URL pública:** _(pegar aquí el link de Vercel una vez desplegado)_
+   🔗 **URL pública:** [https://visorgeografico.vercel.app](https://visorgeografico.vercel.app)
 
 ## Arquitectura
 
