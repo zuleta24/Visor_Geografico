@@ -20,6 +20,7 @@
 
 let pendingGeoJSON = null; // capa a la espera de confirmación de CRS
 let loadedLayers = [];     // capas ya añadidas al mapa
+let currentMap = null;     // referencia al mapa, para poder mostrar/ocultar/quitar capas después
 
 function getFirstCoordinate(geojson) {
   const feature = geojson.type === 'FeatureCollection' ? geojson.features[0] : geojson;
@@ -80,13 +81,35 @@ function reprojectGeoJSONToWGS84(geojson, fromEpsg) {
 }
 
 function addLayerToMap(map, geojson, name, epsg) {
+  currentMap = map;
   const layer = L.geoJSON(geojson, {
     style: { color: '#29e2b8', weight: 2, fillOpacity: 0.15 },
   }).addTo(map);
 
-  loadedLayers.push({ name, epsg, layer });
+  const id = `layer-${Date.now()}-${Math.round(Math.random() * 1000)}`;
+  loadedLayers.push({ id, name, epsg, layer, visible: true });
   renderLayersList();
   map.fitBounds(layer.getBounds(), { maxZoom: 14 });
+}
+
+function toggleLayerVisibility(id) {
+  const entry = loadedLayers.find((l) => l.id === id);
+  if (!entry || !currentMap) return;
+  entry.visible = !entry.visible;
+  if (entry.visible) {
+    entry.layer.addTo(currentMap);
+  } else {
+    currentMap.removeLayer(entry.layer);
+  }
+  renderLayersList();
+}
+
+function removeLayer(id) {
+  const index = loadedLayers.findIndex((l) => l.id === id);
+  if (index === -1) return;
+  if (currentMap) currentMap.removeLayer(loadedLayers[index].layer);
+  loadedLayers.splice(index, 1);
+  renderLayersList();
 }
 
 function renderLayersList() {
@@ -99,7 +122,32 @@ function renderLayersList() {
   loadedLayers.forEach((l) => {
     const li = document.createElement('li');
     li.className = 'layer-item';
-    li.innerHTML = `<span>${l.name}</span><span class="layer-item__epsg">${l.epsg}</span>`;
+
+    const info = document.createElement('div');
+    info.className = 'layer-item__info';
+    info.innerHTML = `<span>${l.name}</span><span class="layer-item__epsg">${l.epsg}</span>`;
+
+    const actions = document.createElement('div');
+    actions.className = 'layer-item__actions';
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'layer-item__btn';
+    toggleBtn.title = l.visible ? 'Ocultar capa' : 'Mostrar capa';
+    toggleBtn.textContent = l.visible ? '●' : '○';
+    toggleBtn.addEventListener('click', () => toggleLayerVisibility(l.id));
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'layer-item__btn layer-item__btn--danger';
+    removeBtn.title = 'Quitar capa';
+    removeBtn.textContent = '×';
+    removeBtn.addEventListener('click', () => removeLayer(l.id));
+
+    actions.appendChild(toggleBtn);
+    actions.appendChild(removeBtn);
+    li.appendChild(info);
+    li.appendChild(actions);
     list.appendChild(li);
   });
 }
