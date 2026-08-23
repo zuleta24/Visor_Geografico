@@ -31,3 +31,11 @@
 
 En ambos casos el punto físico en el mapa es el mismo — solo cambia
 la forma en la que se expresa esa posición.
+
+## 4. Gestionar las capas cargadas
+
+En la lista **"Capas cargadas"**, cada capa tiene dos botones a la derecha:
+
+- **● / ○** — muestra u oculta la capa en el mapa sin quitarla de la lista
+  (útil para comparar capas sin perder el trabajo de detección de CRS ya hecho).
+- **×** — quita la capa por completo, tanto del mapa como de la lista.
