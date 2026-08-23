@@ -145,7 +145,7 @@ function confirmPendingLayer(map) {
   addLayerToMap(map, reprojected, pendingGeoJSON.fileName, epsg);
 
   // Ejemplo de persistencia opcional en Supabase (ver supabaseClient.js)
-  // saveLayerMetadata(pendingGeoJSON.fileName, epsg);
+  saveLayerMetadata(pendingGeoJSON.fileName, epsg);
 
   pendingGeoJSON = null;
   document.getElementById('crs-detect-panel').hidden = true;
