@@ -11,7 +11,7 @@
  * ------------------------------------------------------------------
  */
 
-const SUPABASE_URL = 'https://bfmklcrfpwvrilvbyzhv.supabase.co/rest/v1/';      
+   const SUPABASE_URL = 'https://bfmklcrfpwvrilvbyzhv.supabase.co';      
 const SUPABASE_ANON_KEY = 'sb_publishable_3FiXE1pivqaEui4ADP6Y6w_yHyic9Kp';
 
 let supabaseClient = null;
