@@ -1,20 +1,30 @@
 /**
  * layers.js
  * ------------------------------------------------------------------
- * Carga de archivos GeoJSON, detección (semi-automática) del sistema
- * de coordenadas de origen, y reproyección a WGS84 para poder
- * dibujar la capa en Leaflet.
+ * Carga de archivos (GeoJSON o Shapefile en .zip), detección
+ * (semi-automática) del sistema de coordenadas de origen, y
+ * reproyección a WGS84 para poder dibujar la capa en Leaflet.
+ *
+ * Fuente típica de las capas: geoportal oficial "Colombia en Mapas"
+ * del IGAC (colombiaenmapas.gov.co). Al descargar un territorio
+ * completo desde ahí, normalmente entrega un Shapefile (.zip con
+ * .shp/.dbf/.prj), no un GeoJSON — por eso este archivo soporta
+ * ambos formatos con el mismo flujo de detección/confirmación.
  *
  * Estrategia de detección (deliberadamente simple):
- *   1. Si el GeoJSON trae un miembro "crs" explícito -> se lee de ahí.
- *   2. Si no, se mira la magnitud de la primera coordenada:
+ *   1. Si hay un .prj (Shapefile): se busca un código EPSG declarado
+ *      (AUTHORITY[...]) o se compara el meridiano central del .prj
+ *      contra los sistemas del catálogo.
+ *   2. Si el GeoJSON trae un miembro "crs" explícito -> se lee de ahí.
+ *   3. Si no hay nada de lo anterior, se mira la magnitud de la
+ *      primera coordenada:
  *        - valores entre [-180,180] / [-90,90]  -> probablemente geográfico
  *        - "false easting" ~5.000.000            -> probablemente EPSG:9377
  *        - "false easting/northing" ~1.000.000   -> probablemente EPSG:3116
  *        - resto de valores en metros             -> probablemente UTM
- *   3. SIEMPRE se le pide confirmación al usuario antes de usar el
- *      resultado. La heurística es un punto de partida, no una
- *      verdad absoluta.
+ *   4. SIEMPRE se le pide confirmación al usuario antes de usar el
+ *      resultado. La detección es un punto de partida, no una verdad
+ *      absoluta.
  * ------------------------------------------------------------------
  */
 
@@ -52,7 +62,51 @@ function guessEpsgHeuristic(x, y) {
   return { epsg: 'EPSG:4326', confidence: 'sin coincidencias claras, revisar manualmente' };
 }
 
-function detectCRS(geojson) {
+/**
+ * Intenta identificar el EPSG a partir del texto WKT de un .prj
+ * (el archivo de proyección que acompaña a un Shapefile):
+ *   1) Busca un código EPSG declarado explícitamente (AUTHORITY[...]).
+ *   2) Si no está, extrae el meridiano central del .prj y lo compara
+ *      contra el de cada sistema proyectado del catálogo (usando los
+ *      parámetros que proj4 ya tiene registrados con proj4.defs()).
+ *   3) Si el .prj es puramente geográfico (sin PROJCS), asume WGS84.
+ * Devuelve null si no se pudo determinar nada (se cae al resto de
+ * la estrategia de detección).
+ */
+function detectEpsgFromPrjText(prjText) {
+  if (!prjText) return null;
+
+  const authorityMatches = [...prjText.matchAll(/AUTHORITY\[["']EPSG["'],\s*["']?(\d+)["']?\]/gi)];
+  if (authorityMatches.length > 0) {
+    const code = authorityMatches[authorityMatches.length - 1][1];
+    return { epsg: `EPSG:${code}`, source: `declarado en el .prj (EPSG:${code})` };
+  }
+
+  const cmMatch = prjText.match(/PARAMETER\[["']central_meridian["'],\s*(-?[\d.]+)\]/i);
+  if (cmMatch) {
+    const lonDeg = parseFloat(cmMatch[1]);
+    for (const c of CRS_CATALOG) {
+      if (c.kind !== 'proyectado') continue;
+      const def = proj4.defs(c.epsg);
+      if (!def || typeof def.long0 !== 'number') continue;
+      const defLonDeg = (def.long0 * 180) / Math.PI;
+      if (Math.abs(defLonDeg - lonDeg) < 0.05) {
+        return { epsg: c.epsg, source: `parámetros del .prj (meridiano central ≈ ${lonDeg}°)` };
+      }
+    }
+  }
+
+  if (!/PROJCS/i.test(prjText)) {
+    return { epsg: 'EPSG:4326', source: '.prj sin proyección (geográfico), se asume WGS84' };
+  }
+
+  return null;
+}
+
+function detectCRS(geojson, prjText) {
+  const fromPrj = detectEpsgFromPrjText(prjText);
+  if (fromPrj) return fromPrj;
+
   const declared = guessEpsgFromCrsMember(geojson);
   if (declared) return { epsg: declared, source: `declarado en el archivo (${declared})` };
 
@@ -80,6 +134,44 @@ function reprojectGeoJSONToWGS84(geojson, fromEpsg) {
   return clone;
 }
 
+/**
+ * Convierte un ArrayBuffer de un .zip con un Shapefile (.shp/.dbf/.prj)
+ * en un GeoJSON con las coordenadas TAL COMO VIENEN en el archivo
+ * (sin reproyectar, a propósito) + el texto del .prj — así se puede
+ * reutilizar exactamente el mismo flujo de detección/confirmación
+ * que ya se usa con GeoJSON.
+ */
+async function parseShapefileZip(arrayBuffer) {
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir);
+
+  const shpName = names.find((n) => n.toLowerCase().endsWith('.shp'));
+  if (!shpName) throw new Error('El .zip no contiene un archivo .shp');
+
+  const base = shpName.slice(0, -4).toLowerCase();
+  const dbfName = names.find((n) => n.toLowerCase() === base + '.dbf');
+  const prjName = names.find((n) => n.toLowerCase() === base + '.prj');
+  const cpgName = names.find((n) => n.toLowerCase() === base + '.cpg');
+
+  const shpBuffer = await zip.files[shpName].async('arraybuffer');
+  const dbfBuffer = dbfName ? await zip.files[dbfName].async('arraybuffer') : null;
+  const prjText = prjName ? await zip.files[prjName].async('text') : null;
+  const cpgText = cpgName ? await zip.files[cpgName].async('text') : null;
+
+  const geometries = shp.parseShp(shpBuffer); // sin pasar el prj: coordenadas crudas, a propósito
+  let geojson;
+  if (dbfBuffer) {
+    const properties = shp.parseDbf(dbfBuffer, cpgText);
+    geojson = shp.combine([geometries, properties]);
+  } else {
+    geojson = {
+      type: 'FeatureCollection',
+      features: geometries.map((g) => ({ type: 'Feature', properties: {}, geometry: g })),
+    };
+  }
+  return { geojson, prjText };
+}
+
 function addLayerToMap(map, geojson, name, epsg) {
   currentMap = map;
   const layer = L.geoJSON(geojson, {
@@ -92,6 +184,7 @@ function addLayerToMap(map, geojson, name, epsg) {
   map.fitBounds(layer.getBounds(), { maxZoom: 14 });
 }
 
+/** Muestra/oculta una capa sin quitarla de la lista ni del estado. */
 function toggleLayerVisibility(id) {
   const entry = loadedLayers.find((l) => l.id === id);
   if (!entry || !currentMap) return;
@@ -104,6 +197,7 @@ function toggleLayerVisibility(id) {
   renderLayersList();
 }
 
+/** Quita una capa por completo: del mapa y de la lista. */
 function removeLayer(id) {
   const index = loadedLayers.findIndex((l) => l.id === id);
   if (index === -1) return;
@@ -152,8 +246,40 @@ function renderLayersList() {
   });
 }
 
-/** Punto de entrada: se llama cuando el usuario elige un archivo. */
+/** Muestra el panel "2 · Sistema detectado" con la sugerencia ya lista para confirmar. */
+function presentDetection(geojson, fileName, prjText) {
+  const detection = detectCRS(geojson, prjText);
+  pendingGeoJSON = { geojson, fileName };
+
+  const panel = document.getElementById('crs-detect-panel');
+  const hint = document.getElementById('crs-detect-hint');
+  const select = document.getElementById('crs-detect-select');
+
+  hint.textContent = `Detección: ${detection.source}. Verifica y confirma antes de añadir la capa.`;
+  select.innerHTML = '';
+  CRS_CATALOG.forEach((c) => {
+    const opt = document.createElement('option');
+    opt.value = c.epsg;
+    opt.textContent = `${c.label} — ${c.epsg}`;
+    if (c.epsg === detection.epsg) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  panel.hidden = false;
+}
+
+/** Punto de entrada: se llama cuando el usuario elige un archivo (.geojson/.json o .zip). */
 function handleFileSelected(file, map) {
+  const ext = file.name.toLowerCase().split('.').pop();
+
+  if (ext === 'zip') {
+    file.arrayBuffer()
+      .then(parseShapefileZip)
+      .then(({ geojson, prjText }) => presentDetection(geojson, file.name, prjText))
+      .catch((err) => alert('No se pudo leer el Shapefile: ' + err.message));
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = (e) => {
     let geojson;
@@ -163,25 +289,7 @@ function handleFileSelected(file, map) {
       alert('El archivo no es un GeoJSON válido.');
       return;
     }
-
-    const detection = detectCRS(geojson);
-    pendingGeoJSON = { geojson, fileName: file.name };
-
-    const panel = document.getElementById('crs-detect-panel');
-    const hint = document.getElementById('crs-detect-hint');
-    const select = document.getElementById('crs-detect-select');
-
-    hint.textContent = `Detección: ${detection.source}. Verifica y confirma antes de añadir la capa.`;
-    select.innerHTML = '';
-    CRS_CATALOG.forEach((c) => {
-      const opt = document.createElement('option');
-      opt.value = c.epsg;
-      opt.textContent = `${c.label} — ${c.epsg}`;
-      if (c.epsg === detection.epsg) opt.selected = true;
-      select.appendChild(opt);
-    });
-
-    panel.hidden = false;
+    presentDetection(geojson, file.name, null);
   };
   reader.readAsText(file);
 }
@@ -192,7 +300,7 @@ function confirmPendingLayer(map) {
   const reprojected = reprojectGeoJSONToWGS84(pendingGeoJSON.geojson, epsg);
   addLayerToMap(map, reprojected, pendingGeoJSON.fileName, epsg);
 
-  // Ejemplo de persistencia opcional en Supabase (ver supabaseClient.js)
+  // Guardar la metadata de la capa en Supabase (no bloquea la interfaz)
   saveLayerMetadata(pendingGeoJSON.fileName, epsg);
 
   pendingGeoJSON = null;
