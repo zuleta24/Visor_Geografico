@@ -22,7 +22,7 @@
     <aside class="sidebar">
 
       <header class="sidebar__header">
-        <span class="sidebar__eyebrow">Visor Jacobo Florez - Ana Sofia - Sebastian Zuleta - Ana Saenz</span>
+        <span class="sidebar__eyebrow">Visor Jacobo Florez - Ana Sofia - Sebastian Zuleta</span>
         <h1 class="sidebar__title">Panel de control</h1>
       </header>
 
@@ -36,6 +36,13 @@
         <input type="file" id="file-input" accept=".geojson,.json,.zip" hidden />
       </section>
 
+      <section class="panel">
+        <h3 class="panel__title">Instituciones educativas</h3>
+        <p id="instituciones-total">Cargando...</p>
+        <ul id="category-list" class="category-list"></ul>
+      </section>
+      
+
       <!-- Confirmación de CRS detectado -->
       <section class="panel" id="crs-detect-panel" hidden>
         <h2 class="panel__title">2 · Sistema detectado</h2>
@@ -43,6 +50,14 @@
         <select id="crs-detect-select" class="select"></select>
         <button id="crs-detect-confirm" class="btn btn--accent">Confirmar y añadir capa</button>
       </section>
+
+      <section class="panel-section">
+        <h3>Instituciones educativas</h3>
+        <p id="instituciones-total">Cargando...</p>
+        <ul id="category-list"></ul>
+      </section>
+      
+    
 
       <!-- Capas cargadas -->
       <section class="panel">
@@ -101,6 +116,7 @@
   <script src="js/crs.js"></script>
   <script src="js/supabaseClient.js"></script>
   <script src="js/layers.js"></script>
+  <script src="js/instituciones.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

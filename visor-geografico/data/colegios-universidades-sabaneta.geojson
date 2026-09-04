@@ -1,0 +1,170 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6147678, 6.1482944] },
+      "properties": {
+        "nombre": "I.E. Adelaida Correa Estrada",
+        "tipo": "colegio",
+        "sector": "publico",
+        "direccion": "Carrera 38 #68ASur28, Sabaneta, Antioquia",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6094252, 6.153473] },
+      "properties": {
+        "nombre": "I.E. Concejo de Sabaneta José María Ceballos Botero",
+        "tipo": "colegio",
+        "sector": "publico",
+        "direccion": "Cra. 42 #61 Sur - 12, Alto Las Flores, Sabaneta, Antioquia",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6208395, 6.1501567] },
+      "properties": {
+        "nombre": "I.E. José Félix de Restrepo Vélez",
+        "tipo": "colegio",
+        "sector": "publico",
+        "direccion": "Cra 46C #37, Sabaneta, Antioquia",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6044791, 6.1519136] },
+      "properties": {
+        "nombre": "I.E. María Auxiliadora",
+        "tipo": "colegio",
+        "sector": "publico",
+        "direccion": "Calle 56 Sur #38 - 117",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6053526, 6.1604489] },
+      "properties": {
+        "nombre": "I.E. María Mediadora",
+        "tipo": "colegio",
+        "sector": "publico",
+        "direccion": "Calle 50 Sur #43A - 89",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6160673, 6.1411388] },
+      "properties": {
+        "nombre": "I.E. Primitivo Leal La Doctora",
+        "tipo": "colegio",
+        "sector": "publico",
+        "direccion": "Calle 75 Sur #33 - 53, Vereda La Doctora",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6141199, 6.1506695] },
+      "properties": {
+        "nombre": "I.E. Rafael J. Mejía",
+        "tipo": "colegio",
+        "sector": "publico",
+        "direccion": "Cl. 77 Sur #a-127",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6196159, 6.1530444] },
+      "properties": {
+        "nombre": "I.E. Padre Ramón Arcila",
+        "tipo": "colegio",
+        "sector": "publico",
+        "direccion": "Cl. 70 Sur #46-80",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6160511, 6.1506642] },
+      "properties": {
+        "nombre": "Colegio El Carmelo",
+        "tipo": "colegio",
+        "sector": "privado",
+        "direccion": "Cl. 65 Sur #40 - 21, Alto Las Flores, Sabaneta, Antioquia",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6120706, 6.1521066] },
+      "properties": {
+        "nombre": "Colegio ASPAEN Gimnasio Los Alcázares",
+        "tipo": "colegio",
+        "sector": "privado",
+        "direccion": "Cl. 63 Sur #41-5, Alto Las Flores, Sabaneta, Antioquia",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6235728, 6.1442994] },
+      "properties": {
+        "nombre": "Colegio Campestre El Remanso",
+        "tipo": "colegio",
+        "sector": "privado",
+        "direccion": "Cl. 78 Sur #40- 230, Sabaneta, Antioquia ",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6288277, 6.1447166] },
+      "properties": {
+        "nombre": "Colegio Reggio Emilia",
+        "tipo": "colegio",
+        "sector": "privado",
+        "direccion": "Cra 45A #80 Sur 72",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6165305, 6.1433718] },
+      "properties": {
+        "nombre": "UNISABANETA (Corporación Universitaria Unisabaneta)",
+        "tipo": "universidad",
+        "sector": "privado",
+        "direccion": "Cll 75 Sur #34-120",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6143665, 6.1424352] },
+      "properties": {
+        "nombre": "Fundación Universitaria San Martín",
+        "tipo": "universidad",
+        "sector": "privado",
+        "direccion": "Cl 75 Sur #34-50",
+        "estrato": null
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-75.6229045, 6.1452867] },
+      "properties": {
+        "nombre": "Fundación Universitaria CEIPA",
+        "tipo": "universidad",
+        "sector": "privado",
+        "direccion": "Cl 77 Sur #40-165",
+        "estrato": null
+      }
+    }
+  ]
+}
