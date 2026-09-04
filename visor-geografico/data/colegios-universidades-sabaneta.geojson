@@ -135,7 +135,7 @@
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [-75.6165305, 6.1433718] },
+      "geometry": { "type": "Point", "coordinates": [-75.6165305, 6.1428315] },
       "properties": {
         "nombre": "UNISABANETA (Corporación Universitaria Unisabaneta)",
         "tipo": "universidad",
