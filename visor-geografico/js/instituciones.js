@@ -17,7 +17,7 @@
 const CATEGORIAS_INSTITUCIONES = [
   { key: 'colegio-publico',     tipo: 'colegio',     sector: 'publico', label: 'Colegios públicos',      color: '#3b82f6' },
   { key: 'colegio-privado',     tipo: 'colegio',     sector: 'privado', label: 'Colegios privados',      color: '#f97316' },
-  { key: 'universidad-publico', tipo: 'universidad', sector: 'publico', label: 'Universidades públicas', color: '#22c55e' },
+  { key: 'universidad-publico', tipo: 'universidad', sector: 'publico', label: 'Universidades públicas', color: '#22c55e' },  //No registra con universidades publicas, porque no hay
   { key: 'universidad-privado', tipo: 'universidad', sector: 'privado', label: 'Universidades privadas', color: '#a855f7' },
 ];
 
