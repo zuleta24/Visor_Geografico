@@ -380,4 +380,20 @@ Responsive
 .leaflet-popup-tip {
   background: var(--bg-panel-alt);
 }
+
+.institucion-popup__img {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border-subtle);
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+  min-width: 180px;
+}
 }
