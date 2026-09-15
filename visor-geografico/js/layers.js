@@ -21,7 +21,7 @@
  *        - valores entre [-180,180] / [-90,90]  -> probablemente geográfico
  *        - "false easting" ~5.000.000            -> probablemente EPSG:9377
  *        - "false easting/northing" ~1.000.000   -> probablemente EPSG:3116
- *        - resto de valores en metros             -> probablemente UTM
+ *        - resto de valores en metros            -> probablemente UTM
  *   4. SIEMPRE se le pide confirmación al usuario antes de usar el
  *      resultado. La detección es un punto de partida, no una verdad
  *      absoluta.
@@ -298,13 +298,43 @@ function confirmPendingLayer(map) {
   if (!pendingGeoJSON) return;
   const epsg = document.getElementById('crs-detect-select').value;
   const reprojected = reprojectGeoJSONToWGS84(pendingGeoJSON.geojson, epsg);
+  
+  // 1. Añade y muestra la capa en el mapa localmente
   addLayerToMap(map, reprojected, pendingGeoJSON.fileName, epsg);
 
-  // Guardar la metadata de la capa en Supabase (no bloquea la interfaz)
-  saveLayerMetadata(pendingGeoJSON.fileName, epsg);
+  // 2. Guarda la capa y su estructura geométrica en Supabase (Bloque 2 - BD)
+  saveLayerMetadata(pendingGeoJSON.fileName, epsg, reprojected);
 
   pendingGeoJSON = null;
   document.getElementById('crs-detect-panel').hidden = true;
   document.getElementById('file-input').value = '';
   document.getElementById('filedrop-label').textContent = 'Seleccionar archivo…';
+}
+
+/** 
+ * Carga automática de capas directamente desde la base de datos de Supabase 
+ * (Permite que el Front-End llame y renderice las capas persistidas en la BD).
+ */
+async function loadLayersFromSupabaseDB(map) {
+  currentMap = map;
+  const dbLayers = await listLayersFromSupabase();
+  
+  if (!dbLayers || dbLayers.length === 0) return;
+
+  dbLayers.forEach((row) => {
+    if (row.geojson_data) {
+      // Evita duplicar si ya se encuentra cargada en el visor
+      const yaExiste = loadedLayers.some((l) => l.name === row.name);
+      if (!yaExiste) {
+        const layer = L.geoJSON(row.geojson_data, {
+          style: { color: '#29e2b8', weight: 2, fillOpacity: 0.15 },
+        }).addTo(map);
+
+        const id = `layer-db-${row.id || Math.random()}`;
+        loadedLayers.push({ id, name: row.name, epsg: row.epsg_code, layer, visible: true });
+      }
+    }
+  });
+
+  renderLayersList();
 }

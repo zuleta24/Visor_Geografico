@@ -20,23 +20,37 @@ if (SUPABASE_URL !== 'TU_SUPABASE_URL' && window.supabase) {
 }
 
 /**
- * Guarda la metadata de una capa cargada (nombre, EPSG, fecha).
- * Requiere una tabla "layers" en Supabase — ver docs/arquitectura.md
- * para el SQL de creación.
+ * Guarda la metadata y la estructura geográfica (geojson_data) de una capa 
+ * cargada en Supabase (Bloque 2 - Base de Datos Centralizada).
  */
-async function saveLayerMetadata(name, epsg) {
+async function saveLayerMetadata(name, epsg, geojson = null) {
   if (!supabaseClient) {
     console.warn('Supabase no está configurado todavía (ver js/supabaseClient.js).');
     return;
   }
+  
+  const payload = { 
+    name, 
+    epsg_code: epsg 
+  };
+
+  // Si se pasa el objeto geojson, lo incluimos para guardarlo en la BD
+  if (geojson) {
+    payload.geojson_data = geojson;
+  }
+
   const { data, error } = await supabaseClient
     .from('layers')
-    .insert([{ name, epsg_code: epsg }]);
-  if (error) console.error('Error guardando metadata en Supabase:', error);
+    .insert([payload]);
+    
+  if (error) console.error('Error guardando capa en Supabase:', error);
   return data;
 }
 
-/** Lista las capas registradas previamente en Supabase. */
+/** 
+ * Lista las capas registradas previamente en Supabase junto con 
+ * sus datos geográficos almacenados. 
+ */
 async function listLayersFromSupabase() {
   if (!supabaseClient) return [];
   const { data, error } = await supabaseClient.from('layers').select('*');
