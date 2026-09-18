@@ -8,9 +8,10 @@
  * Cada categoría se dibuja con su color y tiene su propio checkbox.
  *
  * Las instituciones de OSM que ya existen en el directorio oficial
- * (comparando nombres, tolerando que estén escritos distinto, ej.
- * "I.E. Primitivo Leal" vs "Institución Educativa Primitivo Leal")
  * se filtran para no mostrar el punto duplicado dos veces.
+ *
+ * Además, carga el límite administrativo de Sabaneta (Capa 4, un
+ * polígono, no un punto) como una capa de contexto aparte.
  * ------------------------------------------------------------------
  */
 
@@ -24,13 +25,12 @@ const CATEGORIAS_INSTITUCIONES = [
 ];
 
 const institucionesLayers = {};
+let limiteSabanetaLayer = null;
 
 function categoriaKeyDe(props) {
   return `${props.tipo}-${props.sector}`;
 }
 
-/** Quita tildes, prefijos genéricos ("I.E.", "Institución Educativa", etc.)
- *  y palabras vacías, para poder comparar nombres escritos distinto. */
 function normalizarNombre(nombre) {
   return (nombre || '')
     .toLowerCase()
@@ -41,8 +41,6 @@ function normalizarNombre(nombre) {
     .filter((w) => w.length > 2 && !['de', 'la', 'el', 'los', 'las', 'del'].includes(w));
 }
 
-/** Dos nombres se consideran la misma institución si comparten al menos
- *  el 60% de sus palabras significativas (en cualquier orden). */
 function esDuplicado(nombreA, nombreB) {
   const tokensA = normalizarNombre(nombreA);
   const tokensB = normalizarNombre(nombreB);
@@ -53,7 +51,6 @@ function esDuplicado(nombreA, nombreB) {
   return comunes.length / minLen >= 0.6;
 }
 
-/** Quita de "features" cualquier institución cuyo nombre ya aparezca en "nombresOficiales". */
 function quitarDuplicados(features, nombresOficiales) {
   return features.filter(
     (f) => !nombresOficiales.some((nombreOficial) => esDuplicado(f.properties.nombre, nombreOficial))
@@ -108,6 +105,18 @@ function renderCategoryList() {
     }
     list.appendChild(li);
   });
+
+  // Fila extra para el límite municipal (Capa 4), dentro de la misma lista
+  const liLimite = document.createElement('li');
+  liLimite.className = 'category-item';
+  liLimite.innerHTML = `
+    <label class="category-toggle">
+      <input type="checkbox" id="toggle-limite-sabaneta" checked />
+      <span class="category-swatch" style="background:#29e2b8"></span>
+      <span class="category-toggle__label">Límite municipal de Sabaneta</span>
+    </label>
+  `;
+  list.appendChild(liLimite);
 }
 
 function filaAFeature(row) {
@@ -125,7 +134,6 @@ function filaAFeature(row) {
   };
 }
 
-/** Trae todas las filas válidas (con coordenadas) de una tabla/vista de Supabase. */
 async function fetchFeatures(tableName) {
   const { data, error } = await supabaseClient.from(tableName).select('*');
   if (error) {
@@ -135,6 +143,40 @@ async function fetchFeatures(tableName) {
   return data
     .filter((row) => row.longitud !== null && row.latitud !== null && row.longitud !== undefined)
     .map(filaAFeature);
+}
+
+/** Carga el polígono del límite municipal (Capa 4) y su checkbox. */
+async function initLimiteMunicipal(map) {
+  const { data, error } = await supabaseClient.from('capa4_limite_sabaneta_geojson').select('*');
+  if (error) {
+    console.error('Error cargando el límite municipal (Capa 4):', error);
+    return;
+  }
+  if (!data || data.length === 0) return;
+
+  const geometry = JSON.parse(data[0].geojson);
+  const feature = {
+    type: 'Feature',
+    properties: { nombre: data[0].nombre, divipola: data[0].divipola },
+    geometry,
+  };
+
+  limiteSabanetaLayer = L.geoJSON(feature, {
+    style: { color: '#29e2b8', weight: 2, dashArray: '6 4', fill: false },
+  }).bindPopup(`<strong>${data[0].nombre}</strong><br/>DIVIPOLA: ${data[0].divipola}`);
+
+  limiteSabanetaLayer.addTo(map);
+
+  const checkbox = document.getElementById('toggle-limite-sabaneta');
+  if (checkbox) {
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) {
+        limiteSabanetaLayer.addTo(map);
+      } else {
+        map.removeLayer(limiteSabanetaLayer);
+      }
+    });
+  }
 }
 
 async function initInstitucionesLayer(map) {
@@ -154,15 +196,8 @@ async function initInstitucionesLayer(map) {
   ]);
 
   const nombresOficiales = featuresOficial.map((f) => f.properties.nombre);
-
   const featuresCapa1 = quitarDuplicados(featuresCapa1Raw, nombresOficiales);
   const featuresCapa2 = quitarDuplicados(featuresCapa2Raw, nombresOficiales);
-
-  const duplicadosQuitados = (featuresCapa1Raw.length - featuresCapa1.length)
-    + (featuresCapa2Raw.length - featuresCapa2.length);
-  if (duplicadosQuitados > 0) {
-    console.log(`${duplicadosQuitados} institución(es) de OSM se ocultaron por ya estar en el directorio oficial.`);
-  }
 
   let totalGeneral = 0;
 
@@ -211,4 +246,7 @@ async function initInstitucionesLayer(map) {
   });
 
   if (totalEl) totalEl.textContent = `${totalGeneral} instituciones`;
+
+  // Capa 4: límite municipal (no es una institución, se carga aparte)
+  initLimiteMunicipal(map);
 }
