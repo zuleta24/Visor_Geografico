@@ -21,6 +21,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 initInstitucionesLayer(map);
+initViasLayer(map);
 
 // ---- Selector de sistema de visualización --------------------------
 const displaySelect = document.getElementById('display-crs-select');
