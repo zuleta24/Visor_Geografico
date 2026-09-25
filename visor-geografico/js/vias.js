@@ -86,7 +86,7 @@ async function initViasLayer(map) {
   viasLayer = L.geoJSON(
     { type: 'FeatureCollection', features },
     {
-      style: { color: '#94a3b8', weight: 2, opacity: 0.8 },
+      style: { color: 'rgb(235, 74, 74)', weight: 2, opacity: 0.8 },
       onEachFeature: (feature, layer) => layer.bindPopup(popupVia(feature.properties)),
     }
   );
