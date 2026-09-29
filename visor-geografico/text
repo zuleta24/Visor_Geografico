@@ -13,99 +13,12 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <link rel="stylesheet" href="css/style.css" />
-
-  <!-- ===================== NUEVOS ESTILOS PARA NAVBAR Y SABANETA ===================== -->
-  <style>
-    /* Estilos base para la página para integrar el visor hacia abajo */
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-    }
-
-    /* Panel superior de navegación */
-    .top-navbar {
-      background-color: #111827;
-      padding: 1.2rem 2rem;
-      display: flex;
-      justify-content: center;
-      gap: 3rem;
-      position: sticky;
-      top: 0;
-      z-index: 9999;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    .top-navbar a {
-      color: #ffffff;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 1.1rem;
-      transition: color 0.2s ease-in-out;
-    }
-
-    .top-navbar a:hover {
-      color: #3b82f6;
-    }
-
-    /* Sección de Sabaneta */
-   .sabaneta-section {
-      background-color: #f9fafb;
-      padding: 1rem 2rem; 
-      text-align: center;
-      color: #374151;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .sabaneta-container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .sabaneta-title {
-      font-size: 1.5rem; 
-      color: #1f2937;
-      margin-top: 0;
-      margin-bottom: 0.5rem; 
-    }
-
-    .sabaneta-text {
-      font-size: 0.95rem; 
-      line-height: 1.5; 
-      margin: 0; 
-    }
-
-    /* Ajuste para asegurar que tu visor original conserve su tamaño y formato */
-    #app {
-      position: relative;
-      /* Si tu visor está configurado para ocupar toda la pantalla, le damos un height mínimo */
-      min-height: 100vh; 
-    }
-  </style>
 </head>
 <body>
 
-  <!-- ===================== NUEVO: NAVBAR SUPERIOR ===================== -->
-  <nav class="top-navbar">
-    <a href="#app">Mapas</a>
-    <a href="#app">Instituciones</a>
-  </nav>
-
-  <!-- ===================== NUEVO: VISTA DE SABANETA ===================== -->
-  <section class="sabaneta-section">
-    <div class="sabaneta-container">
-      <h4 class="sabaneta-title">Sabaneta, Antioquia</h4>
-      <p class="sabaneta-text">
-        Conocido como el "Vallecito de Encanto" o el "Rincóncito de Antioquia", Sabaneta es un municipio de Colombia situado en el sur del Valle de Aburrá. A pesar de ser el municipio más pequeño del país en extensión territorial, destaca por su alto nivel de desarrollo, calidad de vida y su infraestructura. En el siguiente visor geográfico podrás explorar su distribución territorial, vías e instituciones.
-      </p>
-    </div>
-  </section>
-
-
-  <!-- ===================== TU CÓDIGO INTACTO (VISOR GEOGRÁFICO) ===================== -->
   <div id="app">
 
-    <!-- SIDEBAR -->
+    <!-- ===================== SIDEBAR ===================== -->
     <aside class="sidebar">
 
       <header class="sidebar__header">
@@ -123,6 +36,12 @@
         <input type="file" id="file-input" accept=".geojson,.json,.zip" hidden />
       </section>
 
+      <!--section class="panel">
+        <h3 class="panel__title">Instituciones educativas</h3>
+        <p id="instituciones-total">Cargando...</p>
+        <ul id="category-list" class="category-list"></ul>
+      </section -->
+
       <!-- Confirmación de CRS detectado -->
       <section class="panel" id="crs-detect-panel" hidden>
         <h2 class="panel__title">2 · Sistema detectado</h2>
@@ -137,23 +56,24 @@
         <ul id="category-list"></ul>
       </section>
       
-      <aside class="sidebar sidebar--right">
-        <header class="sidebar__header">
-          <span class="sidebar__eyebrow">Inventario Educativo</span>
-          <h1 class="sidebar__title">Sabaneta</h1>
-        </header>
+        <aside class="sidebar sidebar--right">
+    <header class="sidebar__header">
+      <span class="sidebar__eyebrow">Inventario Educativo</span>
+      <h1 class="sidebar__title">Sabaneta</h1>
+    </header>
 
-        <section class="panel">
-          <h2 class="panel__title">Categorías</h2>
-          <ul class="category-list" id="category-list"></ul>
-        </section>
+    <section class="panel">
+      <h2 class="panel__title">Categorías</h2>
+      <ul class="category-list" id="category-list"></ul>
+    </section>
 
-        <section class="panel panel--readout">
-          <h2 class="panel__title">Total en el mapa</h2>
-          <div class="readout" id="instituciones-total">Cargando…</div>
-        </section>
-      </aside>
-      
+    <section class="panel panel--readout">
+      <h2 class="panel__title">Total en el mapa</h2>
+      <div class="readout" id="instituciones-total">Cargando…</div>
+    </section>
+  </aside>
+    
+
       <!-- Capas cargadas -->
       <section class="panel">
         <h2 class="panel__title">Capas cargadas</h2>
@@ -190,7 +110,7 @@
 
     </aside>
 
-    <!-- MAPA -->
+    <!-- ===================== MAPA ===================== -->
     <main class="map-container">
       <div id="map"></div>
     </main>
