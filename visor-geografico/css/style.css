@@ -391,6 +391,158 @@ Lectura de coordenadas (estilo instrumento GPS)
   min-width: 180px;
 }
 
+.institucion-popup__link {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.institucion-popup__link:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================
+   Modal de detalle de institución
+   ============================================================ */
+.institucion-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.institucion-modal--open {
+  display: flex;
+}
+
+.institucion-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 18, 32, 0.72);
+}
+
+.institucion-modal__panel {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.institucion-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.institucion-modal__close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.institucion-modal__img {
+  display: block;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border-subtle);
+}
+
+.institucion-modal__nombre {
+  margin: 0 0 4px;
+  font-size: 17px;
+  color: var(--text-primary);
+}
+
+.institucion-modal__categoria {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.institucion-modal__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.institucion-modal__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 10px 6px;
+}
+.institucion-modal__stat-valor {
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+.institucion-modal__stat-label {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.institucion-modal__datos {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 7px 14px;
+}
+.institucion-modal__datos dt {
+  color: var(--text-secondary);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.institucion-modal__datos dd {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+.institucion-modal__datos dd a {
+  color: var(--accent);
+}
+
+.institucion-modal__descripcion {
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 /* ============================================================
 Responsive
    ============================================================ */

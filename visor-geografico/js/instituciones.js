@@ -31,6 +31,11 @@ const ESTILO_LIMITE_SABANETA = {
 const institucionesLayers = {};
 let limiteSabanetaLayer = null;
 
+// Registro id -> { props, categoria }, para que el modal de detalle
+// pueda recuperar la institución sin recorrer el mapa de nuevo.
+const institucionesIndex = {};
+let institucionesContador = 0;
+
 // ==========================================
 // 3. UTILIDADES Y PROCESAMIENTO DE DATOS
 // ==========================================
@@ -78,6 +83,17 @@ function filaAFeature(row) {
       direccion: row.direccion,
       estrato: row.estrato,
       imagen_url: row.imagen_url,
+      // Opcionales para el modal de detalle: si la fila no los tiene,
+      // simplemente quedan undefined y esa fila no se muestra.
+      telefono: row.telefono,
+      sitio_web: row.sitio_web,
+      horario: row.horario,
+      descripcion: row.descripcion,
+      // Indicadores académicos (opcionales).
+      num_estudiantes: row.num_estudiantes,
+      cupos_disponibles: row.cupos_disponibles,
+      recursos_tecnologicos: row.recursos_tecnologicos,
+      num_docentes: row.num_docentes,
     },
   };
 }
@@ -85,7 +101,7 @@ function filaAFeature(row) {
 // ==========================================
 // 4. RENDERIZADO DE INTERFAZ (UI)
 // ==========================================
-function construirHtmlPopup(props, categoria) {
+function construirHtmlPopup(props, categoria, id) {
   const estrato = props.estrato ?? 'No disponible';
   const sectorTexto = props.sector ?? 'No especificado (OSM)';
   const labelCategoria = categoria ? categoria.label : '';
@@ -103,7 +119,8 @@ function construirHtmlPopup(props, categoria) {
       <span class="institucion-popup__categoria">${labelCategoria}</span><br/>
       <span>${props.direccion || 'Sin dirección registrada'}</span><br/>
       <span>Sector: ${sectorTexto}</span><br/>
-      <span>Estrato: ${estrato}</span>
+      <span>Estrato: ${estrato}</span><br/>
+      <a href="javascript:void(0)" class="institucion-popup__link" data-institucion-id="${id}">Detalles de la institución →</a>
     </div>
   `;
 }
@@ -151,6 +168,121 @@ function renderCategoryList() {
   list.appendChild(liLimite);
 }
 
+/**
+ * Crea (una sola vez) el contenedor del modal de detalle y lo agrega al
+ * final del <body>. No requiere tocar index.html.
+ */
+function asegurarModalInstitucion() {
+  if (document.getElementById('institucion-modal')) return;
+
+  const modal = document.createElement('div');
+  modal.id = 'institucion-modal';
+  modal.className = 'institucion-modal';
+  modal.innerHTML = `
+    <div class="institucion-modal__backdrop" data-cerrar-modal></div>
+    <div class="institucion-modal__panel" role="dialog" aria-modal="true">
+      <button type="button" class="institucion-modal__close" data-cerrar-modal aria-label="Cerrar">&times;</button>
+      <div class="institucion-modal__body"></div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  modal.addEventListener('click', (e) => {
+    if (e.target.dataset.cerrarModal !== undefined) cerrarModalInstitucion();
+  });
+}
+
+function cerrarModalInstitucion() {
+  const modal = document.getElementById('institucion-modal');
+  if (modal) modal.classList.remove('institucion-modal--open');
+}
+
+/**
+ * Llena el modal con la información de la institución "id" y lo muestra.
+ * Los campos opcionales (telefono, sitio_web, horario, descripcion) solo
+ * aparecen si existen en la fila de Supabase; si no, se omiten.
+ */
+function abrirDetalleInstitucion(id) {
+  const entry = institucionesIndex[id];
+  if (!entry) return;
+
+  const { props, categoria } = entry;
+  asegurarModalInstitucion();
+
+  const estrato = props.estrato ?? 'No disponible';
+  const sectorTexto = props.sector ?? 'No especificado (OSM)';
+
+  const imagenHtml = props.imagen_url
+    ? `<img src="${props.imagen_url}" alt="${props.nombre}" class="institucion-modal__img"
+         onerror="this.style.display='none'" />`
+    : '';
+
+  const filasExtra = [
+    props.telefono ? ['Teléfono', props.telefono] : null,
+    props.sitio_web ? ['Sitio web', `<a href="${props.sitio_web}" target="_blank" rel="noopener">${props.sitio_web}</a>`] : null,
+    props.horario ? ['Horario', props.horario] : null,
+  ].filter(Boolean);
+
+  const descripcionHtml = props.descripcion
+    ? `<p class="institucion-modal__descripcion">${props.descripcion}</p>`
+    : '';
+
+  // Indicadores académicos: solo se muestran los que tienen valor.
+  const indicadores = [
+    (props.num_estudiantes !== null && props.num_estudiantes !== undefined)
+      ? { label: 'Estudiantes', valor: props.num_estudiantes }
+      : null,
+    (props.cupos_disponibles !== null && props.cupos_disponibles !== undefined)
+      ? { label: 'Cupos disponibles', valor: props.cupos_disponibles }
+      : null,
+    (props.recursos_tecnologicos !== null && props.recursos_tecnologicos !== undefined)
+      ? { label: 'Recursos tecnológicos', valor: props.recursos_tecnologicos }
+      : null,
+    (props.num_docentes !== null && props.num_docentes !== undefined)
+      ? { label: 'Docentes', valor: props.num_docentes }
+      : null,
+  ].filter(Boolean);
+
+  const indicadoresHtml = indicadores.length
+    ? `<div class="institucion-modal__stats">`
+      + indicadores.map((i) => (
+        `<div class="institucion-modal__stat">`
+        + `<span class="institucion-modal__stat-valor">${i.valor}</span>`
+        + `<span class="institucion-modal__stat-label">${i.label}</span>`
+        + `</div>`
+      )).join('')
+      + `</div>`
+    : '';
+
+  const body = document.querySelector('#institucion-modal .institucion-modal__body');
+  body.innerHTML = (
+    imagenHtml
+    + `<h3 class="institucion-modal__nombre">${props.nombre}</h3>`
+    + `<span class="institucion-modal__categoria">${categoria ? categoria.label : ''}</span>`
+    + indicadoresHtml
+    + `<dl class="institucion-modal__datos">`
+    + `<dt>Dirección</dt><dd>${props.direccion || 'Sin dirección registrada'}</dd>`
+    + `<dt>Sector</dt><dd>${sectorTexto}</dd>`
+    + `<dt>Estrato</dt><dd>${estrato}</dd>`
+    + filasExtra.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')
+    + `</dl>`
+    + descripcionHtml
+  );
+
+  document.getElementById('institucion-modal').classList.add('institucion-modal--open');
+}
+
+// Delegación de eventos: el enlace vive dentro de un popup de Leaflet que
+// se crea y se destruye dinámicamente, así que se escucha en document.
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('.institucion-popup__link');
+  if (link) abrirDetalleInstitucion(link.dataset.institucionId);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') cerrarModalInstitucion();
+});
+
 // ==========================================
 // 5. SERVICIOS DE DATOS (SUPABASE)
 // ==========================================
@@ -174,13 +306,18 @@ function crearCapaInstitucion(featuresCategoria, cat, map) {
   const layer = L.geoJSON(
     { type: 'FeatureCollection', features: featuresCategoria },
     {
-      pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-        radius: 7,
-        color: '#0b1220',
-        weight: 1,
-        fillColor: cat.color,
-        fillOpacity: 0.9,
-      }).bindPopup(construirHtmlPopup(feature.properties, cat)),
+      pointToLayer: (feature, latlng) => {
+        const id = `institucion-${institucionesContador++}`;
+        institucionesIndex[id] = { props: feature.properties, categoria: cat };
+
+        return L.circleMarker(latlng, {
+          radius: 7,
+          color: '#0b1220',
+          weight: 1,
+          fillColor: cat.color,
+          fillOpacity: 0.9,
+        }).bindPopup(construirHtmlPopup(feature.properties, cat, id));
+      },
     }
   );
 
