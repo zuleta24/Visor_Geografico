@@ -302,40 +302,72 @@ async function fetchFeatures(tableName) {
 // ==========================================
 // 6. GESTIÓN DE MAPAS (LEAFLET)
 // ==========================================
-function crearCapaInstitucion(featuresCategoria, cat, map) {
+function crearCapaInstitucion(featuresCategoria,cat,map,grupoInstituciones) 
+{
   const layer = L.geoJSON(
-    { type: 'FeatureCollection', features: featuresCategoria },
+    {
+      type: 'FeatureCollection',
+      features: featuresCategoria
+    },
     {
       pointToLayer: (feature, latlng) => {
         const id = `institucion-${institucionesContador++}`;
-        institucionesIndex[id] = { props: feature.properties, categoria: cat };
+
+        institucionesIndex[id] = {
+          props: feature.properties,
+          categoria: cat
+        };
 
         return L.circleMarker(latlng, {
           radius: 7,
           color: '#0b1220',
           weight: 1,
           fillColor: cat.color,
-          fillOpacity: 0.9,
-        }).bindPopup(construirHtmlPopup(feature.properties, cat, id));
-      },
+          fillOpacity: 0.9
+        }).bindPopup(
+          construirHtmlPopup(feature.properties, cat, id)
+        );
+      }
     }
   );
 
+  /*
+    Cambio importante:
+    Antes se añadía directamente al mapa:
+
+    layer.addTo(map);
+
+    Ahora se añade al grupo de instituciones.
+  */
+  layer.addTo(grupoInstituciones);
+
   institucionesLayers[cat.key] = layer;
-  layer.addTo(map);
 
-  // Actualizar conteo en la UI
+  // Actualizar el contador de cada categoría en el panel lateral
   const countEl = document.getElementById(`count-${cat.key}`);
-  if (countEl) countEl.textContent = featuresCategoria.length;
 
-  // Lógica del checkbox
-  const checkbox = document.querySelector(`input[data-category="${cat.key}"]`);
+  if (countEl) {
+    countEl.textContent = featuresCategoria.length;
+  }
+
+  /*
+    Cada checkbox del panel activa o desactiva solo su categoría,
+    pero siempre dentro del grupo principal de instituciones.
+  */
+  const checkbox = document.querySelector(
+    `input[data-category="${cat.key}"]`
+  );
+
   if (checkbox) {
     checkbox.addEventListener('change', () => {
-      checkbox.checked ? layer.addTo(map) : map.removeLayer(layer);
+      if (checkbox.checked) {
+        grupoInstituciones.addLayer(layer);
+      } else {
+        grupoInstituciones.removeLayer(layer);
+      }
     });
   }
-  
+
   return featuresCategoria.length;
 }
 
@@ -370,48 +402,85 @@ async function initLimiteMunicipal(map) {
 // ==========================================
 // 7. INICIALIZACIÓN PRINCIPAL
 // ==========================================
-async function initInstitucionesLayer(map) {
+async function initInstitucionesLayer(map, grupoInstituciones) {
   renderCategoryList();
 
+  /*
+    El grupo se añade al mapa una sola vez.
+    Luego cada categoría se añade o elimina dentro de este grupo.
+  */
+  grupoInstituciones.addTo(map);
+
   const totalEl = document.getElementById('instituciones-total');
-  
+
   if (!supabaseClient) {
-    console.warn('Supabase no está configurado (ver js/supabaseClient.js).');
-    if (totalEl) totalEl.textContent = 'Supabase no configurado';
+    console.warn(
+      'Supabase no está configurado (ver js/supabaseClient.js).'
+    );
+
+    if (totalEl) {
+      totalEl.textContent = 'Supabase no configurado';
+    }
+
     return;
   }
 
-  // Carga paralela de todas las capas
-  const [featuresOficial, featuresCapa1Raw, featuresCapa2Raw] = await Promise.all([
+  // Carga paralela desde Supabase
+  const [
+    featuresOficial,
+    featuresCapa1Raw,
+    featuresCapa2Raw
+  ] = await Promise.all([
     fetchFeatures('instituciones_educativas'),
     fetchFeatures('capa1_colegios_geojson'),
-    fetchFeatures('capa2_colegios_detalle_geojson'),
+    fetchFeatures('capa2_colegios_detalle_geojson')
   ]);
 
-  // Filtrado de duplicados
-  const nombresOficiales = featuresOficial.map((f) => f.properties.nombre);
-  const featuresCapa1 = quitarDuplicados(featuresCapa1Raw, nombresOficiales);
-  const featuresCapa2 = quitarDuplicados(featuresCapa2Raw, nombresOficiales);
+  // Eliminar duplicados frente a la fuente oficial
+  const nombresOficiales = featuresOficial.map(
+    (feature) => feature.properties.nombre
+  );
+
+  const featuresCapa1 = quitarDuplicados(
+    featuresCapa1Raw,
+    nombresOficiales
+  );
+
+  const featuresCapa2 = quitarDuplicados(
+    featuresCapa2Raw,
+    nombresOficiales
+  );
 
   let totalGeneral = 0;
 
-  // Renderizado por categoría
+  // Crear una capa para cada categoría
   CATEGORIAS_INSTITUCIONES.forEach((cat) => {
     let featuresCategoria = [];
-    
+
     if (cat.source === 'oficial') {
-      featuresCategoria = featuresOficial.filter((f) => categoriaKeyDe(f.properties) === cat.key);
+      featuresCategoria = featuresOficial.filter(
+        (feature) =>
+          categoriaKeyDe(feature.properties) === cat.key
+      );
     } else if (cat.source === 'capa1') {
       featuresCategoria = featuresCapa1;
     } else if (cat.source === 'capa2') {
       featuresCategoria = featuresCapa2;
     }
 
-    totalGeneral += crearCapaInstitucion(featuresCategoria, cat, map);
+    totalGeneral += crearCapaInstitucion(
+      featuresCategoria,
+      cat,
+      map,
+      grupoInstituciones
+    );
   });
 
-  if (totalEl) totalEl.textContent = `${totalGeneral} instituciones`;
+  // Actualizar el contador total del panel lateral
+  if (totalEl) {
+    totalEl.textContent = `${totalGeneral} instituciones`;
+  }
 
-  // Cargar límite municipal
+  // El límite se mantiene como una capa independiente por ahora
   await initLimiteMunicipal(map);
 }

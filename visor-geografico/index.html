@@ -2,45 +2,55 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
   <title>Visor Geográfico · Sistemas de Coordenadas</title>
 
   <!-- Tipografías -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
 
   <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
 
+  <!-- Estilos principales del proyecto -->
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- ===================== NUEVOS ESTILOS PARA NAVBAR Y SABANETA ===================== -->
   <style>
-    /* Estilos base para la página para integrar el visor hacia abajo */
     body {
       margin: 0;
       padding: 0;
-      font-family: 'Inter', sans-serif;
+      font-family: "Inter", sans-serif;
     }
 
-    /* Panel superior de navegación */
+    /* Barra de navegación superior */
     .top-navbar {
-      background-color: #111827;
-      padding: 1.2rem 2rem;
-      display: flex;
-      justify-content: center;
-      gap: 3rem;
       position: sticky;
       top: 0;
       z-index: 9999;
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      padding: 1.2rem 2rem;
+      background-color: #111827;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
     .top-navbar a {
       color: #ffffff;
       text-decoration: none;
-      font-weight: 600;
       font-size: 1.1rem;
+      font-weight: 600;
       transition: color 0.2s ease-in-out;
     }
 
@@ -48,12 +58,12 @@
       color: #3b82f6;
     }
 
-    /* Sección de Sabaneta */
-   .sabaneta-section {
-      background-color: #f9fafb;
-      padding: 1rem 2rem; 
+    /* Sección introductoria de Sabaneta */
+    .sabaneta-section {
+      padding: 1rem 2rem;
       text-align: center;
       color: #374151;
+      background-color: #f9fafb;
       border-bottom: 1px solid #e5e7eb;
     }
 
@@ -63,124 +73,213 @@
     }
 
     .sabaneta-title {
-      font-size: 1.5rem; 
-      color: #1f2937;
       margin-top: 0;
-      margin-bottom: 0.5rem; 
+      margin-bottom: 0.5rem;
+      color: #1f2937;
+      font-size: 1.5rem;
     }
 
     .sabaneta-text {
-      font-size: 0.95rem; 
-      line-height: 1.5; 
-      margin: 0; 
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.5;
     }
 
-    /* Ajuste para asegurar que tu visor original conserve su tamaño y formato */
+    /*
+      El visor ocupará como mínimo toda la altura visible.
+      Tu archivo css/style.css puede contener reglas más específicas.
+    */
     #app {
       position: relative;
-      /* Si tu visor está configurado para ocupar toda la pantalla, le damos un height mínimo */
-      min-height: 100vh; 
+      min-height: 100vh;
+    }
+
+    /* Botones nuevos de navegación del mapa */
+    .map-actions {
+      display: grid;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+
+    .map-actions .btn {
+      width: 100%;
     }
   </style>
 </head>
+
 <body>
 
-  <!-- ===================== NUEVO: NAVBAR SUPERIOR ===================== -->
+  <!-- Barra superior -->
   <nav class="top-navbar">
     <a href="#app">Mapas</a>
     <a href="#app">Administración</a>
   </nav>
 
-  <!-- ===================== NUEVO: VISTA DE SABANETA ===================== -->
+  <!-- Presentación del municipio -->
   <section class="sabaneta-section">
     <div class="sabaneta-container">
-      <h4 class="sabaneta-title">Sabaneta, Antioquia</h4>
+      <h2 class="sabaneta-title">Sabaneta, Antioquia</h2>
+
       <p class="sabaneta-text">
-        Conocido como el "Vallecito de Encanto" o el "Rincóncito de Antioquia", Sabaneta es un municipio de Colombia situado en el sur del Valle de Aburrá. A pesar de ser el municipio más pequeño del país en extensión territorial, destaca por su alto nivel de desarrollo, calidad de vida y su infraestructura. En el siguiente visor geográfico podrás explorar su distribución territorial, vías e instituciones.
+        Conocido como el “Vallecito de Encanto” o el “Rinconcito de
+        Antioquia”, Sabaneta es un municipio de Colombia situado al sur del
+        Valle de Aburrá. A pesar de ser el municipio más pequeño del país en
+        extensión territorial, destaca por su alto nivel de desarrollo,
+        calidad de vida e infraestructura. En este visor geográfico podrás
+        explorar su distribución territorial, vías e instituciones.
       </p>
     </div>
   </section>
 
-
-  <!-- ===================== TU CÓDIGO INTACTO (VISOR GEOGRÁFICO) ===================== -->
+  <!-- Aplicación del visor -->
   <div id="app">
 
-    <!-- SIDEBAR -->
+    <!-- Panel lateral izquierdo -->
     <aside class="sidebar">
 
       <header class="sidebar__header">
-        <span class="sidebar__eyebrow">Visor Inicial Jacobo Florez - Sebastian Zuleta - Ana Sofia Saenz</span>
+        <span class="sidebar__eyebrow">
+          Visor inicial · Jacobo Florez · Sebastian Zuleta · Ana Sofia Saenz
+        </span>
+
         <h1 class="sidebar__title">Panel de control</h1>
       </header>
 
-      <!-- Cargar capa -->
+      <!-- Cargar capas -->
       <section class="panel">
         <h2 class="panel__title">1 · Cargar capa</h2>
-        <p class="panel__hint">GeoJSON (.geojson/.json) o Shapefile en .zip (.shp+.dbf+.prj)</p>
+
+        <p class="panel__hint">
+          GeoJSON (.geojson/.json) o Shapefile comprimido en .zip
+          (.shp + .dbf + .prj)
+        </p>
+
         <label class="filedrop" for="file-input">
           <span id="filedrop-label">Seleccionar archivo…</span>
         </label>
-        <input type="file" id="file-input" accept=".geojson,.json,.zip" hidden />
+
+        <input
+          type="file"
+          id="file-input"
+          accept=".geojson,.json,.zip"
+          hidden
+        />
       </section>
 
       <!-- Confirmación de CRS detectado -->
       <section class="panel" id="crs-detect-panel" hidden>
         <h2 class="panel__title">2 · Sistema detectado</h2>
+
         <p class="panel__hint" id="crs-detect-hint">—</p>
-        <select id="crs-detect-select" class="select"></select>
-        <button id="crs-detect-confirm" class="btn btn--accent">Confirmar y añadir capa</button>
+
+        <select
+          id="crs-detect-select"
+          class="select"
+        ></select>
+
+        <button
+          id="crs-detect-confirm"
+          class="btn btn--accent"
+          type="button"
+        >
+          Confirmar y añadir capa
+        </button>
       </section>
 
+      <!-- Instituciones educativas -->
       <section class="panel-section">
-        <h3>Instituciones educativas</h3>
+        <h2 class="panel__title">Instituciones educativas</h2>
+
         <p id="instituciones-total">Cargando...</p>
-        <ul id="category-list"></ul>
+
+        <!-- Debe existir una sola vez -->
+        <ul id="category-list" class="category-list"></ul>
       </section>
-      
-      <aside class="sidebar sidebar--right">
-        <header class="sidebar__header">
-          <span class="sidebar__eyebrow">Inventario Educativo</span>
-          <h1 class="sidebar__title">Sabaneta</h1>
-        </header>
 
-        <section class="panel">
-          <h2 class="panel__title">Categorías</h2>
-          <ul class="category-list" id="category-list"></ul>
-        </section>
-
-        <section class="panel panel--readout">
-          <h2 class="panel__title">Total en el mapa</h2>
-          <div class="readout" id="instituciones-total">Cargando…</div>
-        </section>
-      </aside>
-      
-      <!-- Capas cargadas -->
+      <!-- Capas cargadas desde archivo -->
       <section class="panel">
         <h2 class="panel__title">Capas cargadas</h2>
+
         <ul id="layers-list" class="layers-list">
-          <li class="layers-list__empty">Aún no hay capas cargadas.</li>
+          <li class="layers-list__empty">
+            Aún no hay capas cargadas.
+          </li>
         </ul>
       </section>
 
-      <!-- Sistema de visualización de coordenadas -->
+      <!-- Selector del sistema de coordenadas -->
       <section class="panel">
         <h2 class="panel__title">3 · Mostrar coordenadas en</h2>
-        <select id="display-crs-select" class="select"></select>
+
+        <select
+          id="display-crs-select"
+          class="select"
+        ></select>
       </section>
 
-      <!-- Lectura en vivo -->
+      <!-- Coordenadas en tiempo real -->
       <section class="panel panel--readout">
         <h2 class="panel__title">Lectura del cursor</h2>
-        <div class="readout" id="readout-system">EPSG:4326 · WGS84</div>
+
+        <div class="readout" id="readout-system">
+          EPSG:4326 · WGS84
+        </div>
+
         <div class="readout-grid">
           <div class="readout-field">
-            <span class="readout-field__label" id="readout-label-1">LAT</span>
-            <span class="readout-field__value" id="readout-value-1">—</span>
+            <span
+              class="readout-field__label"
+              id="readout-label-1"
+            >
+              LAT
+            </span>
+
+            <span
+              class="readout-field__value"
+              id="readout-value-1"
+            >
+              —
+            </span>
           </div>
+
           <div class="readout-field">
-            <span class="readout-field__label" id="readout-label-2">LON</span>
-            <span class="readout-field__value" id="readout-value-2">—</span>
+            <span
+              class="readout-field__label"
+              id="readout-label-2"
+            >
+              LON
+            </span>
+
+            <span
+              class="readout-field__value"
+              id="readout-value-2"
+            >
+              —
+            </span>
           </div>
+        </div>
+      </section>
+
+      <!-- Botones nuevos para el mapa -->
+      <section class="panel">
+        <h2 class="panel__title">Herramientas del mapa</h2>
+
+        <div class="map-actions">
+          <button
+            id="btn-center-sabaneta"
+            class="btn btn--accent"
+            type="button"
+          >
+            ⌖ Centrar en Sabaneta
+          </button>
+
+          <button
+            id="btn-my-location"
+            class="btn"
+            type="button"
+          >
+            ◎ Mi ubicación
+          </button>
         </div>
       </section>
 
@@ -190,7 +289,7 @@
 
     </aside>
 
-    <!-- MAPA -->
+    <!-- Área principal del mapa -->
     <main class="map-container">
       <div id="map"></div>
     </main>
@@ -199,20 +298,25 @@
 
   <!-- Leaflet -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- proj4js: motor de conversión entre sistemas de coordenadas -->
+
+  <!-- Conversión entre sistemas de coordenadas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
-  <!-- JSZip: para poder abrir Shapefiles descargados como .zip -->
+
+  <!-- Lectura de archivos Shapefile comprimidos -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <!-- shpjs: convierte Shapefile (.shp/.dbf/.prj) a GeoJSON -->
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/shpjs/6.2.0/shp.min.js"></script>
-  <!-- Cliente de Supabase (opcional mientras no se conecte el proyecto) -->
+
+  <!-- Cliente Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
+  <!-- Scripts propios: este orden es importante -->
   <script src="js/crs.js"></script>
   <script src="js/supabaseClient.js"></script>
   <script src="js/layers.js"></script>
   <script src="js/instituciones.js"></script>
   <script src="js/vias.js"></script>
   <script src="js/main.js"></script>
+
 </body>
 </html>
