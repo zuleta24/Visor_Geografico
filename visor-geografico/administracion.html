@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Administración · Visor Geográfico Sabaneta</title>
+
+<!--
+  AJUSTA ESTAS DOS RUTAS si tu proyecto las tiene en otro lugar:
+  - styles.css   -> la misma hoja de estilos del visor (tokens de color, etc.)
+  - js/supabaseClient.js -> donde defines la variable global `supabaseClient`
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+
+<!-- Mismo SDK de Supabase que usa tu visor. Si en index.html usas otra
+     versión, cámbiala aquí para que coincida. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseClient.js"></script>
+</head>
+<body class="admin-body">
+
+  <nav class="admin-nav">
+    <a href="index.html" class="admin-nav__link">← Volver al mapa</a>
+    <span class="admin-nav__title">Panel de administración</span>
+    <button id="btn-cerrar-sesion" class="admin-nav__logout" hidden>Cerrar sesión</button>
+  </nav>
+
+  <!-- ============================================================
+       PANTALLA DE LOGIN
+       ============================================================ -->
+  <div id="login-screen" class="admin-login">
+    <form id="form-login" class="admin-login__card">
+      <h1 class="admin-login__title">Acceso administrativo</h1>
+      <p class="admin-login__hint">Ingresa con tu cuenta de administrador para editar las instituciones.</p>
+
+      <label class="admin-field">
+        <span>Correo</span>
+        <input type="email" id="login-email" required autocomplete="username" />
+      </label>
+
+      <label class="admin-field">
+        <span>Contraseña</span>
+        <input type="password" id="login-password" required autocomplete="current-password" />
+      </label>
+
+      <p id="login-error" class="admin-login__error" hidden></p>
+
+      <button type="submit" class="btn btn--accent">Ingresar</button>
+    </form>
+  </div>
+
+  <!-- ============================================================
+       PANEL ADMINISTRATIVO (solo visible tras login)
+       ============================================================ -->
+  <div id="admin-screen" class="admin-panel" hidden>
+
+    <div class="admin-panel__toolbar">
+      <h2 class="admin-panel__heading">Instituciones educativas</h2>
+      <button id="btn-nueva-institucion" class="btn btn--accent admin-panel__btn-nueva">+ Nueva institución</button>
+    </div>
+
+    <p id="admin-mensaje" class="admin-panel__mensaje" hidden></p>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Sector</th>
+            <th>Dirección</th>
+            <th>Estrato</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="admin-tabla-body">
+          <tr><td colspan="6" class="admin-table__vacio">Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: crear / editar institución
+       ============================================================ -->
+  <div id="admin-modal" class="institucion-modal">
+    <div class="institucion-modal__backdrop" data-cerrar-admin-modal></div>
+    <div class="institucion-modal__panel admin-modal__panel" role="dialog" aria-modal="true">
+      <button type="button" class="institucion-modal__close" data-cerrar-admin-modal aria-label="Cerrar">&times;</button>
+
+      <h3 id="admin-modal-titulo" class="institucion-modal__nombre">Nueva institución</h3>
+
+      <form id="form-institucion" class="admin-form">
+        <input type="hidden" id="f-id" />
+
+        <fieldset class="admin-form__grupo">
+          <legend>Datos básicos</legend>
+          <label class="admin-field">
+            <span>Nombre *</span>
+            <input type="text" id="f-nombre" required />
+          </label>
+          <label class="admin-field">
+            <span>Tipo *</span>
+            <select id="f-tipo" required>
+              <option value="colegio">Colegio</option>
+              <option value="universidad">Universidad</option>
+            </select>
+          </label>
+          <label class="admin-field">
+            <span>Sector *</span>
+            <select id="f-sector" required>
+              <option value="publico">Público</option>
+              <option value="privado">Privado</option>
+            </select>
+          </label>
+          <label class="admin-field">
+            <span>Estrato</span>
+            <input type="number" id="f-estrato" min="1" max="6" />
+          </label>
+        </fieldset>
+
+        <fieldset class="admin-form__grupo">
+          <legend>Ubicación</legend>
+          <label class="admin-field admin-field--ancho">
+            <span>Dirección</span>
+            <input type="text" id="f-direccion" />
+          </label>
+          <label class="admin-field">
+            <span>Longitud</span>
+            <input type="number" step="any" id="f-longitud" />
+          </label>
+          <label class="admin-field">
+            <span>Latitud</span>
+            <input type="number" step="any" id="f-latitud" />
+          </label>
+        </fieldset>
+
+        <fieldset class="admin-form__grupo">
+          <legend>Contacto e imagen</legend>
+          <label class="admin-field">
+            <span>Teléfono</span>
+            <input type="text" id="f-telefono" />
+          </label>
+          <label class="admin-field">
+            <span>Sitio web</span>
+            <input type="url" id="f-sitio-web" placeholder="https://..." />
+          </label>
+          <label class="admin-field">
+            <span>Horario</span>
+            <input type="text" id="f-horario" placeholder="Ej. Lunes a viernes, 7am - 3pm" />
+          </label>
+          <label class="admin-field admin-field--ancho">
+            <span>URL de la imagen</span>
+            <input type="url" id="f-imagen-url" placeholder="https://..." />
+          </label>
+          <label class="admin-field admin-field--ancho">
+            <span>Descripción</span>
+            <textarea id="f-descripcion" rows="3"></textarea>
+          </label>
+        </fieldset>
+
+        <fieldset class="admin-form__grupo">
+          <legend>Indicadores académicos</legend>
+          <label class="admin-field">
+            <span>Número de estudiantes</span>
+            <input type="number" min="0" id="f-num-estudiantes" />
+          </label>
+          <label class="admin-field">
+            <span>Cupos disponibles</span>
+            <input type="number" min="0" id="f-cupos-disponibles" />
+          </label>
+          <label class="admin-field">
+            <span>Recursos tecnológicos</span>
+            <input type="number" min="0" id="f-recursos-tecnologicos" />
+          </label>
+          <label class="admin-field">
+            <span>Número de docentes</span>
+            <input type="number" min="0" id="f-num-docentes" />
+          </label>
+        </fieldset>
+
+        <p id="form-error" class="admin-login__error" hidden></p>
+
+        <div class="admin-form__acciones">
+          <button type="button" class="btn" data-cerrar-admin-modal>Cancelar</button>
+          <button type="submit" class="btn btn--accent">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+/**
+ * administracion.html — lógica de login y CRUD
+ * ------------------------------------------------------------------
+ * Requiere que js/supabaseClient.js defina la variable global
+ * `supabaseClient` (mismo cliente que usa instituciones.js).
+ * ------------------------------------------------------------------
+ */
+
+const TABLA = 'instituciones_educativas';
+
+const loginScreen = document.getElementById('login-screen');
+const adminScreen = document.getElementById('admin-screen');
+const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
+
+// ----------------------------------------------------------------
+// Sesión / login
+// ----------------------------------------------------------------
+async function mostrarSegunSesion() {
+  if (!supabaseClient) {
+    document.getElementById('login-error').hidden = false;
+    document.getElementById('login-error').textContent = 'Supabase no está configurado (ver js/supabaseClient.js).';
+    return;
+  }
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+
+  if (session) {
+    loginScreen.hidden = true;
+    adminScreen.hidden = false;
+    btnCerrarSesion.hidden = false;
+    cargarInstituciones();
+  } else {
+    loginScreen.hidden = false;
+    adminScreen.hidden = true;
+    btnCerrarSesion.hidden = true;
+  }
+}
+
+document.getElementById('form-login').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errorEl = document.getElementById('login-error');
+  errorEl.hidden = true;
+
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    errorEl.textContent = 'Correo o contraseña incorrectos.';
+    errorEl.hidden = false;
+    return;
+  }
+
+  await mostrarSegunSesion();
+});
+
+btnCerrarSesion.addEventListener('click', async () => {
+  await supabaseClient.auth.signOut();
+  await mostrarSegunSesion();
+});
+
+// ----------------------------------------------------------------
+// Cargar y dibujar la tabla
+// ----------------------------------------------------------------
+async function cargarInstituciones() {
+  const tbody = document.getElementById('admin-tabla-body');
+  tbody.innerHTML = '<tr><td colspan="6" class="admin-table__vacio">Cargando…</td></tr>';
+
+  const { data, error } = await supabaseClient.from(TABLA).select('*').order('nombre');
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="6" class="admin-table__vacio">Error al cargar: ${error.message}</td></tr>`;
+    return;
+  }
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="admin-table__vacio">No hay instituciones registradas.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map((row) => `
+    <tr>
+      <td>${row.nombre ?? ''}</td>
+      <td>${row.tipo ?? ''}</td>
+      <td>${row.sector ?? ''}</td>
+      <td>${row.direccion ?? ''}</td>
+      <td>${row.estrato ?? 'N/D'}</td>
+      <td class="admin-table__acciones">
+        <button class="admin-table__btn" data-editar="${row.id}">Editar</button>
+        <button class="admin-table__btn admin-table__btn--danger" data-borrar="${row.id}" data-nombre="${row.nombre ?? ''}">Borrar</button>
+      </td>
+    </tr>
+  `).join('');
+
+  // Guardamos las filas en memoria para no volver a pedirlas al editar
+  window.__institucionesCache = data;
+}
+
+document.getElementById('admin-tabla-body').addEventListener('click', (e) => {
+  const idEditar = e.target.dataset.editar;
+  const idBorrar = e.target.dataset.borrar;
+
+  if (idEditar) {
+    const row = (window.__institucionesCache || []).find((r) => String(r.id) === idEditar);
+    if (row) abrirModal('editar', row);
+  }
+
+  if (idBorrar) {
+    borrarInstitucion(idBorrar, e.target.dataset.nombre);
+  }
+});
+
+// ----------------------------------------------------------------
+// Modal crear / editar
+// ----------------------------------------------------------------
+const modal = document.getElementById('admin-modal');
+const form = document.getElementById('form-institucion');
+
+function abrirModal(modo, row = null) {
+  document.getElementById('form-error').hidden = true;
+  document.getElementById('admin-modal-titulo').textContent =
+    modo === 'editar' ? 'Editar institución' : 'Nueva institución';
+
+  document.getElementById('f-id').value = row?.id ?? '';
+  document.getElementById('f-nombre').value = row?.nombre ?? '';
+  document.getElementById('f-tipo').value = row?.tipo ?? 'colegio';
+  document.getElementById('f-sector').value = row?.sector ?? 'publico';
+  document.getElementById('f-estrato').value = row?.estrato ?? '';
+  document.getElementById('f-direccion').value = row?.direccion ?? '';
+  document.getElementById('f-longitud').value = row?.longitud ?? '';
+  document.getElementById('f-latitud').value = row?.latitud ?? '';
+  document.getElementById('f-telefono').value = row?.telefono ?? '';
+  document.getElementById('f-sitio-web').value = row?.sitio_web ?? '';
+  document.getElementById('f-horario').value = row?.horario ?? '';
+  document.getElementById('f-imagen-url').value = row?.imagen_url ?? '';
+  document.getElementById('f-descripcion').value = row?.descripcion ?? '';
+  document.getElementById('f-num-estudiantes').value = row?.num_estudiantes ?? '';
+  document.getElementById('f-cupos-disponibles').value = row?.cupos_disponibles ?? '';
+  document.getElementById('f-recursos-tecnologicos').value = row?.recursos_tecnologicos ?? '';
+  document.getElementById('f-num-docentes').value = row?.num_docentes ?? '';
+
+  modal.classList.add('institucion-modal--open');
+}
+
+function cerrarModal() {
+  modal.classList.remove('institucion-modal--open');
+}
+
+document.getElementById('btn-nueva-institucion').addEventListener('click', () => abrirModal('crear'));
+
+modal.addEventListener('click', (e) => {
+  if (e.target.dataset.cerrarAdminModal !== undefined) cerrarModal();
+});
+
+// Convierte '' a null para que los campos numéricos vacíos no rompan el insert/update
+function numOrNull(valor) {
+  return valor === '' ? null : Number(valor);
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const id = document.getElementById('f-id').value;
+  const errorEl = document.getElementById('form-error');
+  errorEl.hidden = true;
+
+  const payload = {
+    nombre: document.getElementById('f-nombre').value.trim(),
+    tipo: document.getElementById('f-tipo').value,
+    sector: document.getElementById('f-sector').value,
+    estrato: numOrNull(document.getElementById('f-estrato').value),
+    direccion: document.getElementById('f-direccion').value.trim() || null,
+    longitud: numOrNull(document.getElementById('f-longitud').value),
+    latitud: numOrNull(document.getElementById('f-latitud').value),
+    telefono: document.getElementById('f-telefono').value.trim() || null,
+    sitio_web: document.getElementById('f-sitio-web').value.trim() || null,
+    horario: document.getElementById('f-horario').value.trim() || null,
+    imagen_url: document.getElementById('f-imagen-url').value.trim() || null,
+    descripcion: document.getElementById('f-descripcion').value.trim() || null,
+    num_estudiantes: numOrNull(document.getElementById('f-num-estudiantes').value),
+    cupos_disponibles: numOrNull(document.getElementById('f-cupos-disponibles').value),
+    recursos_tecnologicos: numOrNull(document.getElementById('f-recursos-tecnologicos').value),
+    num_docentes: numOrNull(document.getElementById('f-num-docentes').value),
+  };
+
+  const query = id
+    ? supabaseClient.from(TABLA).update(payload).eq('id', id)
+    : supabaseClient.from(TABLA).insert(payload);
+
+  const { error } = await query;
+
+  if (error) {
+    errorEl.textContent = `No se pudo guardar: ${error.message}`;
+    errorEl.hidden = false;
+    return;
+  }
+
+  cerrarModal();
+  mostrarMensaje(id ? 'Institución actualizada.' : 'Institución creada.');
+  cargarInstituciones();
+});
+
+// ----------------------------------------------------------------
+// Borrar
+// ----------------------------------------------------------------
+async function borrarInstitucion(id, nombre) {
+  const confirmado = confirm(`¿Seguro que quieres borrar "${nombre}"? Esta acción no se puede deshacer.`);
+  if (!confirmado) return;
+
+  const { error } = await supabaseClient.from(TABLA).delete().eq('id', id);
+
+  if (error) {
+    mostrarMensaje(`No se pudo borrar: ${error.message}`, true);
+    return;
+  }
+
+  mostrarMensaje('Institución borrada.');
+  cargarInstituciones();
+}
+
+function mostrarMensaje(texto, esError = false) {
+  const el = document.getElementById('admin-mensaje');
+  el.textContent = texto;
+  el.hidden = false;
+  el.classList.toggle('admin-panel__mensaje--error', esError);
+  setTimeout(() => { el.hidden = true; }, 4000);
+}
+
+// ----------------------------------------------------------------
+// Arranque
+// ----------------------------------------------------------------
+mostrarSegunSesion();
+
+// Si la sesión cambia en otra pestaña (ej. cierre de sesión), refleja el cambio aquí también.
+if (supabaseClient) {
+  supabaseClient.auth.onAuthStateChange(() => mostrarSegunSesion());
+}
+</script>
+
+</body>
+</html>
