@@ -3,120 +3,77 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visor Geográfico · Sistemas de Coordenadas</title>
+  <title>Visor Geográfico · Sabaneta</title>
 
   <!-- Tipografías -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
+  <!-- Estilos (visor + administración) -->
   <link rel="stylesheet" href="css/style.css" />
-
-  <!-- ===================== ESTILOS PARA NAVBAR Y SABANETA ===================== -->
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .top-navbar {
-      background-color: #111827;
-      padding: 1.2rem 2rem;
-      display: flex;
-      justify-content: center;
-      gap: 3rem;
-      position: sticky;
-      top: 0;
-      z-index: 9999;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    .top-navbar a {
-      color: #ffffff;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 1.1rem;
-      transition: color 0.2s ease-in-out;
-    }
-
-    .top-navbar a:hover {
-      color: #3b82f6;
-    }
-
-    .sabaneta-section {
-      background-color: #f9fafb;
-      padding: 1rem 2rem;
-      text-align: center;
-      color: #374151;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .sabaneta-container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .sabaneta-title {
-      font-size: 1.5rem;
-      color: #1f2937;
-      margin-top: 0;
-      margin-bottom: 0.5rem;
-    }
-
-    .sabaneta-text {
-      font-size: 0.95rem;
-      line-height: 1.5;
-      margin: 0;
-    }
-
-    #app {
-      position: relative;
-      min-height: 100vh;
-    }
-  </style>
 </head>
 <body>
 
+  <!-- ===================== PANTALLA DE BIENVENIDA ===================== -->
+  <div id="landing-screen" class="landing">
+    <div class="landing__content">
+      <span class="landing__eyebrow">Sistemas de información geográfica</span>
+      <h1 class="landing__title">Visor Geográfico de Sabaneta</h1>
+      <p class="landing__subtitle">
+        Explora la distribución territorial, las vías y las instituciones
+        educativas del municipio en un mapa interactivo.
+      </p>
+      <ul class="landing__features">
+        <li><strong>Instituciones</strong><span>Colegios públicos, privados y universidades</span></li>
+        <li><strong>Red vial</strong><span>Más de mil tramos de vías del municipio</span></li>
+        <li><strong>Herramientas SIG</strong><span>Importa capas y cambia de sistema de coordenadas</span></li>
+      </ul>
+      <button id="btn-acceder-geovisor" class="landing__cta">Abrir el geovisor</button>
+      <p class="landing__footer">Jacobo Flórez · Sebastián Zuleta · Ana Sofía Sáenz</p>
+    </div>
+  </div>
+
   <!-- ===================== NAVBAR SUPERIOR ===================== -->
   <nav class="top-navbar">
-    <a href="index.html">Mapas</a>
-    <a href="administracion.html">Administración</a>
+    <a class="top-navbar__brand" href="index.html">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      <span>Geovisor Sabaneta</span>
+    </a>
+    <div class="top-navbar__links">
+      <a href="index.html" aria-current="page">Mapas</a>
+      <a href="administracion.html">Administración</a>
+    </div>
   </nav>
 
-  <!-- ===================== VISTA DE SABANETA ===================== -->
-  <section class="sabaneta-section">
-    <div class="sabaneta-container">
-      <h4 class="sabaneta-title">Sabaneta, Antioquia</h4>
-      <p class="sabaneta-text">
-        Conocido como el "Vallecito de Encanto" o el "Rincóncito de Antioquia", Sabaneta es un municipio de Colombia situado en el sur del Valle de Aburrá. A pesar de ser el municipio más pequeño del país en extensión territorial, destaca por su alto nivel de desarrollo, calidad de vida y su infraestructura. En el siguiente visor geográfico podrás explorar su distribución territorial, vías e instituciones.
-      </p>
-    </div>
-  </section>
-
-  <!-- ===================== VISOR GEOGRÁFICO ===================== -->
+  <!-- ===================== VISOR GEOGRÁFICO (100% del alto restante) ===================== -->
   <div id="app">
 
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR: menú de herramientas espaciales -->
     <aside class="sidebar">
 
       <header class="sidebar__header">
-        <span class="sidebar__eyebrow">Visor Inicial Jacobo Florez - Sebastian Zuleta - Ana Sofia Saenz</span>
-        <h1 class="sidebar__title">Panel de control</h1>
+        <div class="sidebar__logo" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </div>
+        <div>
+          <h1 class="sidebar__title">Herramientas espaciales</h1>
+          <p class="sidebar__subtitle">Capas, coordenadas y datos</p>
+        </div>
       </header>
 
       <!-- Instituciones educativas -->
       <section class="panel">
-        <h2 class="panel__title">Instituciones educativas</h2>
+        <h2 class="panel__title">Capas del mapa</h2>
         <p class="panel__hint" id="instituciones-total">Cargando…</p>
         <ul class="category-list" id="category-list"></ul>
       </section>
 
       <!-- Cargar capa -->
       <section class="panel">
-        <h2 class="panel__title">1 · Cargar capa</h2>
+        <h2 class="panel__title">Importar capa</h2>
         <p class="panel__hint">GeoJSON (.geojson/.json) o Shapefile en .zip (.shp+.dbf+.prj)</p>
         <label class="filedrop" for="file-input">
           <span id="filedrop-label">Seleccionar archivo…</span>
@@ -126,7 +83,7 @@
 
       <!-- Confirmación de CRS detectado -->
       <section class="panel" id="crs-detect-panel" hidden>
-        <h2 class="panel__title">2 · Sistema detectado</h2>
+        <h2 class="panel__title">Sistema de coordenadas detectado</h2>
         <p class="panel__hint" id="crs-detect-hint">—</p>
         <select id="crs-detect-select" class="select"></select>
         <button id="crs-detect-confirm" class="btn btn--accent">Confirmar y añadir capa</button>
@@ -134,7 +91,7 @@
 
       <!-- Capas cargadas -->
       <section class="panel">
-        <h2 class="panel__title">Capas cargadas</h2>
+        <h2 class="panel__title">Capas importadas</h2>
         <ul id="layers-list" class="layers-list">
           <li class="layers-list__empty">Aún no hay capas cargadas.</li>
         </ul>
@@ -142,7 +99,7 @@
 
       <!-- Sistema de visualización de coordenadas -->
       <section class="panel">
-        <h2 class="panel__title">3 · Mostrar coordenadas en</h2>
+        <h2 class="panel__title">Sistema de coordenadas</h2>
         <select id="display-crs-select" class="select"></select>
       </section>
 
@@ -163,7 +120,8 @@
       </section>
 
       <footer class="sidebar__footer">
-        <span>Proyecto SIG · Leaflet + proj4js + Supabase</span>
+        <strong>Proyecto SIG · Leaflet + proj4js + Supabase</strong>
+        Jacobo Flórez · Sebastián Zuleta · Ana Sofía Sáenz
       </footer>
 
     </aside>
@@ -171,6 +129,24 @@
     <!-- MAPA -->
     <main class="map-container">
       <div id="map"></div>
+
+      <!-- Mostrar / ocultar el panel de herramientas -->
+      <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="Ocultar panel de herramientas" aria-expanded="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        <span>Ocultar panel</span>
+      </button>
+
+      <!-- Título flotante: ya no empuja el mapa hacia abajo -->
+      <details class="map-title">
+        <summary>
+          <span class="map-title__name">Sabaneta, Antioquia</span>
+          <span class="map-title__tag">Vallecito de Encanto</span>
+          <svg class="map-title__chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </summary>
+        <p>
+          Conocido como el "Vallecito de Encanto" o el "Rincóncito de Antioquia", Sabaneta es un municipio de Colombia situado en el sur del Valle de Aburrá. A pesar de ser el más pequeño del país en extensión territorial, destaca por su desarrollo, su calidad de vida y su infraestructura. Explora aquí su distribución territorial, vías e instituciones.
+        </p>
+      </details>
     </main>
 
   </div>
@@ -192,5 +168,23 @@
   <script src="js/instituciones.js"></script>
   <script src="js/vias.js"></script>
   <script src="js/main.js"></script>
+
+  <!-- Transición de la pantalla de bienvenida hacia el geovisor -->
+  <script src="js/landing.js"></script>
+
+  <!-- Colapsar el panel lateral y pedirle a Leaflet que recalcule el tamaño -->
+  <script>
+    (function () {
+      var app = document.getElementById('app');
+      var btn = document.getElementById('sidebar-toggle');
+      btn.addEventListener('click', function () {
+        var cerrado = app.classList.toggle('is-collapsed');
+        btn.setAttribute('aria-expanded', String(!cerrado));
+        btn.setAttribute('aria-label', cerrado ? 'Mostrar panel de herramientas' : 'Ocultar panel de herramientas');
+        btn.querySelector('span').textContent = cerrado ? 'Mostrar panel' : 'Ocultar panel';
+        setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 260);
+      });
+    })();
+  </script>
 </body>
 </html>
