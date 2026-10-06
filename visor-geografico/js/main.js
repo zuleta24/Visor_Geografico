@@ -102,6 +102,7 @@ const grupoLimiteMunicipal = L.layerGroup();
   puedes conservar temporalmente:
   initInstitucionesLayer(map);
   initViasLayer(map);
+  initViviendasPriorizadas(map);
 */
 
 initInstitucionesLayer(map, grupoInstituciones);

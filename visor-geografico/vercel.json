@@ -1,0 +1,11 @@
+{
+  "headers": [
+    {
+      "source": "/tiles/(.*)",
+      "headers": [
+        { "key": "Content-Type", "value": "application/x-protobuf" },
+        { "key": "Cache-Control", "value": "public, max-age=86400, immutable" }
+      ]
+    }
+  ]
+}
