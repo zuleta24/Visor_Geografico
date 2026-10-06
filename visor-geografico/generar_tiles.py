@@ -59,7 +59,7 @@ def generar_tiles():
         datasetCreationOptions=[
             f"MINZOOM={MIN_ZOOM}",
             f"MAXZOOM={MAX_ZOOM}",
-            "COMPRESS=YES",
+            "COMPRESS=NO",
         ],
         layerCreationOptions=["NAME=viviendas"],
     )

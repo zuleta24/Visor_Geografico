@@ -107,6 +107,7 @@ const grupoLimiteMunicipal = L.layerGroup();
 
 initInstitucionesLayer(map, grupoInstituciones);
 initViasLayer(map, grupoVias);
+initViviendasPriorizadas(map);
 
 /* ------------------------------------------------------------------
    CONTROL DE CAPAS
