@@ -1,31 +1,30 @@
 /**
  * viviendas.js
  * ------------------------------------------------------------------
- * Consume los Vector Tiles (.pbf) generados por generar_tiles.py a
- * partir de la vista PostGIS "viviendas_priorizadas_colegios". En
- * vez de cargar los predios como GeoJSON crudo, Leaflet solo pide
- * los tiles que caben en pantalla — esto es la defensa contra la
- * prueba de estrés.
+ * MODO CAZAFANTASMAS: Diagnóstico visual y de consola.
  * ------------------------------------------------------------------
  */
 
 const COLORES_PRIORIDAD = { alta: '#ef4444', media: '#f97316', baja: '#eab308' };
 
-let viviendasLayer = null;
+let viviendasTiles = null;
+let viviendasFantasma = null;
 
 function initViviendasPriorizadas(map) {
-  viviendasLayer = L.vectorGrid.protobuf(
+  
+  // 1. LOS PUNTOS NARANJAS (Los PBF sin interactividad)
+  viviendasTiles = L.vectorGrid.protobuf(
     'tiles/viviendas_priorizadas/{z}/{x}/{y}.pbf',
     {
       rendererFactory: L.canvas.tile,
-      interactive: true,
+      interactive: false, 
       maxNativeZoom: 17,
       vectorTileLayerStyles: {
         viviendas: function(properties) {
           let prio = properties.prioridad ? properties.prioridad.toLowerCase() : '';
           return {
             radius: 6,
-            fillColor: COLORES_PRIORIDAD[prio] || '#94a3b8',
+            fillColor: COLORES_PRIORIDAD[prio] || '#f97316',
             color: '#ffffff',
             weight: 1.5,
             fillOpacity: 0.9,
@@ -35,34 +34,57 @@ function initViviendasPriorizadas(map) {
       }
     }
   );
+  viviendasTiles.addTo(map);
 
-  viviendasLayer.addTo(map);
+  // 2. EL PISO SUPERIOR PARA LOS FANTASMAS
+  if (!map.getPane('ghostPane')) {
+    map.createPane('ghostPane');
+    map.getPane('ghostPane').style.zIndex = 999; 
+    map.getPane('ghostPane').style.pointerEvents = 'auto'; // Obligamos a que reciba clics
+  }
 
-  viviendasLayer.on('click', (e) => {
-    // Escudo: Si properties no existe, usamos un objeto vacío para que no colapse
-    const p = e.layer.properties || {}; 
-    
-    // Imprimimos los datos en la consola por si necesitamos revisarlos
-    console.log("Datos capturados en el clic:", p);
-    
-    const nombre = p.colegio_nombre || 'Desconocido';
-    const dist = p.distancia_metros || p.distancia_m || 'N/A';
-    const prio = p.prioridad || 'No definida';
+  // 3. LA CAPA FANTASMA (AHORA ROJA Y GIGANTE)
+  fetch('data/viviendas_priorizadas_colegios.geojson')
+    .then(response => response.json())
+    .then(data => {
+      
+      // CHIVATO EN CONSOLA: ¿Cuántas casas trajo el archivo?
+      const cantidad = data.features ? data.features.length : 0;
+      console.log(`👻 MODO CAZAFANTASMAS: El archivo GeoJSON cargó con ${cantidad} viviendas.`);
 
-    L.popup()
-      .setLatLng(e.latlng)
-      .setContent(
-        `<div style="font-family: sans-serif; min-width: 150px;">
-          <strong style="color: #0b1220;">Predio cerca de ${nombre}</strong><br/>
-          <hr style="margin: 5px 0; border: 0; border-top: 1px solid #ccc;" />
-          <b>Distancia:</b> ${dist} m<br/>
-          <b>Prioridad:</b> <span style="text-transform: capitalize;">${prio}</span>
-        </div>`
-      )
-      .openOn(map);
-  });
+      viviendasFantasma = L.geoJSON(data, {
+        pane: 'ghostPane', 
+        pointToLayer: function(feature, latlng) {
+          // LOS HACEMOS ROJOS, GIGANTES Y SEMITRANSPARENTES
+          return L.circleMarker(latlng, {
+            radius: 25, 
+            opacity: 1, 
+            fillOpacity: 0.5,
+            color: '#ff0000', 
+            fillColor: '#ff0000'
+          });
+        },
+        onEachFeature: function(feature, layer) {
+          const p = feature.properties || {}; 
+          const nombre = p.colegio_nombre || p.colegio || 'Dato no disponible';
+          const dist = p.distancia_metros || p.distancia_m || p.distancia || 'Dato no disponible';
+          const prio = p.prioridad || 'Dato no disponible';
 
-  // Checkbox en el panel lateral
+          layer.bindPopup(
+            `<div style="font-family: sans-serif; min-width: 150px;">
+              <strong style="color: #0b1220;">Predio cerca de ${nombre}</strong><br/>
+              <hr style="margin: 5px 0; border: 0; border-top: 1px solid #ccc;" />
+              <b>Distancia:</b> ${dist} m<br/>
+              <b>Prioridad:</b> <span style="text-transform: capitalize;">${prio}</span>
+            </div>`
+          );
+        }
+      });
+      viviendasFantasma.addTo(map);
+    })
+    .catch(error => console.error("Error cargando capa fantasma:", error));
+
+  // 4. CHECKBOX PANEL IZQUIERDO
   const list = document.getElementById('category-list');
   if (list) {
     const li = document.createElement('li');
@@ -71,16 +93,18 @@ function initViviendasPriorizadas(map) {
       <label class="category-toggle">
         <input type="checkbox" id="toggle-viviendas" checked />
         <span class="category-swatch" style="background:#ef4444"></span>
-        <span class="category-toggle__label">Viviendas priorizadas (tiles)</span>
+        <span class="category-toggle__label">Viviendas priorizadas</span>
       </label>
     `;
     list.appendChild(li);
 
     document.getElementById('toggle-viviendas').addEventListener('change', (e) => {
       if (e.target.checked) {
-        viviendasLayer.addTo(map);
+        map.addLayer(viviendasTiles);
+        if (viviendasFantasma) map.addLayer(viviendasFantasma);
       } else {
-        map.removeLayer(viviendasLayer);
+        map.removeLayer(viviendasTiles);
+        if (viviendasFantasma) map.removeLayer(viviendasFantasma);
       }
     });
   }

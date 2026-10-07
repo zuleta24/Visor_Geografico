@@ -20,7 +20,6 @@ const SABANETA_ZOOM = 14;
 
 const map = L.map("map", {
   zoomControl: false,
-  preferCanvas: true
 }).setView(SABANETA_CENTER, SABANETA_ZOOM);
 
 L.control.zoom({
@@ -42,18 +41,16 @@ const osmEstandar = L.tileLayer(
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   {
     maxZoom: 19,
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>'
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>'
   }
 );
 
 // Mapa claro, con estilo moderno
 const osmClaro = L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
   {
     maxZoom: 20,
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> &copy; CARTO'
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
   }
 );
 
@@ -62,8 +59,7 @@ const osmOscuro = L.tileLayer(
   "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
   {
     maxZoom: 20,
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> &copy; CARTO'
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
   }
 );
 
@@ -72,8 +68,7 @@ const osmTopografico = L.tileLayer(
   "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
   {
     maxZoom: 17,
-    attribution:
-      'Map data: &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>, SRTM | Map style: &copy; OpenTopoMap'
+    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>, SRTM | Map style: &copy; OpenTopoMap'
   }
 );
 
@@ -87,23 +82,6 @@ osmEstandar.addTo(map);
 const grupoInstituciones = L.layerGroup();
 const grupoVias = L.layerGroup();
 const grupoLimiteMunicipal = L.layerGroup();
-
-/*
-  IMPORTANTE:
-  Tus funciones existentes deben aceptar el segundo parámetro.
-
-  Ejemplo:
-  function initInstitucionesLayer(map, grupoInstituciones) {
-    L.geoJSON(datos).addTo(grupoInstituciones);
-    grupoInstituciones.addTo(map);
-  }
-
-  Si actualmente tus capas se añaden directamente al mapa,
-  puedes conservar temporalmente:
-  initInstitucionesLayer(map);
-  initViasLayer(map);
-  initViviendasPriorizadas(map);
-*/
 
 initInstitucionesLayer(map, grupoInstituciones);
 initViasLayer(map, grupoVias);
@@ -120,34 +98,21 @@ const mapasBase = {
   "OpenStreetMap topográfico": osmTopografico
 };
 
-const capasTematicas = {
-  "Instituciones educativas": grupoInstituciones,
-  "Vías de Sabaneta": grupoVias,
-  "Límite municipal": grupoLimiteMunicipal
-};
-
-L.control.layers(mapasBase, capasTematicas, {
-  collapsed: false,
+// Diseño elegante: Menú de mapas base colapsado arriba a la derecha, sin duplicar capas
+L.control.layers(mapasBase, null, {
+  collapsed: true,
   position: "topright"
 }).addTo(map);
 
 /* ------------------------------------------------------------------
    LÍMITE MUNICIPAL OPCIONAL
-   ------------------------------------------------------------------
-
-   Para que funcione debes crear esta ruta:
-
-   datos/limite-sabaneta.geojson
-
-   Si todavía no tienes el archivo, el resto del mapa funcionará.
-*/
+   ------------------------------------------------------------------ */
 
 fetch("datos/limite-sabaneta.geojson")
   .then((response) => {
     if (!response.ok) {
       throw new Error("No se encontró el límite municipal.");
     }
-
     return response.json();
   })
   .then((geojson) => {
@@ -161,18 +126,10 @@ fetch("datos/limite-sabaneta.geojson")
         dashArray: "7, 5"
       },
       onEachFeature: (feature, layer) => {
-        const nombre =
-          feature.properties?.name ||
-          feature.properties?.NOMBRE ||
-          "Sabaneta";
-
-        layer.bindPopup(`
-          <strong>Límite municipal</strong><br>
-          ${nombre}
-        `);
+        const nombre = feature.properties?.name || feature.properties?.NOMBRE || "Sabaneta";
+        layer.bindPopup(`<strong>Límite municipal</strong><br>${nombre}`);
       }
     });
-
     limite.addTo(grupoLimiteMunicipal);
   })
   .catch((error) => {
@@ -193,9 +150,7 @@ refreshDisplaySelect();
 
 function updateReadoutHeader() {
   const info = getCrsInfo(currentDisplayEpsg);
-
-  document.getElementById("readout-system").textContent =
-    `${currentDisplayEpsg} · ${info.label}`;
+  document.getElementById("readout-system").textContent = `${currentDisplayEpsg} · ${info.label}`;
 
   const label1 = document.getElementById("readout-label-1");
   const label2 = document.getElementById("readout-label-2");
@@ -213,7 +168,6 @@ updateReadoutHeader();
 
 displaySelect.addEventListener("change", (event) => {
   currentDisplayEpsg = event.target.value;
-
   refreshDisplaySelect();
   updateReadoutHeader();
 });
@@ -225,23 +179,13 @@ displaySelect.addEventListener("change", (event) => {
 map.on("mousemove", (event) => {
   const { lat, lng } = event.latlng;
   const info = getCrsInfo(currentDisplayEpsg);
-
-  const { x, y } = convertFromWGS84(
-    lat,
-    lng,
-    currentDisplayEpsg
-  );
+  const { x, y } = convertFromWGS84(lat, lng, currentDisplayEpsg);
 
   const value1 = document.getElementById("readout-value-1");
   const value2 = document.getElementById("readout-value-2");
 
-  if (info.kind === "geografico") {
-    value1.textContent = formatCoordValue(y, info.kind);
-    value2.textContent = formatCoordValue(x, info.kind);
-  } else {
-    value1.textContent = formatCoordValue(y, info.kind);
-    value2.textContent = formatCoordValue(x, info.kind);
-  }
+  value1.textContent = formatCoordValue(y, info.kind);
+  value2.textContent = formatCoordValue(x, info.kind);
 });
 
 /* ------------------------------------------------------------------
@@ -253,27 +197,20 @@ const filedropLabel = document.getElementById("filedrop-label");
 
 fileInput.addEventListener("change", () => {
   const file = fileInput.files[0];
-
-  if (!file) {
-    return;
-  }
-
+  if (!file) return;
   filedropLabel.textContent = file.name;
   handleFileSelected(file, map);
 });
 
-document
-  .getElementById("crs-detect-confirm")
-  .addEventListener("click", () => {
-    confirmPendingLayer(map);
-  });
+document.getElementById("crs-detect-confirm").addEventListener("click", () => {
+  confirmPendingLayer(map);
+});
 
 /* ------------------------------------------------------------------
    BOTÓN: CENTRAR EN SABANETA
    ------------------------------------------------------------------ */
 
 const btnCenterSabaneta = document.getElementById("btn-center-sabaneta");
-
 if (btnCenterSabaneta) {
   btnCenterSabaneta.addEventListener("click", () => {
     map.setView(SABANETA_CENTER, SABANETA_ZOOM, {
@@ -288,7 +225,6 @@ if (btnCenterSabaneta) {
    ------------------------------------------------------------------ */
 
 const btnMyLocation = document.getElementById("btn-my-location");
-
 if (btnMyLocation) {
   btnMyLocation.addEventListener("click", () => {
     map.locate({
@@ -304,13 +240,8 @@ let userLocationMarker;
 let userAccuracyCircle;
 
 map.on("locationfound", (event) => {
-  if (userLocationMarker) {
-    map.removeLayer(userLocationMarker);
-  }
-
-  if (userAccuracyCircle) {
-    map.removeLayer(userAccuracyCircle);
-  }
+  if (userLocationMarker) map.removeLayer(userLocationMarker);
+  if (userAccuracyCircle) map.removeLayer(userAccuracyCircle);
 
   userLocationMarker = L.circleMarker(event.latlng, {
     radius: 8,
@@ -318,9 +249,7 @@ map.on("locationfound", (event) => {
     weight: 2,
     fillColor: "#1976d2",
     fillOpacity: 1
-  })
-    .addTo(map)
-    .bindPopup("Tu ubicación aproximada");
+  }).addTo(map).bindPopup("Tu ubicación aproximada");
 
   userAccuracyCircle = L.circle(event.latlng, {
     radius: event.accuracy,
@@ -335,9 +264,5 @@ map.on("locationfound", (event) => {
 
 map.on("locationerror", (event) => {
   console.warn("No se pudo obtener la ubicación:", event.message);
-
-  alert(
-    "No fue posible obtener tu ubicación. " +
-    "Verifica que el navegador tenga permiso para acceder a tu ubicación."
-  );
+  alert("No fue posible obtener tu ubicación. Verifica que el navegador tenga permiso para acceder a tu ubicación.");
 });
