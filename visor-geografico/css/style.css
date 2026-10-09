@@ -847,3 +847,110 @@ body:not(.admin-body) { overflow: hidden; }
   .admin-panel { padding: 16px; }
   .admin-panel__toolbar { flex-direction: column; align-items: flex-start; gap: 10px; }
 }
+
+/* ============================================================
+   Viviendas priorizadas: popup y filtros por prioridad
+   ============================================================ */
+
+/* --- Popup --- */
+.vivienda-popup {
+  min-width: 200px;
+  max-width: 260px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.vivienda-popup__titulo {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.vivienda-popup__sub {
+  margin: 2px 0 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.vivienda-popup__prio {
+  display: inline-block;
+  margin: 4px 0 2px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--prio-color, #ef4444);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.vivienda-popup__tabla {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+}
+.vivienda-popup__tabla th,
+.vivienda-popup__tabla td {
+  padding: 4px 0;
+  border-top: 1px solid var(--border-subtle);
+  vertical-align: top;
+}
+.vivienda-popup__tabla th {
+  padding-right: 12px;
+  text-align: left;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+.vivienda-popup__tabla td {
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* --- Filtros por prioridad (debajo del checkbox "Viviendas priorizadas") --- */
+.vivienda-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 2px;
+  padding-left: 4px;
+}
+
+.vivienda-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.vivienda-chip input { display: none; }
+
+.vivienda-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chip-color, #ef4444);
+}
+
+.vivienda-chip b {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.vivienda-chip:has(input:checked) {
+  border-color: var(--chip-color, #ef4444);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+.vivienda-chip:not(:has(input:checked)) .vivienda-chip__dot {
+  opacity: 0.35;
+}

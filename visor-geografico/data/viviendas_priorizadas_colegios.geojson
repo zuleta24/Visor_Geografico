@@ -1,7 +1,17 @@
 {
 "type": "FeatureCollection",
 "name": "viviendas_priorizadas_colegios",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-
+{"type":"Feature","properties":{"id":1,"predio":"PRED-001","barrio":"Centro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":110.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6123,6.14845]}},
+{"type":"Feature","properties":{"id":2,"predio":"PRED-002","barrio":"Centro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":95.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6126,6.1487]}},
+{"type":"Feature","properties":{"id":3,"predio":"PRED-003","barrio":"Centro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":140.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.614,6.1495]}},
+{"type":"Feature","properties":{"id":4,"predio":"PRED-004","barrio":"Centro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":88.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6098,6.147]}},
+{"type":"Feature","properties":{"id":5,"predio":"PRED-005","barrio":"Alto Las Flores","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":130.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6116,6.15075]}},
+{"type":"Feature","properties":{"id":6,"predio":"PRED-006","barrio":"Alto Las Flores","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":102.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.612,6.1511]}},
+{"type":"Feature","properties":{"id":7,"predio":"PRED-007","barrio":"Alto Las Flores","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":76.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6098,6.1523]}},
+{"type":"Feature","properties":{"id":8,"predio":"PRED-008","barrio":"San Isidro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":150.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.614,6.1429]}},
+{"type":"Feature","properties":{"id":9,"predio":"PRED-009","barrio":"San Isidro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":98.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6143,6.1433]}},
+{"type":"Feature","properties":{"id":10,"predio":"PRED-010","barrio":"San Isidro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":120.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.616,6.1445]}}
 ]
 }
