@@ -954,3 +954,106 @@ body:not(.admin-body) { overflow: hidden; }
 .vivienda-chip:not(:has(input:checked)) .vivienda-chip__dot {
   opacity: 0.35;
 }
+
+/* ============================================================
+   Detalle de institución (modal del visor)
+   ============================================================ */
+
+/* El modal debe quedar por encima de la barra superior */
+.institucion-modal {
+  z-index: 10001;
+  padding: 24px 20px;
+}
+.institucion-modal__panel {
+  padding: 0;               /* la foto va a sangre */
+  overflow: hidden;
+  max-width: 560px;
+}
+.institucion-modal__close {
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(8, 14, 26, 0.7);
+  color: #fff;
+  top: 12px;
+  right: 12px;
+}
+
+.inst-foto {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+.inst-cuerpo { padding: 20px 24px 24px; }
+
+.inst-nombre {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.inst-categoria {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(41, 226, 184, 0.35);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Cifras */
+.inst-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 18px 0 22px;
+}
+.inst-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+.inst-stat__valor {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.inst-stat__label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Datos generales */
+.inst-seccion {
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.inst-datos {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 10px 14px;
+  margin: 0;
+}
+.inst-datos dt { font-size: 13px; color: var(--text-secondary); }
+.inst-datos dd { margin: 0; font-size: 14px; }
+
+@media (max-width: 520px) {
+  .inst-stats { grid-template-columns: 1fr; }
+  .inst-datos { grid-template-columns: 1fr; gap: 2px; }
+  .inst-datos dd { margin-bottom: 8px; }
+}
