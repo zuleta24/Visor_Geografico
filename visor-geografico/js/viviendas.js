@@ -22,6 +22,7 @@
 // ==========================================
 const URL_VIVIENDAS_GEOJSON = 'data/viviendas_priorizadas_colegios.geojson';
 const URL_VIVIENDAS_TILES = 'tiles/viviendas_priorizadas/{z}/{x}/{y}.pbf';
+const URL_BUFFERS_GEOJSON = 'data/buffers_colegios.geojson';
 
 const COLORES_PRIORIDAD = { alta: '#ef4444', media: '#f97316', baja: '#eab308' };
 const COLOR_SIN_PRIORIDAD = '#ef4444';
@@ -57,6 +58,7 @@ let viviendasTiles = null;
 let viviendasBuffer = null;
 let viviendasData = null;            // GeoJSON completo
 let prioridadesVisibles = null;      // null = todas visibles (antes de cargar datos)
+let colegiosBuffersLayer = null;     // Capa de polígonos de zonas de influencia calculados con GDAL
 
 // ==========================================
 // 3. UTILIDADES
@@ -257,6 +259,73 @@ function crearControlViviendas(map) {
       if (viviendasBuffer) map.removeLayer(viviendasBuffer);
     }
   });
+
+  // Control para mostrar/ocultar los polígonos de zonas de influencia calculados con GDAL
+  const liBuffers = document.createElement('li');
+  liBuffers.className = 'category-item';
+  liBuffers.innerHTML = `
+    <label class="category-toggle">
+      <input type="checkbox" id="toggle-buffers-colegios" />
+      <span class="category-swatch" style="background:#3b82f6;border:1px dashed #60a5fa;opacity:0.8;"></span>
+      <span class="category-toggle__label">Zonas de influencia (GDAL)</span>
+      <span class="category-count" id="count-buffers">…</span>
+    </label>
+  `;
+  list.appendChild(liBuffers);
+
+  document.getElementById('toggle-buffers-colegios').addEventListener('change', (e) => {
+    if (e.target.checked) {
+      if (!colegiosBuffersLayer) {
+        cargarBuffersColegios(map);
+      } else {
+        map.addLayer(colegiosBuffersLayer);
+      }
+    } else {
+      if (colegiosBuffersLayer) map.removeLayer(colegiosBuffersLayer);
+    }
+  });
+}
+
+function cargarBuffersColegios(map) {
+  fetch(URL_BUFFERS_GEOJSON)
+    .then((r) => r.json())
+    .then((data) => {
+      const badge = document.getElementById('count-buffers');
+      if (badge && data.features) badge.textContent = data.features.length;
+
+      colegiosBuffersLayer = L.geoJSON(data, {
+        style: (feat) => {
+          const prio = (feat.properties && feat.properties.prioridad) || 'baja';
+          const color = COLORES_PRIORIDAD[prio] || '#3b82f6';
+          const opacidades = { alta: 0.16, media: 0.10, baja: 0.06 };
+          return {
+            color,
+            weight: 1.5,
+            dashArray: '5 4',
+            opacity: 0.8,
+            fillColor: color,
+            fillOpacity: opacidades[prio] || 0.08,
+          };
+        },
+        onEachFeature: (feat, layer) => {
+          const p = feat.properties || {};
+          layer.bindPopup(`
+            <div class="institucion-popup">
+              <strong>Zona de influencia (GDAL/OGR)</strong><br>
+              <span>Colegio: <b>${esc(p.colegio_nombre || 'Desconocido')}</b></span><br>
+              <span>Nivel: <b style="color:${COLORES_PRIORIDAD[p.prioridad] || '#fff'};text-transform:capitalize;">${esc(p.prioridad || '')}</b></span><br>
+              <span>Radio: ${p.buffer_m || 0} metros</span><br>
+              <span>Sector: ${esc(p.colegio_sector || '')}</span>
+            </div>
+          `);
+        },
+      });
+
+      if (document.getElementById('toggle-buffers-colegios')?.checked) {
+        colegiosBuffersLayer.addTo(map);
+      }
+    })
+    .catch((err) => console.warn('No se pudieron cargar los buffers de colegios:', err));
 }
 
 function construirFiltrosPrioridad(map, features) {

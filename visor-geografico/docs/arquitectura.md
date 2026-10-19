@@ -74,3 +74,22 @@ URLs firmadas).
    Leaflet.
 5. (Opcional) se guarda el nombre y el EPSG en la tabla `layers` de
    Supabase con `saveLayerMetadata()`.
+
+## Geoprocesamiento automatizado con GDAL / OGR (Backend)
+
+El proyecto cuenta con un módulo de análisis espacial automatizado ([`geoprocesamiento_viviendas_colegios.py`](../geoprocesamiento_viviendas_colegios.py) y [`script_gdal.py`](../script_gdal.py)):
+
+1. **Reproyección cartográfica oficial:** Transforma las coordenadas geográficas WGS84 (`EPSG:4326`) a **MAGNA-SIRGAS 2018 / Origen Nacional (`EPSG:9377`)** usando `osgeo.osr` para mediciones métricas exactas.
+2. **Generación de Zonas de Influencia (Buffers OGR):** Crea anillos de influencia con radios exactos en metros alrededor de los colegios:
+   - Alta prioridad: radio $\le 150$ m.
+   - Media prioridad: radio $\le 300$ m.
+   - Baja prioridad: radio $\le 500$ m.
+3. **Cruce espacial y priorización:** Calcula la distancia euclidiana de cada predio a los colegios, clasifica el nivel de prioridad y enriquece los atributos.
+4. **Productos generados:**
+   - `data/viviendas_priorizadas_colegios.geojson`: Puntos con prioridades y colegios asignados.
+   - `data/buffers_colegios.geojson`: Polígonos de amortiguamiento de los colegios para visualización web.
+   - `data/viviendas_analisis.gpkg`: GeoPackage OGC con capas de viviendas, buffers e instituciones.
+   - `tiles/viviendas_priorizadas/`: Teselas vectoriales MVT (`.pbf`) generadas con `gdal.VectorTranslate`.
+
+Para ejecutar el proceso con un solo clic en Windows se incluye [`ejecutar_geoproceso.bat`](../ejecutar_geoproceso.bat).
+

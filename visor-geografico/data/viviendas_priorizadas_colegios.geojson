@@ -1,17 +1,846 @@
 {
-"type": "FeatureCollection",
-"name": "viviendas_priorizadas_colegios",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
-"features": [
-{"type":"Feature","properties":{"id":1,"predio":"PRED-001","barrio":"Centro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":110.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6123,6.14845]}},
-{"type":"Feature","properties":{"id":2,"predio":"PRED-002","barrio":"Centro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":95.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6126,6.1487]}},
-{"type":"Feature","properties":{"id":3,"predio":"PRED-003","barrio":"Centro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":140.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.614,6.1495]}},
-{"type":"Feature","properties":{"id":4,"predio":"PRED-004","barrio":"Centro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":88.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6098,6.147]}},
-{"type":"Feature","properties":{"id":5,"predio":"PRED-005","barrio":"Alto Las Flores","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":130.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6116,6.15075]}},
-{"type":"Feature","properties":{"id":6,"predio":"PRED-006","barrio":"Alto Las Flores","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":102.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.612,6.1511]}},
-{"type":"Feature","properties":{"id":7,"predio":"PRED-007","barrio":"Alto Las Flores","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":76.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6098,6.1523]}},
-{"type":"Feature","properties":{"id":8,"predio":"PRED-008","barrio":"San Isidro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":150.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.614,6.1429]}},
-{"type":"Feature","properties":{"id":9,"predio":"PRED-009","barrio":"San Isidro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":98.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.6143,6.1433]}},
-{"type":"Feature","properties":{"id":10,"predio":"PRED-010","barrio":"San Isidro","tipo":"residencial","sector":"urbano","total_edificios":null,"total_unidades_prediales":null,"area_m2":120.0,"created_at":"2026-10-05T21:28:13.427Z"},"geometry":{"type":"Point","coordinates":[-75.616,6.1445]}}
-]
+  "type": "FeatureCollection",
+  "name": "viviendas_priorizadas_colegios",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6123,
+          6.14845
+        ]
+      },
+      "properties": {
+        "predio": "PRED-001",
+        "predio_id": 1,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 110.0,
+        "colegio_id": 1,
+        "colegio_nombre": "I.E. Adelaida Correa Estrada",
+        "colegio_sector": "publico",
+        "distancia_m": 273.8,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6123,
+          6.14845
+        ]
+      },
+      "properties": {
+        "predio": "PRED-001",
+        "predio_id": 1,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 110.0,
+        "colegio_id": 7,
+        "colegio_nombre": "I.E. Rafael J. Mejía",
+        "colegio_sector": "publico",
+        "distancia_m": 317.6,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6123,
+          6.14845
+        ]
+      },
+      "properties": {
+        "predio": "PRED-001",
+        "predio_id": 1,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 110.0,
+        "colegio_id": 10,
+        "colegio_nombre": "Colegio ASPAEN Gimnasio Los Alcázares",
+        "colegio_sector": "privado",
+        "distancia_m": 405.3,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6123,
+          6.14845
+        ]
+      },
+      "properties": {
+        "predio": "PRED-001",
+        "predio_id": 1,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 110.0,
+        "colegio_id": 9,
+        "colegio_nombre": "Colegio El Carmelo",
+        "colegio_sector": "privado",
+        "distancia_m": 482.1,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6126,
+          6.1487
+        ]
+      },
+      "properties": {
+        "predio": "PRED-002",
+        "predio_id": 2,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 95.0,
+        "colegio_id": 1,
+        "colegio_nombre": "I.E. Adelaida Correa Estrada",
+        "colegio_sector": "publico",
+        "distancia_m": 244.2,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6126,
+          6.1487
+        ]
+      },
+      "properties": {
+        "predio": "PRED-002",
+        "predio_id": 2,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 95.0,
+        "colegio_id": 7,
+        "colegio_nombre": "I.E. Rafael J. Mejía",
+        "colegio_sector": "publico",
+        "distancia_m": 275.3,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6126,
+          6.1487
+        ]
+      },
+      "properties": {
+        "predio": "PRED-002",
+        "predio_id": 2,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 95.0,
+        "colegio_id": 10,
+        "colegio_nombre": "Colegio ASPAEN Gimnasio Los Alcázares",
+        "colegio_sector": "privado",
+        "distancia_m": 381.3,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6126,
+          6.1487
+        ]
+      },
+      "properties": {
+        "predio": "PRED-002",
+        "predio_id": 2,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 95.0,
+        "colegio_id": 9,
+        "colegio_nombre": "Colegio El Carmelo",
+        "colegio_sector": "privado",
+        "distancia_m": 439.5,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.614,
+          6.1495
+        ]
+      },
+      "properties": {
+        "predio": "PRED-003",
+        "predio_id": 3,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 140.0,
+        "colegio_id": 7,
+        "colegio_nombre": "I.E. Rafael J. Mejía",
+        "colegio_sector": "publico",
+        "distancia_m": 130.0,
+        "buffer_m": 150.0,
+        "prioridad": "alta"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.614,
+          6.1495
+        ]
+      },
+      "properties": {
+        "predio": "PRED-003",
+        "predio_id": 3,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 140.0,
+        "colegio_id": 1,
+        "colegio_nombre": "I.E. Adelaida Correa Estrada",
+        "colegio_sector": "publico",
+        "distancia_m": 158.1,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.614,
+          6.1495
+        ]
+      },
+      "properties": {
+        "predio": "PRED-003",
+        "predio_id": 3,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 140.0,
+        "colegio_id": 9,
+        "colegio_nombre": "Colegio El Carmelo",
+        "colegio_sector": "privado",
+        "distancia_m": 261.0,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.614,
+          6.1495
+        ]
+      },
+      "properties": {
+        "predio": "PRED-003",
+        "predio_id": 3,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 140.0,
+        "colegio_id": 10,
+        "colegio_nombre": "Colegio ASPAEN Gimnasio Los Alcázares",
+        "colegio_sector": "privado",
+        "distancia_m": 358.8,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6098,
+          6.147
+        ]
+      },
+      "properties": {
+        "predio": "PRED-004",
+        "predio_id": 4,
+        "barrio": "Centro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 88.0,
+        "colegio_id": 1,
+        "colegio_nombre": "I.E. Adelaida Correa Estrada",
+        "colegio_sector": "publico",
+        "distancia_m": 568.3,
+        "buffer_m": 500.0,
+        "prioridad": "sin prioridad"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6116,
+          6.15075
+        ]
+      },
+      "properties": {
+        "predio": "PRED-005",
+        "predio_id": 5,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 130.0,
+        "colegio_id": 10,
+        "colegio_nombre": "Colegio ASPAEN Gimnasio Los Alcázares",
+        "colegio_sector": "privado",
+        "distancia_m": 158.8,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6116,
+          6.15075
+        ]
+      },
+      "properties": {
+        "predio": "PRED-005",
+        "predio_id": 5,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 130.0,
+        "colegio_id": 7,
+        "colegio_nombre": "I.E. Rafael J. Mejía",
+        "colegio_sector": "publico",
+        "distancia_m": 279.1,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6116,
+          6.15075
+        ]
+      },
+      "properties": {
+        "predio": "PRED-005",
+        "predio_id": 5,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 130.0,
+        "colegio_id": 2,
+        "colegio_nombre": "I.E. Concejo de Sabaneta José María Ceballos Botero",
+        "colegio_sector": "publico",
+        "distancia_m": 385.6,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6116,
+          6.15075
+        ]
+      },
+      "properties": {
+        "predio": "PRED-005",
+        "predio_id": 5,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 130.0,
+        "colegio_id": 1,
+        "colegio_nombre": "I.E. Adelaida Correa Estrada",
+        "colegio_sector": "publico",
+        "distancia_m": 443.6,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6116,
+          6.15075
+        ]
+      },
+      "properties": {
+        "predio": "PRED-005",
+        "predio_id": 5,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 130.0,
+        "colegio_id": 9,
+        "colegio_nombre": "Colegio El Carmelo",
+        "colegio_sector": "privado",
+        "distancia_m": 492.9,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.612,
+          6.1511
+        ]
+      },
+      "properties": {
+        "predio": "PRED-006",
+        "predio_id": 6,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 102.0,
+        "colegio_id": 10,
+        "colegio_nombre": "Colegio ASPAEN Gimnasio Los Alcázares",
+        "colegio_sector": "privado",
+        "distancia_m": 111.6,
+        "buffer_m": 150.0,
+        "prioridad": "alta"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.612,
+          6.1511
+        ]
+      },
+      "properties": {
+        "predio": "PRED-006",
+        "predio_id": 6,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 102.0,
+        "colegio_id": 7,
+        "colegio_nombre": "I.E. Rafael J. Mejía",
+        "colegio_sector": "publico",
+        "distancia_m": 239.5,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.612,
+          6.1511
+        ]
+      },
+      "properties": {
+        "predio": "PRED-006",
+        "predio_id": 6,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 102.0,
+        "colegio_id": 2,
+        "colegio_nombre": "I.E. Concejo de Sabaneta José María Ceballos Botero",
+        "colegio_sector": "publico",
+        "distancia_m": 387.5,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.612,
+          6.1511
+        ]
+      },
+      "properties": {
+        "predio": "PRED-006",
+        "predio_id": 6,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 102.0,
+        "colegio_id": 1,
+        "colegio_nombre": "I.E. Adelaida Correa Estrada",
+        "colegio_sector": "publico",
+        "distancia_m": 436.1,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.612,
+          6.1511
+        ]
+      },
+      "properties": {
+        "predio": "PRED-006",
+        "predio_id": 6,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 102.0,
+        "colegio_id": 9,
+        "colegio_nombre": "Colegio El Carmelo",
+        "colegio_sector": "privado",
+        "distancia_m": 451.1,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6098,
+          6.1523
+        ]
+      },
+      "properties": {
+        "predio": "PRED-007",
+        "predio_id": 7,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 76.0,
+        "colegio_id": 2,
+        "colegio_nombre": "I.E. Concejo de Sabaneta José María Ceballos Botero",
+        "colegio_sector": "publico",
+        "distancia_m": 136.2,
+        "buffer_m": 150.0,
+        "prioridad": "alta"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6098,
+          6.1523
+        ]
+      },
+      "properties": {
+        "predio": "PRED-007",
+        "predio_id": 7,
+        "barrio": "Alto Las Flores",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 76.0,
+        "colegio_id": 10,
+        "colegio_nombre": "Colegio ASPAEN Gimnasio Los Alcázares",
+        "colegio_sector": "privado",
+        "distancia_m": 252.3,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.614,
+          6.1429
+        ]
+      },
+      "properties": {
+        "predio": "PRED-008",
+        "predio_id": 8,
+        "barrio": "San Isidro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 150.0,
+        "colegio_id": 14,
+        "colegio_nombre": "Fundación Universitaria San Martín",
+        "colegio_sector": "privado",
+        "distancia_m": 65.5,
+        "buffer_m": 150.0,
+        "prioridad": "alta"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.614,
+          6.1429
+        ]
+      },
+      "properties": {
+        "predio": "PRED-008",
+        "predio_id": 8,
+        "barrio": "San Isidro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 150.0,
+        "colegio_id": 13,
+        "colegio_nombre": "UNISABANETA (Corporación Universitaria Unisabaneta)",
+        "colegio_sector": "privado",
+        "distancia_m": 280.3,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.614,
+          6.1429
+        ]
+      },
+      "properties": {
+        "predio": "PRED-008",
+        "predio_id": 8,
+        "barrio": "San Isidro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 150.0,
+        "colegio_id": 6,
+        "colegio_nombre": "I.E. Primitivo Leal La Doctora",
+        "colegio_sector": "publico",
+        "distancia_m": 300.6,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6143,
+          6.1433
+        ]
+      },
+      "properties": {
+        "predio": "PRED-009",
+        "predio_id": 9,
+        "barrio": "San Isidro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 98.0,
+        "colegio_id": 14,
+        "colegio_nombre": "Fundación Universitaria San Martín",
+        "colegio_sector": "privado",
+        "distancia_m": 95.9,
+        "buffer_m": 150.0,
+        "prioridad": "alta"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6143,
+          6.1433
+        ]
+      },
+      "properties": {
+        "predio": "PRED-009",
+        "predio_id": 9,
+        "barrio": "San Isidro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 98.0,
+        "colegio_id": 13,
+        "colegio_nombre": "UNISABANETA (Corporación Universitaria Unisabaneta)",
+        "colegio_sector": "privado",
+        "distancia_m": 252.3,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.6143,
+          6.1433
+        ]
+      },
+      "properties": {
+        "predio": "PRED-009",
+        "predio_id": 9,
+        "barrio": "San Isidro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 98.0,
+        "colegio_id": 6,
+        "colegio_nombre": "I.E. Primitivo Leal La Doctora",
+        "colegio_sector": "publico",
+        "distancia_m": 308.9,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.616,
+          6.1445
+        ]
+      },
+      "properties": {
+        "predio": "PRED-010",
+        "predio_id": 10,
+        "barrio": "San Isidro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 120.0,
+        "colegio_id": 13,
+        "colegio_nombre": "UNISABANETA (Corporación Universitaria Unisabaneta)",
+        "colegio_sector": "privado",
+        "distancia_m": 193.7,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.616,
+          6.1445
+        ]
+      },
+      "properties": {
+        "predio": "PRED-010",
+        "predio_id": 10,
+        "barrio": "San Isidro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 120.0,
+        "colegio_id": 14,
+        "colegio_nombre": "Fundación Universitaria San Martín",
+        "colegio_sector": "privado",
+        "distancia_m": 291.3,
+        "buffer_m": 300.0,
+        "prioridad": "media"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.616,
+          6.1445
+        ]
+      },
+      "properties": {
+        "predio": "PRED-010",
+        "predio_id": 10,
+        "barrio": "San Isidro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 120.0,
+        "colegio_id": 6,
+        "colegio_nombre": "I.E. Primitivo Leal La Doctora",
+        "colegio_sector": "publico",
+        "distancia_m": 371.9,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -75.616,
+          6.1445
+        ]
+      },
+      "properties": {
+        "predio": "PRED-010",
+        "predio_id": 10,
+        "barrio": "San Isidro",
+        "tipo": "residencial",
+        "sector": "urbano",
+        "area_m2": 120.0,
+        "colegio_id": 1,
+        "colegio_nombre": "I.E. Adelaida Correa Estrada",
+        "colegio_sector": "publico",
+        "distancia_m": 441.3,
+        "buffer_m": 500.0,
+        "prioridad": "baja"
+      }
+    }
+  ]
 }
