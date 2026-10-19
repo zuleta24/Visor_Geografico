@@ -839,8 +839,6 @@ body:not(.admin-body) { overflow: hidden; }
   color: var(--accent);
 }
 .admin-form__acciones { display: flex; justify-content: flex-end; gap: 10px; }
-/* Los botones de .btn son width:100% por defecto (para el sidebar del visor);
-   aquí los volvemos a su ancho natural para que queden lado a lado */
 .admin-form__acciones .btn { width: auto; margin-top: 0; }
 
 @media (max-width: 640px) {
@@ -910,7 +908,7 @@ body:not(.admin-body) { overflow: hidden; }
   color: var(--text-primary);
 }
 
-/* --- Filtros por prioridad (debajo del checkbox "Viviendas priorizadas") --- */
+/* --- Filtros por prioridad --- */
 .vivienda-filtros {
   display: flex;
   flex-wrap: wrap;
@@ -959,13 +957,12 @@ body:not(.admin-body) { overflow: hidden; }
    Detalle de institución (modal del visor)
    ============================================================ */
 
-/* El modal debe quedar por encima de la barra superior */
 .institucion-modal {
   z-index: 10001;
   padding: 24px 20px;
 }
 .institucion-modal__panel {
-  padding: 0;               /* la foto va a sangre */
+  padding: 0;
   overflow: hidden;
   max-width: 560px;
 }
@@ -978,6 +975,9 @@ body:not(.admin-body) { overflow: hidden; }
   color: #fff;
   top: 12px;
   right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .inst-foto {
@@ -993,6 +993,7 @@ body:not(.admin-body) { overflow: hidden; }
   font-size: 20px;
   font-weight: 700;
   line-height: 1.25;
+  color: var(--text-primary);
 }
 .inst-categoria {
   display: inline-block;
@@ -1003,9 +1004,10 @@ body:not(.admin-body) { overflow: hidden; }
   color: var(--accent);
   font-size: 12px;
   font-weight: 600;
+  text-transform: uppercase;
 }
 
-/* Cifras */
+/* Cifras / Estadísticas */
 .inst-stats {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1034,7 +1036,7 @@ body:not(.admin-body) { overflow: hidden; }
 
 /* Datos generales */
 .inst-seccion {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border-subtle);
   font-size: 11px;
@@ -1045,15 +1047,262 @@ body:not(.admin-body) { overflow: hidden; }
 }
 .inst-datos {
   display: grid;
-  grid-template-columns: 100px 1fr;
+  grid-template-columns: 110px 1fr;
   gap: 10px 14px;
   margin: 0;
+  align-items: center;
 }
-.inst-datos dt { font-size: 13px; color: var(--text-secondary); }
-.inst-datos dd { margin: 0; font-size: 14px; }
+.inst-datos dt {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.inst-datos dd {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
 
 @media (max-width: 520px) {
   .inst-stats { grid-template-columns: 1fr; }
-  .inst-datos { grid-template-columns: 1fr; gap: 2px; }
-  .inst-datos dd { margin-bottom: 8px; }
+  .inst-datos { grid-template-columns: 1fr; gap: 4px; }
+  .inst-datos dd { margin-bottom: 10px; }
+}
+
+/* ============================================================
+   MODAL DE INFORMACIÓN DE INSTITUCIONES (DISEÑO MEJORADO)
+   ============================================================ */
+
+.institucion-modal__panel {
+  max-width: 520px;
+  width: 90%;
+  max-height: 88vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: var(--bg-panel-alt, #121824);
+  border: 1px solid var(--border-subtle, #1e293b);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  padding: 0;
+}
+
+/* Encabezado con imagen ajustada y recortada */
+.inst-card__header {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  background: #0f172a;
+  overflow: hidden;
+  border-radius: 16px 16px 0 0;
+}
+
+.inst-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.inst-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: var(--accent, #29e2b8);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Cuerpo de la información */
+.inst-card__body {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inst-card__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+/* Badges / Etiquetas (Tipo y Sector) */
+.inst-card__tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inst-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inst-tag--colegio { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+.inst-tag--universidad { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+.inst-tag--sector { background: rgba(255, 255, 255, 0.08); color: #cbd5e1; }
+
+/* Grid de Indicadores Académicos */
+.inst-card__stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.inst-stat {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inst-stat__label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.inst-stat__value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent, #29e2b8);
+}
+
+/* Lista de detalles (Dirección, Teléfono, Horario) */
+.inst-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 14px;
+}
+
+.inst-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.inst-detail-item strong {
+  color: #94a3b8;
+  min-width: 80px;
+  font-weight: 600;
+}
+
+.inst-detail-item span {
+  flex: 1;
+}
+
+.inst-card__desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #94a3b8;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 3px solid var(--accent, #29e2b8);
+}
+
+/* ============================================================
+   LIGHTBOX / FOTO AMPLIADA EN PANTALLA COMPLETA
+   ============================================================ */
+
+/* Cursor de lupa sobre la imagen del modal */
+.inst-card__header--clickable {
+  cursor: zoom-in;
+  transition: transform 0.2s ease;
+}
+
+.inst-card__header--clickable:hover .inst-card__img {
+  transform: scale(1.03);
+}
+
+/* Modal superpuesto para la foto ampliada */
+.img-lightbox-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(5, 10, 20, 0.88);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  padding: 20px;
+}
+
+.img-lightbox-modal--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.img-lightbox-modal__content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.img-lightbox-modal__img {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.img-lightbox-modal__caption {
+  margin-top: 12px;
+  color: #e2e8f0;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.img-lightbox-modal__close {
+  position: absolute;
+  top: -45px;
+  right: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #ffffff;
+  font-size: 24px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.img-lightbox-modal__close:hover {
+  background: rgba(255, 255, 255, 0.3);
 }

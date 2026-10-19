@@ -1,36 +1,19 @@
 /**
  * layers.js
  * ------------------------------------------------------------------
- * Carga de archivos (GeoJSON o Shapefile en .zip), detección
- * (semi-automática) del sistema de coordenadas de origen, y
- * reproyección a WGS84 para poder dibujar la capa en Leaflet.
- *
- * Fuente típica de las capas: geoportal oficial "Colombia en Mapas"
- * del IGAC (colombiaenmapas.gov.co). Al descargar un territorio
- * completo desde ahí, normalmente entrega un Shapefile (.zip con
- * .shp/.dbf/.prj), no un GeoJSON — por eso este archivo soporta
- * ambos formatos con el mismo flujo de detección/confirmación.
- *
- * Estrategia de detección (deliberadamente simple):
- *   1. Si hay un .prj (Shapefile): se busca un código EPSG declarado
- *      (AUTHORITY[...]) o se compara el meridiano central del .prj
- *      contra los sistemas del catálogo.
- *   2. Si el GeoJSON trae un miembro "crs" explícito -> se lee de ahí.
- *   3. Si no hay nada de lo anterior, se mira la magnitud de la
- *      primera coordenada:
- *        - valores entre [-180,180] / [-90,90]  -> probablemente geográfico
- *        - "false easting" ~5.000.000            -> probablemente EPSG:9377
- *        - "false easting/northing" ~1.000.000   -> probablemente EPSG:3116
- *        - resto de valores en metros            -> probablemente UTM
- *   4. SIEMPRE se le pide confirmación al usuario antes de usar el
- *      resultado. La detección es un punto de partida, no una verdad
- *      absoluta.
+ * Carga de archivos (GeoJSON o Shapefile en .zip), detección del CRS
+ * de origen, reproyección a WGS84 para dibujado en Leaflet y sincronización.
  * ------------------------------------------------------------------
  */
 
-let pendingGeoJSON = null; // capa a la espera de confirmación de CRS
-let loadedLayers = [];     // capas ya añadidas al mapa
-let currentMap = null;     // referencia al mapa, para poder mostrar/ocultar/quitar capas después
+let pendingGeoJSON = null; // Capa a la espera de confirmación de CRS
+let loadedLayers = [];     // Capas añadidas al mapa activo
+let currentMap = null;     // Referencia al mapa activo (index o admin)
+
+/** Mantiene/actualiza la referencia del mapa activo */
+function setLayerManagerMap(map) {
+  currentMap = map;
+}
 
 function getFirstCoordinate(geojson) {
   const feature = geojson.type === 'FeatureCollection' ? geojson.features[0] : geojson;
@@ -62,17 +45,6 @@ function guessEpsgHeuristic(x, y) {
   return { epsg: 'EPSG:4326', confidence: 'sin coincidencias claras, revisar manualmente' };
 }
 
-/**
- * Intenta identificar el EPSG a partir del texto WKT de un .prj
- * (el archivo de proyección que acompaña a un Shapefile):
- *   1) Busca un código EPSG declarado explícitamente (AUTHORITY[...]).
- *   2) Si no está, extrae el meridiano central del .prj y lo compara
- *      contra el de cada sistema proyectado del catálogo (usando los
- *      parámetros que proj4 ya tiene registrados con proj4.defs()).
- *   3) Si el .prj es puramente geográfico (sin PROJCS), asume WGS84.
- * Devuelve null si no se pudo determinar nada (se cae al resto de
- * la estrategia de detección).
- */
 function detectEpsgFromPrjText(prjText) {
   if (!prjText) return null;
 
@@ -115,7 +87,6 @@ function detectCRS(geojson, prjText) {
   return { epsg: guess.epsg, source: guess.confidence };
 }
 
-/** Recorre recursivamente coordenadas de cualquier geometría GeoJSON. */
 function transformCoordinatesDeep(coords, fromEpsg) {
   if (typeof coords[0] === 'number') {
     const { lat, lon } = convertToWGS84(coords[0], coords[1], fromEpsg);
@@ -134,13 +105,6 @@ function reprojectGeoJSONToWGS84(geojson, fromEpsg) {
   return clone;
 }
 
-/**
- * Convierte un ArrayBuffer de un .zip con un Shapefile (.shp/.dbf/.prj)
- * en un GeoJSON con las coordenadas TAL COMO VIENEN en el archivo
- * (sin reproyectar, a propósito) + el texto del .prj — así se puede
- * reutilizar exactamente el mismo flujo de detección/confirmación
- * que ya se usa con GeoJSON.
- */
 async function parseShapefileZip(arrayBuffer) {
   const zip = await JSZip.loadAsync(arrayBuffer);
   const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir);
@@ -158,7 +122,7 @@ async function parseShapefileZip(arrayBuffer) {
   const prjText = prjName ? await zip.files[prjName].async('text') : null;
   const cpgText = cpgName ? await zip.files[cpgName].async('text') : null;
 
-  const geometries = shp.parseShp(shpBuffer); // sin pasar el prj: coordenadas crudas, a propósito
+  const geometries = shp.parseShp(shpBuffer);
   let geojson;
   if (dbfBuffer) {
     const properties = shp.parseDbf(dbfBuffer, cpgText);
@@ -181,10 +145,11 @@ function addLayerToMap(map, geojson, name, epsg) {
   const id = `layer-${Date.now()}-${Math.round(Math.random() * 1000)}`;
   loadedLayers.push({ id, name, epsg, layer, visible: true });
   renderLayersList();
-  map.fitBounds(layer.getBounds(), { maxZoom: 14 });
+  if (layer.getBounds().isValid()) {
+    map.fitBounds(layer.getBounds(), { maxZoom: 14 });
+  }
 }
 
-/** Muestra/oculta una capa sin quitarla de la lista ni del estado. */
 function toggleLayerVisibility(id) {
   const entry = loadedLayers.find((l) => l.id === id);
   if (!entry || !currentMap) return;
@@ -197,7 +162,6 @@ function toggleLayerVisibility(id) {
   renderLayersList();
 }
 
-/** Quita una capa por completo: del mapa y de la lista. */
 function removeLayer(id) {
   const index = loadedLayers.findIndex((l) => l.id === id);
   if (index === -1) return;
@@ -208,11 +172,14 @@ function removeLayer(id) {
 
 function renderLayersList() {
   const list = document.getElementById('layers-list');
+  if (!list) return;
+
   list.innerHTML = '';
   if (loadedLayers.length === 0) {
     list.innerHTML = '<li class="layers-list__empty">Aún no hay capas cargadas.</li>';
     return;
   }
+
   loadedLayers.forEach((l) => {
     const li = document.createElement('li');
     li.className = 'layer-item';
@@ -246,7 +213,6 @@ function renderLayersList() {
   });
 }
 
-/** Muestra el panel "2 · Sistema detectado" con la sugerencia ya lista para confirmar. */
 function presentDetection(geojson, fileName, prjText) {
   const detection = detectCRS(geojson, prjText);
   pendingGeoJSON = { geojson, fileName };
@@ -254,6 +220,8 @@ function presentDetection(geojson, fileName, prjText) {
   const panel = document.getElementById('crs-detect-panel');
   const hint = document.getElementById('crs-detect-hint');
   const select = document.getElementById('crs-detect-select');
+
+  if (!panel || !hint || !select) return;
 
   hint.textContent = `Detección: ${detection.source}. Verifica y confirma antes de añadir la capa.`;
   select.innerHTML = '';
@@ -268,8 +236,8 @@ function presentDetection(geojson, fileName, prjText) {
   panel.hidden = false;
 }
 
-/** Punto de entrada: se llama cuando el usuario elige un archivo (.geojson/.json o .zip). */
 function handleFileSelected(file, map) {
+  setLayerManagerMap(map);
   const ext = file.name.toLowerCase().split('.').pop();
 
   if (ext === 'zip') {
@@ -296,34 +264,38 @@ function handleFileSelected(file, map) {
 
 function confirmPendingLayer(map) {
   if (!pendingGeoJSON) return;
-  const epsg = document.getElementById('crs-detect-select').value;
+  const select = document.getElementById('crs-detect-select');
+  const epsg = select ? select.value : 'EPSG:4326';
   const reprojected = reprojectGeoJSONToWGS84(pendingGeoJSON.geojson, epsg);
   
-  // 1. Añade y muestra la capa en el mapa localmente
+  // 1. Añade la capa al mapa activo localmente
   addLayerToMap(map, reprojected, pendingGeoJSON.fileName, epsg);
 
-  // 2. Guarda la capa y su estructura geométrica en Supabase (Bloque 2 - BD)
-  saveLayerMetadata(pendingGeoJSON.fileName, epsg, reprojected);
+  // 2. Guarda en Supabase si la función global existe
+  if (typeof saveLayerMetadata === 'function') {
+    saveLayerMetadata(pendingGeoJSON.fileName, epsg, reprojected);
+  }
 
   pendingGeoJSON = null;
-  document.getElementById('crs-detect-panel').hidden = true;
-  document.getElementById('file-input').value = '';
-  document.getElementById('filedrop-label').textContent = 'Seleccionar archivo…';
+  const panel = document.getElementById('crs-detect-panel');
+  if (panel) panel.hidden = true;
+
+  const fileInput = document.getElementById('file-input');
+  if (fileInput) fileInput.value = '';
+
+  const filedropLabel = document.getElementById('filedrop-label');
+  if (filedropLabel) filedropLabel.textContent = 'Seleccionar archivo…';
 }
 
-/** 
- * Carga automática de capas directamente desde la base de datos de Supabase 
- * (Permite que el Front-End llame y renderice las capas persistidas en la BD).
- */
 async function loadLayersFromSupabaseDB(map) {
   currentMap = map;
+  if (typeof listLayersFromSupabase !== 'function') return;
+
   const dbLayers = await listLayersFromSupabase();
-  
   if (!dbLayers || dbLayers.length === 0) return;
 
   dbLayers.forEach((row) => {
     if (row.geojson_data) {
-      // Evita duplicar si ya se encuentra cargada en el visor
       const yaExiste = loadedLayers.some((l) => l.name === row.name);
       if (!yaExiste) {
         const layer = L.geoJSON(row.geojson_data, {
@@ -338,3 +310,31 @@ async function loadLayersFromSupabaseDB(map) {
 
   renderLayersList();
 }
+
+// Objeto global de enlace seguro
+window.LayerManager = {
+  init: function(map) {
+    setLayerManagerMap(map);
+    
+    // Conectar eventos de archivo e importación si existen en el DOM actual
+    const fileInput = document.getElementById('file-input');
+    const filedropLabel = document.getElementById('filedrop-label');
+    if (fileInput && filedropLabel) {
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        filedropLabel.textContent = file.name;
+        handleFileSelected(file, map);
+      });
+    }
+
+    const confirmBtn = document.getElementById('crs-detect-confirm');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => {
+        confirmPendingLayer(map);
+      });
+    }
+
+    loadLayersFromSupabaseDB(map);
+  }
+};

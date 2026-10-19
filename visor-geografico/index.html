@@ -50,7 +50,7 @@
       <ul class="landing__features">
         <li><strong>Instituciones</strong><span>Colegios públicos, privados y universidades</span></li>
         <li><strong>Red vial</strong><span>Más de mil tramos de vías del municipio</span></li>
-        <li><strong>Herramientas SIG</strong><span>Importa capas y cambia de sistema de coordenadas</span></li>
+        <li><strong>Herramientas SIG</strong><span>Consulta de coordenadas en tiempo real</span></li>
       </ul>
       <button id="btn-acceder-geovisor" class="landing__cta">Abrir el geovisor</button>
       <p class="landing__footer">Jacobo Flórez · Sebastián Zuleta · Ana Sofía Sáenz</p>
@@ -78,7 +78,7 @@
         </div>
         <div>
           <h1 class="sidebar__title">Herramientas espaciales</h1>
-          <p class="sidebar__subtitle">Capas, coordenadas y datos</p>
+          <p class="sidebar__subtitle">Capas y coordenadas</p>
         </div>
       </header>
 
@@ -86,29 +86,6 @@
         <h2 class="panel__title">Capas del mapa</h2>
         <p class="panel__hint" id="instituciones-total">Cargando…</p>
         <ul class="category-list" id="category-list"></ul>
-      </section>
-
-      <section class="panel">
-        <h2 class="panel__title">Importar capa</h2>
-        <p class="panel__hint">GeoJSON (.geojson/.json) o Shapefile en .zip (.shp+.dbf+.prj)</p>
-        <label class="filedrop" for="file-input">
-          <span id="filedrop-label">Seleccionar archivo…</span>
-        </label>
-        <input type="file" id="file-input" accept=".geojson,.json,.zip" hidden />
-      </section>
-
-      <section class="panel" id="crs-detect-panel" hidden>
-        <h2 class="panel__title">Sistema de coordenadas detectado</h2>
-        <p class="panel__hint" id="crs-detect-hint">—</p>
-        <select id="crs-detect-select" class="select"></select>
-        <button id="crs-detect-confirm" class="btn btn--accent">Confirmar y añadir capa</button>
-      </section>
-
-      <section class="panel">
-        <h2 class="panel__title">Capas importadas</h2>
-        <ul id="layers-list" class="layers-list">
-          <li class="layers-list__empty">Aún no hay capas cargadas.</li>
-        </ul>
       </section>
 
       <section class="panel">
@@ -184,7 +161,7 @@
     </div>
   </section>
 
-  <!-- LIBRERÍAS (VectorGrid Restaurado para la prueba de estrés) -->
+  <!-- LIBRERÍAS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>

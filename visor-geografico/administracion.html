@@ -1,23 +1,67 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Administración · Visor Geográfico Sabaneta</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administración · Visor Geográfico Sabaneta</title>
 
-<!--
-  AJUSTA ESTAS DOS RUTAS si tu proyecto las tiene en otro lugar:
-  - styles.css   -> la misma hoja de estilos del visor (tokens de color, etc.)
-  - js/supabaseClient.js -> donde defines la variable global `supabaseClient`
--->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-<!-- Mismo SDK de Supabase que usa tu visor. Si en index.html usas otra
-     versión, cámbiala aquí para que coincida. -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabaseClient.js"></script>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css" />
+
+  <style>
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 20px;
+      margin-top: 20px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .admin-grid { grid-template-columns: 1fr; }
+    }
+    .admin-map-card {
+      background: var(--bg-panel-alt, #121824);
+      border: 1px solid var(--border-subtle, #1e293b);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    #admin-map {
+      width: 100%;
+      height: 520px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle, #1e293b);
+      z-index: 1;
+    }
+    .admin-side { display: flex; flex-direction: column; gap: 16px; }
+
+    /* Fila inferior debajo del mapa para coordenadas */
+    .admin-map-bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 768px) {
+      .admin-map-bottom-row { grid-template-columns: 1fr; }
+    }
+
+    /* Lista desplegable del selector de CRS: tema oscuro */
+    .admin-panel .select { width: 100%; color-scheme: dark; }
+    .admin-panel .select option {
+      background: #121824;
+      color: #e6edf7;
+    }
+    .admin-panel .select option:disabled { color: #6b7a90; }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabaseClient.js"></script>
 </head>
 <body class="admin-body">
 
@@ -27,13 +71,11 @@
     <button id="btn-cerrar-sesion" class="admin-nav__logout" hidden>Cerrar sesión</button>
   </nav>
 
-  <!-- ============================================================
-       PANTALLA DE LOGIN
-       ============================================================ -->
+  <!-- PANTALLA DE LOGIN -->
   <div id="login-screen" class="admin-login">
     <form id="form-login" class="admin-login__card">
       <h1 class="admin-login__title">Acceso administrativo</h1>
-      <p class="admin-login__hint">Ingresa con tu cuenta de administrador para editar las instituciones.</p>
+      <p class="admin-login__hint">Ingresa con tu cuenta de administrador para gestionar las instituciones y las capas del mapa.</p>
 
       <label class="admin-field">
         <span>Correo</span>
@@ -51,11 +93,10 @@
     </form>
   </div>
 
-  <!-- ============================================================
-       PANEL ADMINISTRATIVO (solo visible tras login)
-       ============================================================ -->
+  <!-- PANEL ADMINISTRATIVO (solo visible tras login) -->
   <div id="admin-screen" class="admin-panel" hidden>
 
+    <!-- GESTIÓN DE INSTITUCIONES -->
     <div class="admin-panel__toolbar">
       <h2 class="admin-panel__heading">Instituciones educativas</h2>
       <button id="btn-nueva-institucion" class="btn btn--accent admin-panel__btn-nueva">+ Nueva institución</button>
@@ -80,11 +121,74 @@
         </tbody>
       </table>
     </div>
+
+    <!-- MAPA DE ADMINISTRACIÓN: MÁQUINA PRINCIPAL DE MAPA Y HERRAMIENTAS -->
+    <div class="admin-grid">
+
+      <div class="admin-map-card">
+        <h2 class="panel__title" style="margin: 0; font-size: 16px;">Vista previa del mapa (igual que el visor público)</h2>
+        <div id="admin-map"></div>
+
+        <!-- FILA DEBAJO DEL MAPA: SISTEMA DE COORDENADAS Y LECTURA EN VIVO (UNO AL LADO DEL OTRO) -->
+        <div class="admin-map-bottom-row">
+          <section class="panel">
+            <h2 class="panel__title">Sistema de coordenadas</h2>
+            <select id="display-crs-select" class="select"></select>
+          </section>
+
+          <section class="panel panel--readout">
+            <h2 class="panel__title">Lectura de coordenadas en vivo</h2>
+            <div class="readout" id="readout-system">EPSG:4326 · WGS84</div>
+            <div class="readout-grid">
+              <div class="readout-field">
+                <span class="readout-field__label" id="readout-label-1">LAT</span>
+                <span class="readout-field__value" id="readout-value-1">—</span>
+              </div>
+              <div class="readout-field">
+                <span class="readout-field__label" id="readout-label-2">LON</span>
+                <span class="readout-field__value" id="readout-value-2">—</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="admin-side">
+
+        <section class="panel">
+          <h2 class="panel__title">Capas del mapa</h2>
+          <ul class="category-list" id="category-list"></ul>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel__title">Importar capa</h2>
+          <p class="panel__hint">GeoJSON (.geojson/.json) o Shapefile en .zip (.shp+.dbf+.prj)</p>
+          <label class="filedrop" for="file-input">
+            <span id="filedrop-label">Seleccionar archivo…</span>
+          </label>
+          <input type="file" id="file-input" accept=".geojson,.json,.zip" hidden />
+        </section>
+
+        <section class="panel" id="crs-detect-panel" hidden>
+          <h2 class="panel__title">Sistema de coordenadas detectado</h2>
+          <p class="panel__hint" id="crs-detect-hint">—</p>
+          <select id="crs-detect-select" class="select"></select>
+          <button id="crs-detect-confirm" class="btn btn--accent" style="margin-top: 8px;">Confirmar y añadir capa</button>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel__title">Capas importadas</h2>
+          <ul id="layers-list" class="layers-list">
+            <li class="layers-list__empty">Aún no hay capas cargadas.</li>
+          </ul>
+        </section>
+
+      </div>
+    </div>
+
   </div>
 
-  <!-- ============================================================
-       MODAL: crear / editar institución
-       ============================================================ -->
+  <!-- MODAL: CREAR / EDITAR INSTITUCIÓN -->
   <div id="admin-modal" class="institucion-modal">
     <div class="institucion-modal__backdrop" data-cerrar-admin-modal></div>
     <div class="institucion-modal__panel admin-modal__panel" role="dialog" aria-modal="true">
@@ -191,245 +295,439 @@
     </div>
   </div>
 
-<script>
-/**
- * administracion.html — lógica de login y CRUD
- * ------------------------------------------------------------------
- * Requiere que js/supabaseClient.js defina la variable global
- * `supabaseClient` (mismo cliente que usa instituciones.js).
- * ------------------------------------------------------------------
- */
+  <!-- LIBRERÍAS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shpjs/6.2.0/shp.min.js"></script>
 
-const TABLA = 'instituciones_educativas';
+  <!-- SCRIPTS DEL PROYECTO -->
+  <script src="js/crs.js"></script>
+  <script src="js/layers.js"></script>
+  <script src="js/instituciones.js"></script>
+  <script src="js/vias.js"></script>
+  <script src="js/viviendas.js"></script>
 
-const loginScreen = document.getElementById('login-screen');
-const adminScreen = document.getElementById('admin-screen');
-const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
+  <script>
+  const TABLA = 'instituciones_educativas';
 
-// ----------------------------------------------------------------
-// Sesión / login
-// ----------------------------------------------------------------
-async function mostrarSegunSesion() {
-  if (!supabaseClient) {
-    document.getElementById('login-error').hidden = false;
-    document.getElementById('login-error').textContent = 'Supabase no está configurado (ver js/supabaseClient.js).';
-    return;
+  function esc(valor) {
+    return String(valor ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
-  const { data: { session } } = await supabaseClient.auth.getSession();
+  const loginScreen = document.getElementById('login-screen');
+  const adminScreen = document.getElementById('admin-screen');
+  const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
 
-  if (session) {
-    loginScreen.hidden = true;
-    adminScreen.hidden = false;
-    btnCerrarSesion.hidden = false;
+  // ----------------------------------------------------------------
+  // MAPA DE ADMINISTRACIÓN Y GRUPOS DE CAPAS
+  // ----------------------------------------------------------------
+  const SABANETA_CENTER = [6.1515, -75.6165];
+  const SABANETA_ZOOM = 14;
+  let currentDisplayEpsg = 'EPSG:4326';
+  let adminMap = null;
+
+  const ATTR_OSM = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>';
+
+  async function cargarCapasDelVisor(map) {
+    // Definimos los grupos de capas que requieren las funciones inicializadoras
+    const grupoInstituciones = L.layerGroup().addTo(map);
+    const grupoVias = L.layerGroup();
+    const grupoViviendas = L.layerGroup();
+
+    if (typeof initInstitucionesLayer === 'function') {
+      await initInstitucionesLayer(map, grupoInstituciones);
+    }
+    if (typeof initViasLayer === 'function') {
+      await initViasLayer(map, grupoVias);
+    }
+    if (typeof initViviendasPriorizadas === 'function') {
+      await initViviendasPriorizadas(map, grupoViviendas);
+    }
+
+    cargarLimiteMunicipal(map);
+  }
+
+function cargarLimiteMunicipal(map) {
+  const grupoLimiteMunicipal = L.layerGroup();
+
+  fetch('data/viviendas_priorizadas_colegios.geojson')
+    .then((r) => { if (!r.ok) throw new Error('archivo no encontrado'); return r.json(); })
+    .then((geojson) => {
+      // Filtrar el GeoJSON para conservar SOLO polígonos (el área/límite)
+      const soloPoligonos = {
+        type: 'FeatureCollection',
+        features: (geojson.features || []).filter((f) => 
+          f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
+        )
+      };
+
+      const limite = L.geoJSON(soloPoligonos, {
+        style: { 
+          color: '#00d9a5', 
+          weight: 3, 
+          opacity: 1, 
+          fillColor: '#00d9a5', 
+          fillOpacity: 0.08, 
+          dashArray: '7, 5' 
+        },
+        onEachFeature: (feature, layer) => {
+          const nombre = feature.properties?.name || feature.properties?.NOMBRE || 'Sabaneta';
+          layer.bindPopup(`<strong>Límite municipal</strong><br>${esc(nombre)}`);
+        }
+      });
+
+      limite.addTo(grupoLimiteMunicipal);
+
+      // Buscar el checkbox del límite municipal en el DOM
+      const labels = Array.from(document.querySelectorAll('label, li, span'));
+      const targetLabel = labels.find(el => el.textContent.includes('Límite municipal'));
+      const checkbox = targetLabel 
+        ? (targetLabel.querySelector('input[type="checkbox"]') || targetLabel.closest('li')?.querySelector('input[type="checkbox"]'))
+        : null;
+
+      // Sincronizar estado inicial
+      if (checkbox && checkbox.checked) {
+        grupoLimiteMunicipal.addTo(map);
+      }
+
+      // Evento para mostrar / ocultar al pulsar el checkbox
+      if (checkbox) {
+        checkbox.addEventListener('change', (e) => {
+          if (e.target.checked) {
+            map.addLayer(grupoLimiteMunicipal);
+          } else {
+            map.removeLayer(grupoLimiteMunicipal);
+          }
+        });
+      }
+    })
+    .catch(() => {});
+}
+
+  function inicializarMapaAdmin() {
+    if (adminMap) {
+      adminMap.invalidateSize();
+      return;
+    }
+
+    adminMap = L.map('admin-map', { zoomControl: false }).setView(SABANETA_CENTER, SABANETA_ZOOM);
+    L.control.zoom({ position: 'bottomright' }).addTo(adminMap);
+    L.control.scale({ position: 'bottomleft', imperial: false, metric: true }).addTo(adminMap);
+
+    const osmEstandar = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: ATTR_OSM });
+    const osmClaro = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, attribution: ATTR_OSM + ' &copy; CARTO' });
+    const osmOscuro = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, attribution: ATTR_OSM + ' &copy; CARTO' });
+    const osmTopografico = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'Map data: ' + ATTR_OSM + ', SRTM | Map style: &copy; OpenTopoMap' });
+
+    osmEstandar.addTo(adminMap);
+
+    L.control.layers({
+      'OpenStreetMap estándar': osmEstandar,
+      'OpenStreetMap claro': osmClaro,
+      'OpenStreetMap oscuro': osmOscuro,
+      'OpenStreetMap topográfico': osmTopografico
+    }, null, { collapsed: true, position: 'topright' }).addTo(adminMap);
+
+    cargarCapasDelVisor(adminMap);
+
+    configurarCoordenadas(adminMap);
+    configurarImportacion(adminMap);
+
+    setTimeout(() => adminMap.invalidateSize(), 200);
+  }
+
+  // ----------------------------------------------------------------
+  // Selector de CRS y lectura de coordenadas en vivo
+  // ----------------------------------------------------------------
+  function configurarCoordenadas(map) {
+    const displaySelect = document.getElementById('display-crs-select');
+
+    function refreshDisplaySelect() {
+      if (typeof populateCrsSelect === 'function') {
+        populateCrsSelect(displaySelect, currentDisplayEpsg);
+      }
+    }
+
+    function updateReadoutHeader() {
+      if (typeof getCrsInfo !== 'function') return;
+      const info = getCrsInfo(currentDisplayEpsg);
+      if (!info) return;
+      document.getElementById('readout-system').textContent = `${currentDisplayEpsg} · ${info.label}`;
+      const geografico = info.kind === 'geografico';
+      document.getElementById('readout-label-1').textContent = geografico ? 'LAT' : 'NORTE (Y)';
+      document.getElementById('readout-label-2').textContent = geografico ? 'LON' : 'ESTE (X)';
+    }
+
+    refreshDisplaySelect();
+    updateReadoutHeader();
+
+    if (displaySelect) {
+      displaySelect.addEventListener('change', (event) => {
+        currentDisplayEpsg = event.target.value;
+        refreshDisplaySelect();
+        updateReadoutHeader();
+      });
+    }
+
+    const value1 = document.getElementById('readout-value-1');
+    const value2 = document.getElementById('readout-value-2');
+
+    map.on('mousemove', (event) => {
+      if (typeof getCrsInfo !== 'function' || typeof convertFromWGS84 !== 'function') return;
+      const { lat, lng } = event.latlng;
+      const info = getCrsInfo(currentDisplayEpsg);
+      if (!info) return;
+      const { x, y } = convertFromWGS84(lat, lng, currentDisplayEpsg);
+      if (value1) value1.textContent = formatCoordValue(y, info.kind);
+      if (value2) value2.textContent = formatCoordValue(x, info.kind);
+    });
+
+    map.on('mouseout', () => {
+      if (value1) value1.textContent = '—';
+      if (value2) value2.textContent = '—';
+    });
+  }
+
+  // ----------------------------------------------------------------
+  // Importación de capas
+  // ----------------------------------------------------------------
+  function configurarImportacion(map) {
+    if (typeof window.LayerManager !== 'undefined' && typeof window.LayerManager.init === 'function') {
+      window.LayerManager.init(map);
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // Sesión / login
+  // ----------------------------------------------------------------
+  async function mostrarSegunSesion() {
+    if (!supabaseClient) {
+      document.getElementById('login-error').hidden = false;
+      document.getElementById('login-error').textContent = 'Supabase no está configurado (ver js/supabaseClient.js).';
+      return;
+    }
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (session) {
+      loginScreen.hidden = true;
+      adminScreen.hidden = false;
+      btnCerrarSesion.hidden = false;
+      cargarInstituciones();
+      setTimeout(inicializarMapaAdmin, 100);
+    } else {
+      loginScreen.hidden = false;
+      adminScreen.hidden = true;
+      btnCerrarSesion.hidden = true;
+    }
+  }
+
+  document.getElementById('form-login').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+    errorEl.hidden = true;
+
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      errorEl.textContent = 'Correo o contraseña incorrectos.';
+      errorEl.hidden = false;
+      return;
+    }
+
+    await mostrarSegunSesion();
+  });
+
+  btnCerrarSesion.addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    await mostrarSegunSesion();
+  });
+
+  // ----------------------------------------------------------------
+  // Cargar y dibujar la tabla
+  // ----------------------------------------------------------------
+  async function cargarInstituciones() {
+    const tbody = document.getElementById('admin-tabla-body');
+    tbody.innerHTML = '<tr><td colspan="6" class="admin-table__vacio">Cargando…</td></tr>';
+
+    const { data, error } = await supabaseClient.from(TABLA).select('*').order('nombre');
+
+    if (error) {
+      tbody.innerHTML = `<tr><td colspan="6" class="admin-table__vacio">Error al cargar: ${esc(error.message)}</td></tr>`;
+      return;
+    }
+
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="admin-table__vacio">No hay instituciones registradas.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map((row) => `
+      <tr>
+        <td>${esc(row.nombre)}</td>
+        <td>${esc(row.tipo)}</td>
+        <td>${esc(row.sector)}</td>
+        <td>${esc(row.direccion)}</td>
+        <td>${esc(row.estrato ?? 'N/D')}</td>
+        <td class="admin-table__acciones">
+          <button class="admin-table__btn" data-editar="${esc(row.id)}">Editar</button>
+          <button class="admin-table__btn admin-table__btn--danger" data-borrar="${esc(row.id)}" data-nombre="${esc(row.nombre)}">Borrar</button>
+        </td>
+      </tr>
+    `).join('');
+
+    window.__institucionesCache = data;
+  }
+
+  document.getElementById('admin-tabla-body').addEventListener('click', (e) => {
+    const idEditar = e.target.dataset.editar;
+    const idBorrar = e.target.dataset.borrar;
+
+    if (idEditar) {
+      const row = (window.__institucionesCache || []).find((r) => String(r.id) === idEditar);
+      if (row) abrirModal('editar', row);
+    }
+
+    if (idBorrar) {
+      borrarInstitucion(idBorrar, e.target.dataset.nombre);
+    }
+  });
+
+  // ----------------------------------------------------------------
+  // Modal crear / editar
+  // ----------------------------------------------------------------
+  const modal = document.getElementById('admin-modal');
+  const form = document.getElementById('form-institucion');
+
+  function abrirModal(modo, row = null) {
+    document.getElementById('form-error').hidden = true;
+    document.getElementById('admin-modal-titulo').textContent =
+      modo === 'editar' ? 'Editar institución' : 'Nueva institución';
+
+    document.getElementById('f-id').value = row?.id ?? '';
+    document.getElementById('f-nombre').value = row?.nombre ?? '';
+    document.getElementById('f-tipo').value = row?.tipo ?? 'colegio';
+    document.getElementById('f-sector').value = row?.sector ?? 'publico';
+    document.getElementById('f-estrato').value = row?.estrato ?? '';
+    document.getElementById('f-direccion').value = row?.direccion ?? '';
+    document.getElementById('f-longitud').value = row?.longitud ?? '';
+    document.getElementById('f-latitud').value = row?.latitud ?? '';
+    document.getElementById('f-telefono').value = row?.telefono ?? '';
+    document.getElementById('f-sitio-web').value = row?.sitio_web ?? '';
+    document.getElementById('f-horario').value = row?.horario ?? '';
+    document.getElementById('f-imagen-url').value = row?.imagen_url ?? '';
+    document.getElementById('f-descripcion').value = row?.descripcion ?? '';
+    document.getElementById('f-num-estudiantes').value = row?.num_estudiantes ?? '';
+    document.getElementById('f-cupos-disponibles').value = row?.cupos_disponibles ?? '';
+    document.getElementById('f-recursos-tecnologicos').value = row?.recursos_tecnologicos ?? '';
+    document.getElementById('f-num-docentes').value = row?.num_docentes ?? '';
+
+    modal.classList.add('institucion-modal--open');
+  }
+
+  function cerrarModal() {
+    modal.classList.remove('institucion-modal--open');
+  }
+
+  document.getElementById('btn-nueva-institucion').addEventListener('click', () => abrirModal('crear'));
+
+  modal.addEventListener('click', (e) => {
+    if (e.target.dataset.cerrarAdminModal !== undefined) cerrarModal();
+  });
+
+  function numOrNull(valor) {
+    return valor === '' ? null : Number(valor);
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById('f-id').value;
+    const errorEl = document.getElementById('form-error');
+    errorEl.hidden = true;
+
+    const payload = {
+      nombre: document.getElementById('f-nombre').value.trim(),
+      tipo: document.getElementById('f-tipo').value,
+      sector: document.getElementById('f-sector').value,
+      estrato: numOrNull(document.getElementById('f-estrato').value),
+      direccion: document.getElementById('f-direccion').value.trim() || null,
+      longitud: numOrNull(document.getElementById('f-longitud').value),
+      latitud: numOrNull(document.getElementById('f-latitud').value),
+      telefono: document.getElementById('f-telefono').value.trim() || null,
+      sitio_web: document.getElementById('f-sitio-web').value.trim() || null,
+      horario: document.getElementById('f-horario').value.trim() || null,
+      imagen_url: document.getElementById('f-imagen-url').value.trim() || null,
+      descripcion: document.getElementById('f-descripcion').value.trim() || null,
+      num_estudiantes: numOrNull(document.getElementById('f-num-estudiantes').value),
+      cupos_disponibles: numOrNull(document.getElementById('f-cupos-disponibles').value),
+      recursos_tecnologicos: numOrNull(document.getElementById('f-recursos-tecnologicos').value),
+      num_docentes: numOrNull(document.getElementById('f-num-docentes').value),
+    };
+
+    const query = id
+      ? supabaseClient.from(TABLA).update(payload).eq('id', id)
+      : supabaseClient.from(TABLA).insert(payload);
+
+    const { error } = await query;
+
+    if (error) {
+      errorEl.textContent = `No se pudo guardar: ${error.message}`;
+      errorEl.hidden = false;
+      return;
+    }
+
+    cerrarModal();
+    mostrarMensaje(id ? 'Institución actualizada.' : 'Institución creada.');
     cargarInstituciones();
-  } else {
-    loginScreen.hidden = false;
-    adminScreen.hidden = true;
-    btnCerrarSesion.hidden = true;
-  }
-}
+  });
 
-document.getElementById('form-login').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  const errorEl = document.getElementById('login-error');
-  errorEl.hidden = true;
+  // ----------------------------------------------------------------
+  // Borrar
+  // ----------------------------------------------------------------
+  async function borrarInstitucion(id, nombre) {
+    const confirmado = confirm(`¿Seguro que quieres borrar "${nombre}"? Esta acción no se puede deshacer.`);
+    if (!confirmado) return;
 
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    const { error } = await supabaseClient.from(TABLA).delete().eq('id', id);
 
-  if (error) {
-    errorEl.textContent = 'Correo o contraseña incorrectos.';
-    errorEl.hidden = false;
-    return;
+    if (error) {
+      mostrarMensaje(`No se pudo borrar: ${error.message}`, true);
+      return;
+    }
+
+    mostrarMensaje('Institución borrada.');
+    cargarInstituciones();
   }
 
-  await mostrarSegunSesion();
-});
-
-btnCerrarSesion.addEventListener('click', async () => {
-  await supabaseClient.auth.signOut();
-  await mostrarSegunSesion();
-});
-
-// ----------------------------------------------------------------
-// Cargar y dibujar la tabla
-// ----------------------------------------------------------------
-async function cargarInstituciones() {
-  const tbody = document.getElementById('admin-tabla-body');
-  tbody.innerHTML = '<tr><td colspan="6" class="admin-table__vacio">Cargando…</td></tr>';
-
-  const { data, error } = await supabaseClient.from(TABLA).select('*').order('nombre');
-
-  if (error) {
-    tbody.innerHTML = `<tr><td colspan="6" class="admin-table__vacio">Error al cargar: ${error.message}</td></tr>`;
-    return;
+  function mostrarMensaje(texto, esError = false) {
+    const el = document.getElementById('admin-mensaje');
+    el.textContent = texto;
+    el.hidden = false;
+    el.classList.toggle('admin-panel__mensaje--error', esError);
+    setTimeout(() => { el.hidden = true; }, 4000);
   }
 
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="admin-table__vacio">No hay instituciones registradas.</td></tr>';
-    return;
+  // ----------------------------------------------------------------
+  // Arranque
+  // ----------------------------------------------------------------
+  mostrarSegunSesion();
+
+  if (supabaseClient) {
+    supabaseClient.auth.onAuthStateChange((evento) => {
+      if (evento === 'SIGNED_IN' || evento === 'SIGNED_OUT') mostrarSegunSesion();
+    });
   }
-
-  tbody.innerHTML = data.map((row) => `
-    <tr>
-      <td>${row.nombre ?? ''}</td>
-      <td>${row.tipo ?? ''}</td>
-      <td>${row.sector ?? ''}</td>
-      <td>${row.direccion ?? ''}</td>
-      <td>${row.estrato ?? 'N/D'}</td>
-      <td class="admin-table__acciones">
-        <button class="admin-table__btn" data-editar="${row.id}">Editar</button>
-        <button class="admin-table__btn admin-table__btn--danger" data-borrar="${row.id}" data-nombre="${row.nombre ?? ''}">Borrar</button>
-      </td>
-    </tr>
-  `).join('');
-
-  // Guardamos las filas en memoria para no volver a pedirlas al editar
-  window.__institucionesCache = data;
-}
-
-document.getElementById('admin-tabla-body').addEventListener('click', (e) => {
-  const idEditar = e.target.dataset.editar;
-  const idBorrar = e.target.dataset.borrar;
-
-  if (idEditar) {
-    const row = (window.__institucionesCache || []).find((r) => String(r.id) === idEditar);
-    if (row) abrirModal('editar', row);
-  }
-
-  if (idBorrar) {
-    borrarInstitucion(idBorrar, e.target.dataset.nombre);
-  }
-});
-
-// ----------------------------------------------------------------
-// Modal crear / editar
-// ----------------------------------------------------------------
-const modal = document.getElementById('admin-modal');
-const form = document.getElementById('form-institucion');
-
-function abrirModal(modo, row = null) {
-  document.getElementById('form-error').hidden = true;
-  document.getElementById('admin-modal-titulo').textContent =
-    modo === 'editar' ? 'Editar institución' : 'Nueva institución';
-
-  document.getElementById('f-id').value = row?.id ?? '';
-  document.getElementById('f-nombre').value = row?.nombre ?? '';
-  document.getElementById('f-tipo').value = row?.tipo ?? 'colegio';
-  document.getElementById('f-sector').value = row?.sector ?? 'publico';
-  document.getElementById('f-estrato').value = row?.estrato ?? '';
-  document.getElementById('f-direccion').value = row?.direccion ?? '';
-  document.getElementById('f-longitud').value = row?.longitud ?? '';
-  document.getElementById('f-latitud').value = row?.latitud ?? '';
-  document.getElementById('f-telefono').value = row?.telefono ?? '';
-  document.getElementById('f-sitio-web').value = row?.sitio_web ?? '';
-  document.getElementById('f-horario').value = row?.horario ?? '';
-  document.getElementById('f-imagen-url').value = row?.imagen_url ?? '';
-  document.getElementById('f-descripcion').value = row?.descripcion ?? '';
-  document.getElementById('f-num-estudiantes').value = row?.num_estudiantes ?? '';
-  document.getElementById('f-cupos-disponibles').value = row?.cupos_disponibles ?? '';
-  document.getElementById('f-recursos-tecnologicos').value = row?.recursos_tecnologicos ?? '';
-  document.getElementById('f-num-docentes').value = row?.num_docentes ?? '';
-
-  modal.classList.add('institucion-modal--open');
-}
-
-function cerrarModal() {
-  modal.classList.remove('institucion-modal--open');
-}
-
-document.getElementById('btn-nueva-institucion').addEventListener('click', () => abrirModal('crear'));
-
-modal.addEventListener('click', (e) => {
-  if (e.target.dataset.cerrarAdminModal !== undefined) cerrarModal();
-});
-
-// Convierte '' a null para que los campos numéricos vacíos no rompan el insert/update
-function numOrNull(valor) {
-  return valor === '' ? null : Number(valor);
-}
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const id = document.getElementById('f-id').value;
-  const errorEl = document.getElementById('form-error');
-  errorEl.hidden = true;
-
-  const payload = {
-    nombre: document.getElementById('f-nombre').value.trim(),
-    tipo: document.getElementById('f-tipo').value,
-    sector: document.getElementById('f-sector').value,
-    estrato: numOrNull(document.getElementById('f-estrato').value),
-    direccion: document.getElementById('f-direccion').value.trim() || null,
-    longitud: numOrNull(document.getElementById('f-longitud').value),
-    latitud: numOrNull(document.getElementById('f-latitud').value),
-    telefono: document.getElementById('f-telefono').value.trim() || null,
-    sitio_web: document.getElementById('f-sitio-web').value.trim() || null,
-    horario: document.getElementById('f-horario').value.trim() || null,
-    imagen_url: document.getElementById('f-imagen-url').value.trim() || null,
-    descripcion: document.getElementById('f-descripcion').value.trim() || null,
-    num_estudiantes: numOrNull(document.getElementById('f-num-estudiantes').value),
-    cupos_disponibles: numOrNull(document.getElementById('f-cupos-disponibles').value),
-    recursos_tecnologicos: numOrNull(document.getElementById('f-recursos-tecnologicos').value),
-    num_docentes: numOrNull(document.getElementById('f-num-docentes').value),
-  };
-
-  const query = id
-    ? supabaseClient.from(TABLA).update(payload).eq('id', id)
-    : supabaseClient.from(TABLA).insert(payload);
-
-  const { error } = await query;
-
-  if (error) {
-    errorEl.textContent = `No se pudo guardar: ${error.message}`;
-    errorEl.hidden = false;
-    return;
-  }
-
-  cerrarModal();
-  mostrarMensaje(id ? 'Institución actualizada.' : 'Institución creada.');
-  cargarInstituciones();
-});
-
-// ----------------------------------------------------------------
-// Borrar
-// ----------------------------------------------------------------
-async function borrarInstitucion(id, nombre) {
-  const confirmado = confirm(`¿Seguro que quieres borrar "${nombre}"? Esta acción no se puede deshacer.`);
-  if (!confirmado) return;
-
-  const { error } = await supabaseClient.from(TABLA).delete().eq('id', id);
-
-  if (error) {
-    mostrarMensaje(`No se pudo borrar: ${error.message}`, true);
-    return;
-  }
-
-  mostrarMensaje('Institución borrada.');
-  cargarInstituciones();
-}
-
-function mostrarMensaje(texto, esError = false) {
-  const el = document.getElementById('admin-mensaje');
-  el.textContent = texto;
-  el.hidden = false;
-  el.classList.toggle('admin-panel__mensaje--error', esError);
-  setTimeout(() => { el.hidden = true; }, 4000);
-}
-
-// ----------------------------------------------------------------
-// Arranque
-// ----------------------------------------------------------------
-mostrarSegunSesion();
-
-// Si la sesión cambia en otra pestaña (ej. cierre de sesión), refleja el cambio aquí también.
-if (supabaseClient) {
-  supabaseClient.auth.onAuthStateChange(() => mostrarSegunSesion());
-}
-</script>
+  </script>
 
 </body>
 </html>

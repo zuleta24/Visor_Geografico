@@ -10,10 +10,10 @@
 // 1. CONFIGURACIÓN Y CONSTANTES
 // ==========================================
 const CATEGORIAS_INSTITUCIONES = [
-  { key: 'colegio-publico',      label: 'Colegios públicos',                 color: '#3b82f6', source: 'oficial', tipo: 'colegio',     sector: 'publico' },
-  { key: 'colegio-privado',      label: 'Colegios privados',                 color: '#f97316', source: 'oficial', tipo: 'colegio',     sector: 'privado' },
-  { key: 'universidad-privado',  label: 'Universidades privadas',            color: '#a855f7', source: 'oficial', tipo: 'universidad', sector: 'privado' },
-  { key: 'osm-colegios-basico',  label: 'Colegios (OSM · consulta básica)',  color: '#eab308', source: 'capa1' },
+  { key: 'colegio-publico',      label: 'Colegios públicos',                color: '#3b82f6', source: 'oficial', tipo: 'colegio',     sector: 'publico' },
+  { key: 'colegio-privado',      label: 'Colegios privados',                color: '#f97316', source: 'oficial', tipo: 'colegio',     sector: 'privado' },
+  { key: 'universidad-privado',  label: 'Universidades privadas',           color: '#a855f7', source: 'oficial', tipo: 'universidad', sector: 'privado' },
+  { key: 'osm-colegios-basico',  label: 'Colegios (OSM · consulta básica)', color: '#eab308', source: 'capa1' },
 ];
 
 const ESTILO_LIMITE_SABANETA = { 
@@ -22,7 +22,7 @@ const ESTILO_LIMITE_SABANETA = {
   dashArray: '6 4', 
   fill: true,           
   fillColor: '#29e2b8', 
-  fillOpacity: 0.20    // Transparencia: 0.0 es invisible, 1.0 es sólido. 0.15 es ideal para no tapar el mapa base
+  fillOpacity: 0.20
 };
 
 // ==========================================
@@ -83,13 +83,10 @@ function filaAFeature(row) {
       direccion: row.direccion,
       estrato: row.estrato,
       imagen_url: row.imagen_url,
-      // Opcionales para el modal de detalle: si la fila no los tiene,
-      // simplemente quedan undefined y esa fila no se muestra.
       telefono: row.telefono,
       sitio_web: row.sitio_web,
       horario: row.horario,
       descripcion: row.descripcion,
-      // Indicadores académicos (opcionales).
       num_estudiantes: row.num_estudiantes,
       cupos_disponibles: row.cupos_disponibles,
       recursos_tecnologicos: row.recursos_tecnologicos,
@@ -101,26 +98,31 @@ function filaAFeature(row) {
 // ==========================================
 // 4. RENDERIZADO DE INTERFAZ (UI)
 // ==========================================
+
+/**
+ * Popup rápido que aparece al hacer clic sobre el punto en Leaflet
+ */
 function construirHtmlPopup(props, categoria, id) {
-  const estrato = props.estrato ?? 'No disponible';
-  const sectorTexto = props.sector ?? 'No especificado (OSM)';
+  const estrato = props.estrato ? `Estrato ${props.estrato}` : 'Estrato N/D';
+  const sectorTexto = props.sector ? `Sector ${props.sector}` : 'Sector N/D';
   const labelCategoria = categoria ? categoria.label : '';
   
   const imagenHtml = props.imagen_url
-    ? `<img src="${props.imagen_url}" alt="${props.nombre}" 
-            style="display:block;width:100%;max-width:200px;height:120px;object-fit:cover;border-radius:6px;margin-bottom:8px;border:1px solid #223049;" 
-            onerror="this.style.display='none'" />`
+    ? `<div style="width:100%;height:100px;border-radius:6px;overflow:hidden;margin-bottom:8px;background:#0f172a;">
+        <img src="${props.imagen_url}" alt="${props.nombre}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.display='none'" />
+       </div>`
     : '';
 
   return `
-    <div class="institucion-popup">
+    <div class="institucion-popup" style="max-width:220px;">
       ${imagenHtml}
-      <strong>${props.nombre}</strong><br/>
-      <span class="institucion-popup__categoria">${labelCategoria}</span><br/>
-      <span>${props.direccion || 'Sin dirección registrada'}</span><br/>
-      <span>Sector: ${sectorTexto}</span><br/>
-      <span>Estrato: ${estrato}</span><br/>
-      <a href="javascript:void(0)" class="institucion-popup__link" data-institucion-id="${id}">Detalles de la institución →</a>
+      <strong style="font-size:14px;color:#fff;display:block;margin-bottom:2px;">${props.nombre}</strong>
+      <span class="institucion-popup__categoria" style="font-size:11px;color:#29e2b8;display:block;margin-bottom:6px;">${labelCategoria}</span>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.3;margin-bottom:8px;">
+        <span>${props.direccion || 'Sin dirección registrada'}</span><br/>
+        <span>${sectorTexto} · ${estrato}</span>
+      </div>
+      <a href="javascript:void(0)" class="institucion-popup__link" data-institucion-id="${id}" style="font-size:12px;color:#29e2b8;font-weight:600;text-decoration:none;">Ver detalles completos →</a>
     </div>
   `;
 }
@@ -131,7 +133,6 @@ function renderCategoryList() {
   
   list.innerHTML = '';
 
-  // Renderizar categorías de instituciones
   CATEGORIAS_INSTITUCIONES.forEach((cat) => {
     const li = document.createElement('li');
     
@@ -155,7 +156,6 @@ function renderCategoryList() {
     list.appendChild(li);
   });
 
-  // Renderizar control para el límite municipal
   const liLimite = document.createElement('li');
   liLimite.className = 'category-item';
   liLimite.innerHTML = `
@@ -169,8 +169,7 @@ function renderCategoryList() {
 }
 
 /**
- * Crea (una sola vez) el contenedor del modal de detalle y lo agrega al
- * final del <body>. No requiere tocar index.html.
+ * Crea (una sola vez) el contenedor del modal de detalle
  */
 function asegurarModalInstitucion() {
   if (document.getElementById('institucion-modal')) return;
@@ -198,9 +197,7 @@ function cerrarModalInstitucion() {
 }
 
 /**
- * Llena el modal con la información de la institución "id" y lo muestra.
- * Los campos opcionales (telefono, sitio_web, horario, descripcion) solo
- * aparecen si existen en la fila de Supabase; si no, se omiten.
+ * Llena el modal con la información estructurada y estilizada de la institución.
  */
 function abrirDetalleInstitucion(id) {
   const entry = institucionesIndex[id];
@@ -209,71 +206,93 @@ function abrirDetalleInstitucion(id) {
   const { props, categoria } = entry;
   asegurarModalInstitucion();
 
-  const estrato = props.estrato ?? 'No disponible';
-  const sectorTexto = props.sector ?? 'No especificado (OSM)';
+  const nombre = props.nombre || 'Institución educativa';
+  const tipo = (props.tipo || (categoria ? categoria.tipo : 'colegio')).toLowerCase();
+  const sector = props.sector ? `Sector ${props.sector}` : 'Sector no especificado';
+  const estrato = props.estrato ? `Estrato ${props.estrato}` : 'Estrato no especificado';
+  const direccion = props.direccion || 'Dirección no registrada';
+  const telefono = props.telefono || 'Sin teléfono registrado';
+  const horario = props.horario || 'Horario no especificado';
+  const descripcion = props.descripcion || 'Sin descripción disponible.';
 
-  const imagenHtml = props.imagen_url
-    ? `<img src="${props.imagen_url}" alt="${props.nombre}" class="institucion-modal__img"
-         onerror="this.style.display='none'" />`
-    : '';
+  // Formato para indicadores numéricos
+  const estudiantes = (props.num_estudiantes != null && props.num_estudiantes !== '') ? props.num_estudiantes : 'Por registrar';
+  const cupos = (props.cupos_disponibles != null && props.cupos_disponibles !== '') ? props.cupos_disponibles : 'Por registrar';
+  const recursos = (props.recursos_tecnologicos != null && props.recursos_tecnologicos !== '') ? props.recursos_tecnologicos : 'Por registrar';
+  const docentes = (props.num_docentes != null && props.num_docentes !== '') ? props.num_docentes : 'Por registrar';
 
-  const filasExtra = [
-    props.telefono ? ['Teléfono', props.telefono] : null,
-    props.sitio_web ? ['Sitio web', `<a href="${props.sitio_web}" target="_blank" rel="noopener">${props.sitio_web}</a>`] : null,
-    props.horario ? ['Horario', props.horario] : null,
-  ].filter(Boolean);
+  // Header con imagen controlada en altura y recorte proporcional
+  const headerImagen = props.imagen_url
+    ? `<div class="inst-card__header">
+        <img src="${props.imagen_url}" alt="${nombre}" class="inst-card__img" onerror="this.parentElement.innerHTML='<div class=\\'inst-card__placeholder\\'>📷 Imagen no disponible</div>'"/>
+       </div>`
+    : `<div class="inst-card__header"><div class="inst-card__placeholder">🏢 Sin imagen registrada</div></div>`;
 
-  const descripcionHtml = props.descripcion
-    ? `<p class="institucion-modal__descripcion">${props.descripcion}</p>`
-    : '';
-
-  // Indicadores académicos: solo se muestran los que tienen valor.
-  const indicadores = [
-    (props.num_estudiantes !== null && props.num_estudiantes !== undefined)
-      ? { label: 'Estudiantes', valor: props.num_estudiantes }
-      : null,
-    (props.cupos_disponibles !== null && props.cupos_disponibles !== undefined)
-      ? { label: 'Cupos disponibles', valor: props.cupos_disponibles }
-      : null,
-    (props.recursos_tecnologicos !== null && props.recursos_tecnologicos !== undefined)
-      ? { label: 'Recursos tecnológicos', valor: props.recursos_tecnologicos }
-      : null,
-    (props.num_docentes !== null && props.num_docentes !== undefined)
-      ? { label: 'Docentes', valor: props.num_docentes }
-      : null,
-  ].filter(Boolean);
-
-  const indicadoresHtml = indicadores.length
-    ? `<div class="institucion-modal__stats">`
-      + indicadores.map((i) => (
-        `<div class="institucion-modal__stat">`
-        + `<span class="institucion-modal__stat-valor">${i.valor}</span>`
-        + `<span class="institucion-modal__stat-label">${i.label}</span>`
-        + `</div>`
-      )).join('')
-      + `</div>`
-    : '';
+  const sitioWebHtml = props.sitio_web
+    ? `<a href="${props.sitio_web}" target="_blank" rel="noopener noreferrer" style="color:#29e2b8;word-break:break-all;">${props.sitio_web}</a>`
+    : 'Sin sitio web registrado';
 
   const body = document.querySelector('#institucion-modal .institucion-modal__body');
-  body.innerHTML = (
-    imagenHtml
-    + `<h3 class="institucion-modal__nombre">${props.nombre}</h3>`
-    + `<span class="institucion-modal__categoria">${categoria ? categoria.label : ''}</span>`
-    + indicadoresHtml
-    + `<dl class="institucion-modal__datos">`
-    + `<dt>Dirección</dt><dd>${props.direccion || 'Sin dirección registrada'}</dd>`
-    + `<dt>Sector</dt><dd>${sectorTexto}</dd>`
-    + `<dt>Estrato</dt><dd>${estrato}</dd>`
-    + filasExtra.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')
-    + `</dl>`
-    + descripcionHtml
-  );
+  
+  body.innerHTML = `
+    ${headerImagen}
+    <div class="inst-card__body">
+      <h2 class="inst-card__title">${nombre}</h2>
+
+      <div class="inst-card__tags">
+        <span class="inst-tag inst-tag--${tipo}">${tipo}</span>
+        <span class="inst-tag inst-tag--sector">${sector}</span>
+        <span class="inst-tag inst-tag--sector">${estrato}</span>
+      </div>
+
+      <div class="inst-card__stats">
+        <div class="inst-stat">
+          <span class="inst-stat__label">Estudiantes</span>
+          <span class="inst-stat__value">${estudiantes}</span>
+        </div>
+        <div class="inst-stat">
+          <span class="inst-stat__label">Cupos disponibles</span>
+          <span class="inst-stat__value">${cupos}</span>
+        </div>
+        <div class="inst-stat">
+          <span class="inst-stat__label">Recursos tecnol.</span>
+          <span class="inst-stat__value">${recursos}</span>
+        </div>
+        <div class="inst-stat">
+          <span class="inst-stat__label">Docentes</span>
+          <span class="inst-stat__value">${docentes}</span>
+        </div>
+      </div>
+
+      <div class="inst-card__details">
+        <div class="inst-detail-item">
+          <strong>Dirección:</strong>
+          <span>${direccion}</span>
+        </div>
+        <div class="inst-detail-item">
+          <strong>Teléfono:</strong>
+          <span>${telefono}</span>
+        </div>
+        <div class="inst-detail-item">
+          <strong>Horario:</strong>
+          <span>${horario}</span>
+        </div>
+        <div class="inst-detail-item">
+          <strong>Sitio web:</strong>
+          <span>${sitioWebHtml}</span>
+        </div>
+      </div>
+
+      <div class="inst-card__desc">
+        ${descripcion}
+      </div>
+    </div>
+  `;
 
   document.getElementById('institucion-modal').classList.add('institucion-modal--open');
 }
 
-// Delegación de eventos: el enlace vive dentro de un popup de Leaflet que
-// se crea y se destruye dinámicamente, así que se escucha en document.
+// Delegación de eventos para los enlaces en popups
 document.addEventListener('click', (e) => {
   const link = e.target.closest('.institucion-popup__link');
   if (link) abrirDetalleInstitucion(link.dataset.institucionId);
@@ -302,8 +321,7 @@ async function fetchFeatures(tableName) {
 // ==========================================
 // 6. GESTIÓN DE MAPAS (LEAFLET)
 // ==========================================
-function crearCapaInstitucion(featuresCategoria,cat,map,grupoInstituciones) 
-{
+function crearCapaInstitucion(featuresCategoria, cat, map, grupoInstituciones) {
   const layer = L.geoJSON(
     {
       type: 'FeatureCollection',
@@ -331,33 +349,15 @@ function crearCapaInstitucion(featuresCategoria,cat,map,grupoInstituciones)
     }
   );
 
-  /*
-    Cambio importante:
-    Antes se añadía directamente al mapa:
-
-    layer.addTo(map);
-
-    Ahora se añade al grupo de instituciones.
-  */
   layer.addTo(grupoInstituciones);
-
   institucionesLayers[cat.key] = layer;
 
-  // Actualizar el contador de cada categoría en el panel lateral
   const countEl = document.getElementById(`count-${cat.key}`);
-
   if (countEl) {
     countEl.textContent = featuresCategoria.length;
   }
 
-  /*
-    Cada checkbox del panel activa o desactiva solo su categoría,
-    pero siempre dentro del grupo principal de instituciones.
-  */
-  const checkbox = document.querySelector(
-    `input[data-category="${cat.key}"]`
-  );
-
+  const checkbox = document.querySelector(`input[data-category="${cat.key}"]`);
   if (checkbox) {
     checkbox.addEventListener('change', () => {
       if (checkbox.checked) {
@@ -405,27 +405,18 @@ async function initLimiteMunicipal(map) {
 async function initInstitucionesLayer(map, grupoInstituciones) {
   renderCategoryList();
 
-  /*
-    El grupo se añade al mapa una sola vez.
-    Luego cada categoría se añade o elimina dentro de este grupo.
-  */
   grupoInstituciones.addTo(map);
 
   const totalEl = document.getElementById('instituciones-total');
 
   if (!supabaseClient) {
-    console.warn(
-      'Supabase no está configurado (ver js/supabaseClient.js).'
-    );
-
+    console.warn('Supabase no está configurado (ver js/supabaseClient.js).');
     if (totalEl) {
       totalEl.textContent = 'Supabase no configurado';
     }
-
     return;
   }
 
-  // Carga paralela desde Supabase
   const [
     featuresOficial,
     featuresCapa1Raw,
@@ -436,31 +427,19 @@ async function initInstitucionesLayer(map, grupoInstituciones) {
     fetchFeatures('capa2_colegios_detalle_geojson')
   ]);
 
-  // Eliminar duplicados frente a la fuente oficial
-  const nombresOficiales = featuresOficial.map(
-    (feature) => feature.properties.nombre
-  );
+  const nombresOficiales = featuresOficial.map((feature) => feature.properties.nombre);
 
-  const featuresCapa1 = quitarDuplicados(
-    featuresCapa1Raw,
-    nombresOficiales
-  );
-
-  const featuresCapa2 = quitarDuplicados(
-    featuresCapa2Raw,
-    nombresOficiales
-  );
+  const featuresCapa1 = quitarDuplicados(featuresCapa1Raw, nombresOficiales);
+  const featuresCapa2 = quitarDuplicados(featuresCapa2Raw, nombresOficiales);
 
   let totalGeneral = 0;
 
-  // Crear una capa para cada categoría
   CATEGORIAS_INSTITUCIONES.forEach((cat) => {
     let featuresCategoria = [];
 
     if (cat.source === 'oficial') {
       featuresCategoria = featuresOficial.filter(
-        (feature) =>
-          categoriaKeyDe(feature.properties) === cat.key
+        (feature) => categoriaKeyDe(feature.properties) === cat.key
       );
     } else if (cat.source === 'capa1') {
       featuresCategoria = featuresCapa1;
@@ -476,11 +455,9 @@ async function initInstitucionesLayer(map, grupoInstituciones) {
     );
   });
 
-  // Actualizar el contador total del panel lateral
   if (totalEl) {
     totalEl.textContent = `${totalGeneral} instituciones`;
   }
 
-  // El límite se mantiene como una capa independiente por ahora
   await initLimiteMunicipal(map);
 }

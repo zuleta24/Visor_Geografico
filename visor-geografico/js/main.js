@@ -1,16 +1,14 @@
 /**
  * main.js
  * ------------------------------------------------------------------
- * Inicializa el visor geográfico con Leaflet.
- * Incluye capas base OpenStreetMap, controles, coordenadas,
- * instituciones, vías, carga de archivos y geolocalización.
+ * Inicializa el visor geográfico del usuario (index.html).
+ * Incluye mapas base, lectura de coordenadas del cursor,
+ * centrado y activación de las capas (Instituciones, Vías, Viviendas, Límite).
  * ------------------------------------------------------------------
  */
 
-// Sistema de coordenadas mostrado en el panel
 let currentDisplayEpsg = "EPSG:4326";
 
-// Coordenadas iniciales de Sabaneta, Antioquia
 const SABANETA_CENTER = [6.1515, -75.6165];
 const SABANETA_ZOOM = 14;
 
@@ -36,7 +34,6 @@ L.control.scale({
    MAPAS BASE
    ------------------------------------------------------------------ */
 
-// Capa oficial de OpenStreetMap
 const osmEstandar = L.tileLayer(
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   {
@@ -45,7 +42,6 @@ const osmEstandar = L.tileLayer(
   }
 );
 
-// Mapa claro, con estilo moderno
 const osmClaro = L.tileLayer(
   "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
   {
@@ -54,7 +50,6 @@ const osmClaro = L.tileLayer(
   }
 );
 
-// Mapa oscuro, recomendado para combinar con tu panel lateral oscuro
 const osmOscuro = L.tileLayer(
   "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
   {
@@ -63,32 +58,40 @@ const osmOscuro = L.tileLayer(
   }
 );
 
-// Mapa con relieve y curvas de nivel
 const osmTopografico = L.tileLayer(
   "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
   {
     maxZoom: 17,
-    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>, SRTM | Map style: &copy; OpenTopoMap'
+    attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: OpenTopoMap'
   }
 );
 
-// Capa inicial
 osmEstandar.addTo(map);
 
 /* ------------------------------------------------------------------
    GRUPOS DE CAPAS TEMÁTICAS
    ------------------------------------------------------------------ */
 
-const grupoInstituciones = L.layerGroup();
+const grupoInstituciones = L.layerGroup().addTo(map);
 const grupoVias = L.layerGroup();
+const grupoViviendas = L.layerGroup();
 const grupoLimiteMunicipal = L.layerGroup();
 
-initInstitucionesLayer(map, grupoInstituciones);
-initViasLayer(map, grupoVias);
-initViviendasPriorizadas(map);
+// Inicializar capas locales
+if (typeof initInstitucionesLayer === 'function') {
+  initInstitucionesLayer(map, grupoInstituciones);
+}
+
+if (typeof initViasLayer === 'function') {
+  initViasLayer(map, grupoVias);
+}
+
+if (typeof initViviendasPriorizadas === 'function') {
+  initViviendasPriorizadas(map, grupoViviendas);
+}
 
 /* ------------------------------------------------------------------
-   CONTROL DE CAPAS
+   CONTROL DE CAPAS BASE Y DE CONMUTACIÓN
    ------------------------------------------------------------------ */
 
 const mapasBase = {
@@ -98,21 +101,18 @@ const mapasBase = {
   "OpenStreetMap topográfico": osmTopografico
 };
 
-// Diseño elegante: Menú de mapas base colapsado arriba a la derecha, sin duplicar capas
 L.control.layers(mapasBase, null, {
   collapsed: true,
   position: "topright"
 }).addTo(map);
 
 /* ------------------------------------------------------------------
-   LÍMITE MUNICIPAL OPCIONAL
+   LÍMITE MUNICIPAL
    ------------------------------------------------------------------ */
 
-fetch("datos/limite-sabaneta.geojson")
+fetch("data/viviendas_priorizadas_colegios.geojson")
   .then((response) => {
-    if (!response.ok) {
-      throw new Error("No se encontró el límite municipal.");
-    }
+    if (!response.ok) throw new Error("No se pudo cargar el archivo del límite.");
     return response.json();
   })
   .then((geojson) => {
@@ -120,10 +120,10 @@ fetch("datos/limite-sabaneta.geojson")
       style: {
         color: "#00d9a5",
         weight: 3,
-        opacity: 1,
+        opacity: 0.9,
         fillColor: "#00d9a5",
-        fillOpacity: 0.08,
-        dashArray: "7, 5"
+        fillOpacity: 0.05,
+        dashArray: "6, 6"
       },
       onEachFeature: (feature, layer) => {
         const nombre = feature.properties?.name || feature.properties?.NOMBRE || "Sabaneta";
@@ -133,7 +133,7 @@ fetch("datos/limite-sabaneta.geojson")
     limite.addTo(grupoLimiteMunicipal);
   })
   .catch((error) => {
-    console.info("Límite municipal no cargado:", error.message);
+    console.info("Info sobre límite municipal:", error.message);
   });
 
 /* ------------------------------------------------------------------
@@ -143,71 +143,74 @@ fetch("datos/limite-sabaneta.geojson")
 const displaySelect = document.getElementById("display-crs-select");
 
 function refreshDisplaySelect() {
-  populateCrsSelect(displaySelect, currentDisplayEpsg);
+  if (displaySelect && typeof populateCrsSelect === 'function') {
+    populateCrsSelect(displaySelect, currentDisplayEpsg);
+  }
 }
 
 refreshDisplaySelect();
 
 function updateReadoutHeader() {
+  if (typeof getCrsInfo !== 'function') return;
   const info = getCrsInfo(currentDisplayEpsg);
-  document.getElementById("readout-system").textContent = `${currentDisplayEpsg} · ${info.label}`;
+  if (!info) return;
+
+  const systemEl = document.getElementById("readout-system");
+  if (systemEl) systemEl.textContent = `${currentDisplayEpsg} · ${info.label}`;
 
   const label1 = document.getElementById("readout-label-1");
   const label2 = document.getElementById("readout-label-2");
 
-  if (info.kind === "geografico") {
-    label1.textContent = "LAT";
-    label2.textContent = "LON";
-  } else {
-    label1.textContent = "NORTE (Y)";
-    label2.textContent = "ESTE (X)";
+  if (label1 && label2) {
+    if (info.kind === "geografico") {
+      label1.textContent = "LAT";
+      label2.textContent = "LON";
+    } else {
+      label1.textContent = "NORTE (Y)";
+      label2.textContent = "ESTE (X)";
+    }
   }
 }
 
 updateReadoutHeader();
 
-displaySelect.addEventListener("change", (event) => {
-  currentDisplayEpsg = event.target.value;
-  refreshDisplaySelect();
-  updateReadoutHeader();
-});
+if (displaySelect) {
+  displaySelect.addEventListener("change", (event) => {
+    currentDisplayEpsg = event.target.value;
+    refreshDisplaySelect();
+    updateReadoutHeader();
+  });
+}
 
 /* ------------------------------------------------------------------
-   COORDENADAS DEL CURSOR
+   COORDENADAS DEL CURSOR EN TIEMPO REAL
    ------------------------------------------------------------------ */
 
 map.on("mousemove", (event) => {
+  if (typeof getCrsInfo !== 'function' || typeof convertFromWGS84 !== 'function') return;
   const { lat, lng } = event.latlng;
   const info = getCrsInfo(currentDisplayEpsg);
+  if (!info) return;
+
   const { x, y } = convertFromWGS84(lat, lng, currentDisplayEpsg);
 
   const value1 = document.getElementById("readout-value-1");
   const value2 = document.getElementById("readout-value-2");
 
-  value1.textContent = formatCoordValue(y, info.kind);
-  value2.textContent = formatCoordValue(x, info.kind);
+  if (value1) value1.textContent = formatCoordValue(y, info.kind);
+  if (value2) value2.textContent = formatCoordValue(x, info.kind);
 });
 
 /* ------------------------------------------------------------------
-   CARGA DE ARCHIVOS
+   CARGA DE CAPAS PERSISTENTES
    ------------------------------------------------------------------ */
 
-const fileInput = document.getElementById("file-input");
-const filedropLabel = document.getElementById("filedrop-label");
-
-fileInput.addEventListener("change", () => {
-  const file = fileInput.files[0];
-  if (!file) return;
-  filedropLabel.textContent = file.name;
-  handleFileSelected(file, map);
-});
-
-document.getElementById("crs-detect-confirm").addEventListener("click", () => {
-  confirmPendingLayer(map);
-});
+if (window.LayerManager && typeof window.LayerManager.init === 'function') {
+  window.LayerManager.init(map);
+}
 
 /* ------------------------------------------------------------------
-   BOTÓN: CENTRAR EN SABANETA
+   BOTONES OPCIONALES (UBICACIÓN Y CENTRADO)
    ------------------------------------------------------------------ */
 
 const btnCenterSabaneta = document.getElementById("btn-center-sabaneta");
@@ -220,10 +223,6 @@ if (btnCenterSabaneta) {
   });
 }
 
-/* ------------------------------------------------------------------
-   BOTÓN: UBICACIÓN DEL USUARIO
-   ------------------------------------------------------------------ */
-
 const btnMyLocation = document.getElementById("btn-my-location");
 if (btnMyLocation) {
   btnMyLocation.addEventListener("click", () => {
@@ -235,34 +234,3 @@ if (btnMyLocation) {
     });
   });
 }
-
-let userLocationMarker;
-let userAccuracyCircle;
-
-map.on("locationfound", (event) => {
-  if (userLocationMarker) map.removeLayer(userLocationMarker);
-  if (userAccuracyCircle) map.removeLayer(userAccuracyCircle);
-
-  userLocationMarker = L.circleMarker(event.latlng, {
-    radius: 8,
-    color: "#ffffff",
-    weight: 2,
-    fillColor: "#1976d2",
-    fillOpacity: 1
-  }).addTo(map).bindPopup("Tu ubicación aproximada");
-
-  userAccuracyCircle = L.circle(event.latlng, {
-    radius: event.accuracy,
-    color: "#1976d2",
-    weight: 1,
-    fillColor: "#1976d2",
-    fillOpacity: 0.12
-  }).addTo(map);
-
-  userLocationMarker.openPopup();
-});
-
-map.on("locationerror", (event) => {
-  console.warn("No se pudo obtener la ubicación:", event.message);
-  alert("No fue posible obtener tu ubicación. Verifica que el navegador tenga permiso para acceder a tu ubicación.");
-});
