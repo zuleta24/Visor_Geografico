@@ -1306,3 +1306,17 @@ body:not(.admin-body) { overflow: hidden; }
 .img-lightbox-modal__close:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* ==========================================
+   NUEVAS FUNCIONALIDADES: MAPA Y RUTAS
+   ========================================== */
+
+/* Oculta el panel blanco de instrucciones de texto de Leaflet Routing Machine */
+.leaflet-routing-container {
+    display: none !important;
+}
+
+/* Opcional: Asegura que la línea de la ruta no bloquee los clics en el mapa */
+.leaflet-interactive {
+    cursor: pointer;
+}
