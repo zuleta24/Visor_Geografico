@@ -1908,3 +1908,17 @@ body.mapa-ampliado-activo { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .confirmar-salida, .confirmar-salida__caja { animation: none; }
 }
+
+/* ==========================================
+  NUEVAS FUNCIONALIDADES: MAPA Y RUTAS
+   ========================================== */
+
+/* Oculta el panel blanco de instrucciones de texto de Leaflet Routing Machine */
+.leaflet-routing-container {
+    display: none !important;
+}
+
+/* Opcional: Asegura que la línea de la ruta no bloquee los clics en el mapa */
+.leaflet-interactive {
+    cursor: pointer;
+}
