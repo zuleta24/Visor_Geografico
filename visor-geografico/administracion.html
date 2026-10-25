@@ -62,6 +62,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/supabaseClient.js"></script>
+
 </head>
 <body class="admin-body">
 
@@ -338,6 +339,7 @@
   async function cargarCapasDelVisor(map) {
     // Definimos los grupos de capas que requieren las funciones inicializadoras
     const grupoInstituciones = L.layerGroup().addTo(map);
+    window.__grupoInstituciones = grupoInstituciones;   // lo usa el refresco en tiempo real
     const grupoVias = L.layerGroup();
     const grupoViviendas = L.layerGroup();
 
@@ -579,6 +581,7 @@ function cargarLimiteMunicipal(map) {
         <td>${esc(row.direccion)}</td>
         <td>${esc(row.estrato ?? 'N/D')}</td>
         <td class="admin-table__acciones">
+          <button class="admin-table__btn admin-table__btn--ver" data-ver="${esc(row.id)}" title="Ver en el mapa" aria-label="Ver ${esc(row.nombre)} en el mapa"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></button>
           <button class="admin-table__btn" data-editar="${esc(row.id)}">Editar</button>
           <button class="admin-table__btn admin-table__btn--danger" data-borrar="${esc(row.id)}" data-nombre="${esc(row.nombre)}">Borrar</button>
         </td>
@@ -589,6 +592,12 @@ function cargarLimiteMunicipal(map) {
   }
 
   document.getElementById('admin-tabla-body').addEventListener('click', (e) => {
+    const botonVer = e.target.closest('[data-ver]');
+    if (botonVer) {
+      if (window.verInstitucionEnMapa) window.verInstitucionEnMapa(botonVer.dataset.ver);
+      return;
+    }
+
     const idEditar = e.target.dataset.editar;
     const idBorrar = e.target.dataset.borrar;
 
@@ -689,6 +698,7 @@ function cargarLimiteMunicipal(map) {
     cerrarModal();
     mostrarMensaje(id ? 'Institución actualizada.' : 'Institución creada.');
     cargarInstituciones();
+    if (window.refrescarInstituciones) window.refrescarInstituciones('local');   // actualiza mapa y fichas
   });
 
   // ----------------------------------------------------------------
@@ -707,6 +717,7 @@ function cargarLimiteMunicipal(map) {
 
     mostrarMensaje('Institución borrada.');
     cargarInstituciones();
+    if (window.refrescarInstituciones) window.refrescarInstituciones('local');
   }
 
   function mostrarMensaje(texto, esError = false) {
@@ -727,6 +738,1059 @@ function cargarLimiteMunicipal(map) {
       if (evento === 'SIGNED_IN' || evento === 'SIGNED_OUT') mostrarSegunSesion();
     });
   }
+
+  // ****************************************************************
+  // MEJORAS DEL PANEL (cada bloque es independiente de los demás)
+  // ****************************************************************
+
+  // ================================================================
+  // Instituciones en tiempo real: el mapa, los popups y las fichas se
+  // actualizan solos cuando se crea, edita o borra una institución
+  // ================================================================
+  (function () {
+    'use strict';
+    if (window.__tiempoRealInstituciones) return;   // evita ejecutarse dos veces
+    window.__tiempoRealInstituciones = true;
+
+    const TABLA = window.TABLA_INSTITUCIONES || 'instituciones_educativas';
+    const INTERVALO_MS = window.TIEMPO_REAL_INTERVALO_MS || 20000;
+
+    let refrescando = false;
+    let pendiente = false;
+    let instantanea = null;        // texto de la tabla en la última revisión
+    let temporizador = null;
+    let canal = null;
+
+    function cliente() {
+      return (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : null;
+    }
+
+    function mapaActual() {
+      if (typeof adminMap !== 'undefined' && adminMap) return adminMap;
+      if (typeof map !== 'undefined' && map) return map;
+      return null;
+    }
+
+    function grupoActual() {
+      if (window.__grupoInstituciones) return window.__grupoInstituciones;
+      if (typeof grupoInstituciones !== 'undefined') return grupoInstituciones;
+      return undefined;
+    }
+
+    function clavesCategorias() {
+      return (typeof CATEGORIAS_INSTITUCIONES !== 'undefined' ? CATEGORIAS_INSTITUCIONES : []);
+    }
+
+    /** ¿Este <li> de «Capas del mapa» pertenece a las instituciones? */
+    function esItemDeInstituciones(li) {
+      const casilla = li.querySelector('input[data-category]');
+      const cats = clavesCategorias();
+      if (casilla) return cats.some((c) => c.key === casilla.dataset.category);
+      const nota = li.querySelector('.category-note');
+      return Boolean(nota) && cats.some((c) => nota.textContent.indexOf(c.label) === 0);
+    }
+
+    // ----------------------------------------------------------------
+    // Redibujar las instituciones
+    // ----------------------------------------------------------------
+    async function redibujar() {
+      const mapa = mapaActual();
+      if (!mapa || typeof initInstitucionesLayer !== 'function') return false;
+
+      const lista = document.getElementById('category-list');
+
+      // Estado actual de las casillas y de las capas que no son instituciones.
+      const encendidas = {};
+      document.querySelectorAll('input[data-category]').forEach((c) => { encendidas[c.dataset.category] = c.checked; });
+      const itemsAjenos = lista
+        ? Array.from(lista.children).filter((li) => !esItemDeInstituciones(li))
+        : [];
+
+      // Se quitan los puntos viejos.
+      if (typeof institucionesLayers !== 'undefined') {
+        Object.keys(institucionesLayers).forEach((key) => {
+          const capa = institucionesLayers[key];
+          if (capa && mapa.hasLayer(capa)) mapa.removeLayer(capa);
+          delete institucionesLayers[key];
+        });
+      }
+      const grupo = grupoActual();
+      if (grupo && typeof grupo.clearLayers === 'function') grupo.clearLayers();
+
+      // Se vuelven a dibujar con el mismo código del proyecto.
+      await initInstitucionesLayer(mapa, grupo);
+
+      // Se restauran las capas ajenas y las casillas.
+      if (lista) itemsAjenos.forEach((li) => lista.appendChild(li));
+      Object.entries(encendidas).forEach(([key, activa]) => {
+        const casilla = document.querySelector(`input[data-category="${key}"]`);
+        if (casilla && casilla.checked !== activa) {
+          casilla.checked = activa;
+          casilla.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+      return true;
+    }
+
+    async function leerInstantanea() {
+      const c = cliente();
+      if (!c) return null;
+      try {
+        const { data, error } = await c.from(TABLA).select('*');
+        if (error || !data) return null;
+        return JSON.stringify(data);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function refrescar(origen) {
+      if (refrescando) { pendiente = true; return; }
+      refrescando = true;
+      try {
+        const ok = await redibujar();
+        if (ok) {
+          instantanea = await leerInstantanea();
+          document.dispatchEvent(new CustomEvent('instituciones:actualizadas', { detail: { origen: origen || 'remoto' } }));
+        }
+      } catch (error) {
+        console.warn('[tiempo-real] No se pudieron redibujar las instituciones:', error);
+      } finally {
+        refrescando = false;
+        if (pendiente) { pendiente = false; refrescar(origen); }
+      }
+    }
+
+    // Varios cambios seguidos (p. ej. importar muchas filas) se agrupan en un solo redibujado.
+    function programar(origen, espera) {
+      clearTimeout(temporizador);
+      temporizador = setTimeout(() => refrescar(origen), espera === undefined ? 500 : espera);
+    }
+
+    window.refrescarInstituciones = function (origen) {
+      programar(origen || 'local', 0);
+    };
+
+    // ----------------------------------------------------------------
+    // Realtime de Supabase
+    // ----------------------------------------------------------------
+    function suscribir() {
+      const c = cliente();
+      if (!c || typeof c.channel !== 'function') return;
+      try {
+        canal = c.channel(`tiempo-real-${TABLA}`)
+          .on('postgres_changes', { event: '*', schema: 'public', table: TABLA }, () => programar('remoto'))
+          .subscribe();
+      } catch (error) {
+        console.warn('[tiempo-real] No se pudo abrir el canal Realtime; queda la revisión periódica.', error);
+      }
+    }
+
+    // ----------------------------------------------------------------
+    // Respaldo: revisión periódica de la tabla
+    // ----------------------------------------------------------------
+    async function revisar() {
+      if (document.hidden || refrescando) return;
+      const actual = await leerInstantanea();
+      if (actual === null) return;
+      if (instantanea === null) { instantanea = actual; return; }
+      if (actual !== instantanea) programar('remoto', 0);
+    }
+
+    // Se espera a que las instituciones se dibujen por primera vez.
+    (function esperarInicio(intentos) {
+      const listo = typeof institucionesLayers !== 'undefined' && Object.keys(institucionesLayers).length > 0;
+      if (listo) {
+        leerInstantanea().then((texto) => { instantanea = texto; });
+        suscribir();
+        setInterval(revisar, INTERVALO_MS);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) revisar(); });
+        return;
+      }
+      if (intentos < 240) setTimeout(() => esperarInicio(intentos + 1), 500);
+    })(0);
+  })();
+
+  // Si el cambio vino de otra sesión (otro administrador), se recarga también la tabla.
+  document.addEventListener('instituciones:actualizadas', (e) => {
+    if (!e.detail || e.detail.origen !== 'local') cargarInstituciones();
+  });
+
+  // ================================================================
+  // Filtros de la tabla: búsqueda, tipo, sector y estrato
+  // (también filtran el mapa de abajo y dan el botón «Ver en el mapa»)
+  // ================================================================
+  (function () {
+    'use strict';
+    if (window.__adminFiltros) return;   // evita ejecutarse dos veces
+    window.__adminFiltros = true;
+
+    const tabla = document.querySelector('.admin-table');
+    const tbody = document.getElementById('admin-tabla-body') || (tabla && tabla.tBodies[0]);
+    const contenedorTabla = document.querySelector('.admin-table-wrap') || (tabla && tabla.parentElement);
+
+    if (!tabla || !tbody || !contenedorTabla) {
+      console.warn('[admin-filtros] No se encontró la tabla de instituciones; los filtros no se activaron.');
+      return;
+    }
+
+    // ----------------------------------------------------------------
+    // Utilidades
+    // ----------------------------------------------------------------
+    function norm(texto) {
+      return String(texto ?? '')
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .trim();
+    }
+
+    const encabezados = Array.from(tabla.querySelectorAll('thead th')).map((th) => norm(th.textContent));
+    const col = {
+      nombre: encabezados.indexOf('nombre'),
+      tipo: encabezados.indexOf('tipo'),
+      sector: encabezados.indexOf('sector'),
+      direccion: encabezados.indexOf('direccion'),
+      estrato: encabezados.indexOf('estrato'),
+    };
+
+    function celda(fila, indice) {
+      return indice >= 0 && fila.cells[indice] ? fila.cells[indice].textContent : '';
+    }
+
+    // ----------------------------------------------------------------
+    // Barra de filtros
+    // ----------------------------------------------------------------
+    const barra = document.createElement('section');
+    barra.className = 'admin-filtros';
+    barra.setAttribute('aria-label', 'Filtros de instituciones');
+    barra.innerHTML = `
+      <div class="admin-filtros__cabecera">
+        <h3 class="admin-filtros__titulo">Filtrar instituciones</h3>
+        <div class="admin-filtros__cabecera-der">
+          <label class="admin-filtros__sync" title="Muestra en el mapa solo las instituciones que cumplen los filtros">
+            <input type="checkbox" id="filtros-sync" checked />
+            <span>Aplicar al mapa</span>
+          </label>
+          <span class="admin-filtros__contador" id="filtros-contador" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <div class="admin-filtros__grid">
+        <label class="admin-filtros__campo admin-filtros__campo--busqueda">
+          <span>Buscar</span>
+          <input type="search" id="filtro-texto" class="admin-filtros__input"
+                 placeholder="Nombre o dirección…" autocomplete="off" />
+        </label>
+
+        <label class="admin-filtros__campo">
+          <span>Tipo</span>
+          <select id="filtro-tipo" class="admin-filtros__select">
+            <option value="">Todos</option>
+            <option value="colegio">Colegio</option>
+            <option value="universidad">Universidad</option>
+          </select>
+        </label>
+
+        <label class="admin-filtros__campo">
+          <span>Sector</span>
+          <select id="filtro-sector" class="admin-filtros__select">
+            <option value="">Todos</option>
+            <option value="publico">Público</option>
+            <option value="privado">Privado</option>
+          </select>
+        </label>
+
+        <label class="admin-filtros__campo">
+          <span>Estrato</span>
+          <select id="filtro-estrato" class="admin-filtros__select">
+            <option value="">Todos</option>
+            <option value="1">Estrato 1</option>
+            <option value="2">Estrato 2</option>
+            <option value="3">Estrato 3</option>
+            <option value="4">Estrato 4</option>
+            <option value="5">Estrato 5</option>
+            <option value="6">Estrato 6</option>
+            <option value="nd">Sin estrato (N/D)</option>
+          </select>
+        </label>
+
+        <button type="button" id="filtros-limpiar" class="admin-filtros__limpiar">Limpiar filtros</button>
+      </div>
+
+      <p class="admin-filtros__nota" id="filtros-nota">Cargando el mapa…</p>
+    `;
+    contenedorTabla.parentNode.insertBefore(barra, contenedorTabla);
+
+    // Mensaje cuando ninguna fila cumple los filtros (fuera del <tbody>,
+    // para que no se borre cuando la tabla se vuelve a dibujar).
+    const vacio = document.createElement('p');
+    vacio.className = 'admin-filtros__vacio';
+    vacio.hidden = true;
+    vacio.innerHTML = '<strong>Ninguna institución coincide con los filtros.</strong><br>Prueba con otra búsqueda o pulsa «Limpiar filtros».';
+    contenedorTabla.parentNode.insertBefore(vacio, contenedorTabla.nextSibling);
+
+    const $texto = barra.querySelector('#filtro-texto');
+    const $tipo = barra.querySelector('#filtro-tipo');
+    const $sector = barra.querySelector('#filtro-sector');
+    const $estrato = barra.querySelector('#filtro-estrato');
+    const $limpiar = barra.querySelector('#filtros-limpiar');
+    const $contador = barra.querySelector('#filtros-contador');
+
+    // ----------------------------------------------------------------
+    // Lógica de filtrado
+    // ----------------------------------------------------------------
+    function esFilaDeDatos(fila) {
+      return !fila.querySelector('.admin-table__vacio');
+    }
+
+    function estratoDeFila(fila) {
+      const valor = norm(celda(fila, col.estrato));
+      return /^[1-6]$/.test(valor) ? valor : 'nd';
+    }
+
+    function aplicarFiltros() {
+      const texto = norm($texto.value);
+      const tipo = $tipo.value;
+      const sector = $sector.value;
+      const estrato = $estrato.value;
+
+      const filas = Array.from(tbody.rows).filter(esFilaDeDatos);
+      let visibles = 0;
+
+      filas.forEach((fila) => {
+        const coincideTexto = !texto
+          || norm(celda(fila, col.nombre)).includes(texto)
+          || norm(celda(fila, col.direccion)).includes(texto);
+        const coincideTipo = !tipo || norm(celda(fila, col.tipo)) === tipo;
+        const coincideSector = !sector || norm(celda(fila, col.sector)) === sector;
+        const coincideEstrato = !estrato || estratoDeFila(fila) === estrato;
+
+        const mostrar = coincideTexto && coincideTipo && coincideSector && coincideEstrato;
+        if (fila.hidden === mostrar) fila.hidden = !mostrar;   // evita escrituras innecesarias
+        if (mostrar) visibles += 1;
+      });
+
+      const hayFiltros = Boolean(texto || tipo || sector || estrato);
+
+      $texto.classList.toggle('admin-filtros__input--activo', Boolean(texto));
+      [$tipo, $sector, $estrato].forEach((sel) =>
+        sel.classList.toggle('admin-filtros__select--activo', sel.value !== ''));
+      $limpiar.disabled = !hayFiltros;
+
+      if (!filas.length) {
+        $contador.textContent = '';
+        vacio.hidden = true;
+      } else {
+        $contador.innerHTML = `Mostrando <b>${visibles}</b> de ${filas.length}`;
+        vacio.hidden = visibles > 0;
+      }
+    }
+
+    function alCambiarFiltros() {
+      aplicarFiltros();
+      programarMapa();
+    }
+
+    [$texto, $tipo, $sector, $estrato].forEach((el) => {
+      el.addEventListener(el === $texto ? 'input' : 'change', alCambiarFiltros);
+    });
+
+    $limpiar.addEventListener('click', () => {
+      $texto.value = '';
+      $tipo.value = '';
+      $sector.value = '';
+      $estrato.value = '';
+      aplicarFiltros();
+      programarMapa();
+      $texto.focus();
+    });
+
+    // La tabla se redibuja al cargar, guardar o borrar: se vuelven a aplicar los filtros.
+    new MutationObserver(aplicarFiltros).observe(tbody, { childList: true });
+
+    // ----------------------------------------------------------------
+    // Sincronización con el mapa de administración
+    // ----------------------------------------------------------------
+    const CATEGORIA_OFICIAL = /^(colegio|universidad)-(publico|privado)$/;
+    const $sync = barra.querySelector('#filtros-sync');
+    const $nota = barra.querySelector('#filtros-nota');
+    let registroMapa = [];          // { key, grupo, marker, nombre, tipo, sector, direccion, estrato, latlng }
+    let temporizadorMapa = null;
+
+    function mapaAdmin() {
+      // `adminMap` lo crea el script principal de la página después de iniciar sesión.
+      return (typeof adminMap !== 'undefined' && adminMap) ? adminMap : null;
+    }
+
+    function centroSabaneta() {
+      return typeof SABANETA_CENTER !== 'undefined' ? SABANETA_CENTER : [6.1515, -75.6165];
+    }
+    function zoomSabaneta() {
+      return typeof SABANETA_ZOOM !== 'undefined' ? SABANETA_ZOOM : 14;
+    }
+
+    function aEstrato(valor) {
+      if (valor === null || valor === undefined || valor === '') return null;
+      const n = Number(valor);
+      return Number.isInteger(n) && n >= 1 && n <= 6 ? n : null;
+    }
+
+    /** Lee los puntos que dibujó instituciones.js (solo el directorio oficial). */
+    function leerMarcadores() {
+      const salida = [];
+      if (typeof institucionesLayers === 'undefined') return salida;
+
+      Object.entries(institucionesLayers).forEach(([key, grupo]) => {
+        if (!CATEGORIA_OFICIAL.test(key) || !grupo || typeof grupo.eachLayer !== 'function') return;
+        grupo.eachLayer((marker) => {
+          const p = (marker.feature && marker.feature.properties) || {};
+          const latlng = marker.getLatLng && marker.getLatLng();
+          if (!latlng) return;
+          salida.push({
+            key,
+            grupo,
+            marker,
+            nombre: p.nombre || '',
+            tipo: norm(p.tipo),
+            sector: norm(p.sector),
+            direccion: p.direccion || '',
+            estrato: aEstrato(p.estrato),
+            latlng,
+          });
+        });
+      });
+      return salida;
+    }
+
+    function registroListo() {
+      if (registroMapa.length) return true;
+      registroMapa = leerMarcadores();
+      return registroMapa.length > 0;
+    }
+
+    function coincideMarcador(r, f) {
+      if (f.tipo && r.tipo !== f.tipo) return false;
+      if (f.sector && r.sector !== f.sector) return false;
+      if (f.estrato === 'nd' && r.estrato !== null) return false;
+      if (f.estrato && f.estrato !== 'nd' && r.estrato !== Number(f.estrato)) return false;
+      if (f.texto && !(norm(r.nombre).includes(f.texto) || norm(r.direccion).includes(f.texto))) return false;
+      return true;
+    }
+
+    /** Aplica los filtros a los puntos del mapa. Devuelve false si el mapa aún no está listo. */
+    function actualizarMapa({ ajustar = false } = {}) {
+      const mapa = mapaAdmin();
+      if (!mapa || !registroListo()) {
+        $nota.textContent = 'Cargando el mapa…';
+        return false;
+      }
+
+      const f = { texto: norm($texto.value), tipo: $tipo.value, sector: $sector.value, estrato: $estrato.value };
+      const hayFiltros = Boolean(f.texto || f.tipo || f.sector || f.estrato);
+      const filtrar = $sync.checked;
+      const visibles = [];
+
+      registroMapa.forEach((r) => {
+        const mostrar = !filtrar || coincideMarcador(r, f);
+        const presente = r.grupo.hasLayer(r.marker);
+        if (mostrar && !presente) r.grupo.addLayer(r.marker);
+        if (!mostrar && presente) r.grupo.removeLayer(r.marker);
+        if (mostrar) visibles.push(r);
+      });
+
+      $nota.innerHTML = filtrar
+        ? `Mapa: <b>${visibles.length}</b> de ${registroMapa.length} instituciones visibles. Las capas de OpenStreetMap no se filtran.`
+        : 'El mapa muestra todas las instituciones (filtro del mapa desactivado).';
+
+      if (ajustar && filtrar) {
+        if (hayFiltros && visibles.length) {
+          mapa.flyToBounds(L.latLngBounds(visibles.map((r) => r.latlng)), { padding: [50, 50], maxZoom: 17, duration: 0.7 });
+        } else if (!hayFiltros) {
+          mapa.flyTo(centroSabaneta(), zoomSabaneta(), { duration: 0.7 });
+        }
+      }
+      return true;
+    }
+
+    function programarMapa() {
+      clearTimeout(temporizadorMapa);
+      temporizadorMapa = setTimeout(() => actualizarMapa({ ajustar: true }), 300);
+    }
+
+    $sync.addEventListener('change', () => actualizarMapa({ ajustar: true }));
+
+    // Si las instituciones se redibujan (cambio en la base de datos), se vuelven a leer los puntos.
+    document.addEventListener('instituciones:actualizadas', () => {
+      registroMapa = [];
+      actualizarMapa();
+    });
+
+    // El mapa y sus puntos se crean un poco después de iniciar sesión: se espera a que estén.
+    (function esperarMapa(intento) {
+      if (actualizarMapa()) return;
+      if (intento < 80) setTimeout(() => esperarMapa(intento + 1), 500);
+      else $nota.textContent = 'No se pudo conectar el mapa con los filtros.';
+    })(0);
+
+    // ----------------------------------------------------------------
+    // Botón «Ver en el mapa» de cada fila
+    // ----------------------------------------------------------------
+    function avisar(texto) {
+      if (typeof mostrarMensaje === 'function') mostrarMensaje(texto, true);
+      else console.warn('[admin-filtros]', texto);
+    }
+
+    function pulso(mapa, latlng) {
+      const aro = L.circleMarker(latlng, {
+        radius: 22,
+        color: '#29e2b8',
+        weight: 3,
+        fill: false,
+        interactive: false,
+        className: 'admin-pulso',
+      }).addTo(mapa);
+      setTimeout(() => aro.remove(), 3200);
+    }
+
+    window.verInstitucionEnMapa = function (id) {
+      const mapa = mapaAdmin();
+      const fila = (window.__institucionesCache || []).find((r) => String(r.id) === String(id));
+      if (!mapa || !fila) {
+        avisar('El mapa todavía se está cargando. Inténtalo de nuevo en un momento.');
+        return;
+      }
+
+      const lat = Number(fila.latitud);
+      const lng = Number(fila.longitud);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        avisar('Esta institución no tiene coordenadas registradas.');
+        return;
+      }
+
+      const destino = L.latLng(lat, lng);
+      registroListo();
+      const cerca = (r) => Math.abs(r.latlng.lat - lat) < 1e-5 && Math.abs(r.latlng.lng - lng) < 1e-5;
+      const r = registroMapa.find((x) => cerca(x) && norm(x.nombre) === norm(fila.nombre))
+        || registroMapa.find((x) => norm(x.nombre) === norm(fila.nombre));
+
+      if (r) {
+        // Si su categoría estaba apagada en «Capas del mapa», se enciende.
+        const casilla = document.querySelector(`input[data-category="${r.key}"]`);
+        if (casilla && !casilla.checked) {
+          casilla.checked = true;
+          casilla.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (!r.grupo.hasLayer(r.marker)) r.grupo.addLayer(r.marker);
+      }
+
+      const contenedor = mapa.getContainer();
+      if (!contenedor.classList.contains('mapa-ampliado')) {
+        contenedor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      mapa.flyTo(destino, Math.max(mapa.getZoom(), 17), { duration: 0.8 });
+      pulso(mapa, destino);
+
+      if (r) {
+        setTimeout(() => {
+          try {
+            r.marker.fire('click', { latlng: destino });
+          } catch (error) {
+            console.warn('[admin-filtros] No se pudo abrir la ficha automáticamente:', error);
+            try { r.marker.openPopup(); } catch (_) { /* sin popup asociado */ }
+          }
+        }, 1000);
+      }
+    };
+
+    aplicarFiltros();
+  })();
+
+  // ================================================================
+  // Selector de ubicación en el formulario (mini-mapa)
+  // ================================================================
+  (function () {
+    'use strict';
+    if (window.__adminUbicacion) return;   // evita ejecutarse dos veces
+    window.__adminUbicacion = true;
+
+    const modal = document.getElementById('admin-modal');
+    const inLat = document.getElementById('f-latitud');
+    const inLng = document.getElementById('f-longitud');
+    const inDir = document.getElementById('f-direccion');
+
+    if (!modal || !inLat || !inLng || typeof L === 'undefined') {
+      console.warn('[admin-ubicacion] Faltan el formulario o Leaflet; el selector de ubicación no se activó.');
+      return;
+    }
+
+    const fieldset = inLat.closest('fieldset') || inLat.parentElement;
+
+    const CENTRO_SABANETA = [6.1515, -75.6165];
+    const ZOOM_INICIAL = 14;
+    const ZOOM_PUNTO = 17;
+    // Caja generosa alrededor del municipio, solo para avisar de errores evidentes.
+    const LIMITES = L.latLngBounds([6.10, -75.70], [6.20, -75.55]);
+
+    // ----------------------------------------------------------------
+    // Estilos
+    // ----------------------------------------------------------------
+  
+
+    // ----------------------------------------------------------------
+    // Estructura (dentro del grupo «Ubicación»)
+    // ----------------------------------------------------------------
+    const bloque = document.createElement('div');
+    bloque.className = 'ubicacion-picker admin-field--ancho';
+    bloque.innerHTML = `
+      <div class="ubicacion-picker__barra">
+        <span class="ubicacion-picker__titulo">Ubicación en el mapa</span>
+        <button type="button" class="ubicacion-picker__buscar" id="ubicacion-buscar">Buscar dirección</button>
+      </div>
+      <div id="ubicacion-mapa" role="application" aria-label="Mapa para elegir la ubicación"></div>
+      <p class="ubicacion-picker__ayuda" id="ubicacion-ayuda"></p>
+    `;
+    fieldset.appendChild(bloque);
+
+    const $mapa = bloque.querySelector('#ubicacion-mapa');
+    const $ayuda = bloque.querySelector('#ubicacion-ayuda');
+    const $buscar = bloque.querySelector('#ubicacion-buscar');
+
+    const AYUDA_BASE = 'Haz clic en el mapa o arrastra el marcador. Longitud y latitud se llenan solas (WGS84).';
+
+    function ayuda(texto, tipo) {
+      $ayuda.textContent = texto;
+      $ayuda.className = 'ubicacion-picker__ayuda' + (tipo ? ` ubicacion-picker__ayuda--${tipo}` : '');
+    }
+
+    // ----------------------------------------------------------------
+    // Mapa y marcador (se crean al abrir el modal por primera vez)
+    // ----------------------------------------------------------------
+    let mapa = null;
+    let marcador = null;
+
+    function crearMapa() {
+      mapa = L.map($mapa, { zoomControl: true }).setView(CENTRO_SABANETA, ZOOM_INICIAL);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>'
+      }).addTo(mapa);
+
+      mapa.on('click', (e) => fijarPunto(e.latlng.lat, e.latlng.lng, { escribir: true }));
+    }
+
+    function leerCoordenadas() {
+      const lat = parseFloat(inLat.value);
+      const lng = parseFloat(inLng.value);
+      const valido = Number.isFinite(lat) && Number.isFinite(lng)
+        && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+      return valido ? { lat, lng } : null;
+    }
+
+    function escribirCampos(lat, lng) {
+      inLat.value = lat.toFixed(6);
+      inLng.value = lng.toFixed(6);
+      // Por si otro código escucha cambios en los campos.
+      inLat.dispatchEvent(new Event('input', { bubbles: true }));
+      inLng.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function evaluarAyuda(lat, lng) {
+      if (LIMITES.contains([lat, lng])) {
+        ayuda(`Ubicación fijada: ${lat.toFixed(6)}, ${lng.toFixed(6)}. Puedes arrastrar el marcador para afinarla.`, 'ok');
+      } else {
+        ayuda('Ojo: este punto queda fuera de Sabaneta. Revisa que latitud y longitud no estén invertidas.', 'aviso');
+      }
+    }
+
+    function fijarPunto(lat, lng, { escribir = false, centrar = false } = {}) {
+      const latlng = L.latLng(lat, lng);
+
+      if (!marcador) {
+        marcador = L.marker(latlng, {
+          draggable: true,
+          icon: L.divIcon({ className: '', html: '<div class="ubicacion-pin"></div>', iconSize: [20, 20], iconAnchor: [10, 10] }),
+          keyboard: false,
+        }).addTo(mapa);
+
+        marcador.on('dragend', () => {
+          const p = marcador.getLatLng();
+          escribirCampos(p.lat, p.lng);
+          evaluarAyuda(p.lat, p.lng);
+        });
+      } else {
+        marcador.setLatLng(latlng);
+      }
+
+      if (escribir) escribirCampos(lat, lng);
+      if (centrar) mapa.setView(latlng, Math.max(mapa.getZoom(), ZOOM_PUNTO));
+      evaluarAyuda(lat, lng);
+    }
+
+    function quitarPunto() {
+      if (marcador) {
+        marcador.remove();
+        marcador = null;
+      }
+    }
+
+    /** Lleva el mapa al estado de los campos del formulario. */
+    function sincronizarDesdeCampos({ centrar = false } = {}) {
+      if (!mapa) return;
+      const c = leerCoordenadas();
+      if (c) {
+        fijarPunto(c.lat, c.lng, { centrar });
+      } else {
+        quitarPunto();
+        ayuda(AYUDA_BASE);
+        if (centrar) mapa.setView(CENTRO_SABANETA, ZOOM_INICIAL);
+      }
+    }
+
+    // Si se escriben las coordenadas a mano, el marcador las sigue.
+    [inLat, inLng].forEach((campo) => {
+      campo.addEventListener('change', () => sincronizarDesdeCampos({ centrar: true }));
+    });
+
+    // ----------------------------------------------------------------
+    // Abrir el modal -> crear / refrescar el mapa
+    // ----------------------------------------------------------------
+    function alAbrirModal() {
+      if (!mapa) crearMapa();
+      sincronizarDesdeCampos({ centrar: true });
+      // El contenedor estaba oculto: Leaflet necesita recalcular su tamaño.
+      setTimeout(() => {
+        mapa.invalidateSize();
+        sincronizarDesdeCampos({ centrar: true });
+      }, 120);
+    }
+
+    let estabaAbierto = modal.classList.contains('institucion-modal--open');
+    new MutationObserver(() => {
+      const abierto = modal.classList.contains('institucion-modal--open');
+      if (abierto && !estabaAbierto) alAbrirModal();
+      estabaAbierto = abierto;
+    }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+
+    if (estabaAbierto) alAbrirModal();
+
+    // ----------------------------------------------------------------
+    // Buscar dirección (OpenStreetMap Nominatim)
+    // ----------------------------------------------------------------
+    $buscar.addEventListener('click', async () => {
+      const direccion = (inDir && inDir.value || '').trim();
+      if (!direccion) {
+        ayuda('Escribe primero la dirección en el campo «Dirección».', 'aviso');
+        return;
+      }
+
+      const consulta = /sabaneta/i.test(direccion) ? direccion : `${direccion}, Sabaneta, Antioquia`;
+      const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=co'
+        + '&viewbox=-75.70,6.20,-75.55,6.10&accept-language=es&q=' + encodeURIComponent(consulta);
+
+      $buscar.disabled = true;
+      $buscar.textContent = 'Buscando…';
+      ayuda('Buscando la dirección…');
+
+      try {
+        const respuesta = await fetch(url, { headers: { Accept: 'application/json' } });
+        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+        const resultados = await respuesta.json();
+
+        if (!resultados.length) {
+          ayuda('No se encontró esa dirección. Ubícala haciendo clic en el mapa.', 'aviso');
+          return;
+        }
+
+        const lat = parseFloat(resultados[0].lat);
+        const lng = parseFloat(resultados[0].lon);
+        fijarPunto(lat, lng, { escribir: true, centrar: true });
+        ayuda('Ubicación aproximada encontrada. Arrastra el marcador si necesitas afinarla.', 'ok');
+      } catch (error) {
+        console.warn('[admin-ubicacion] Falló la búsqueda de dirección:', error);
+        ayuda('No se pudo buscar la dirección ahora. Ubícala haciendo clic en el mapa.', 'aviso');
+      } finally {
+        $buscar.disabled = false;
+        $buscar.textContent = 'Buscar dirección';
+      }
+    });
+
+    ayuda(AYUDA_BASE);
+  })();
+
+  // ================================================================
+  // Botón Ampliar / Reducir en los mapas del panel
+  // ================================================================
+  (function () {
+    'use strict';
+    if (window.__adminMapasAmpliar) return;   // evita ejecutarse dos veces
+    window.__adminMapasAmpliar = true;
+
+    if (typeof L === 'undefined' || !L.Map || typeof L.Map.addInitHook !== 'function') {
+      console.warn('[admin-mapas-ampliar] Leaflet no está cargado; carga este script después de leaflet.js.');
+      return;
+    }
+
+    const IDS_AMPLIABLES = new Set(['admin-map', 'ubicacion-mapa']);
+
+    const ICONO_AMPLIAR = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+    const ICONO_REDUCIR = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+
+    // ----------------------------------------------------------------
+    // Estilos
+    // ----------------------------------------------------------------
+  
+
+    // ----------------------------------------------------------------
+    // Estado: solo un mapa puede estar ampliado a la vez
+    // ----------------------------------------------------------------
+    let activo = null;   // { map, cont, hueco, fondo, boton, cinta }
+
+    function pintarBoton(boton, ampliado) {
+      boton.innerHTML = (ampliado ? ICONO_REDUCIR : ICONO_AMPLIAR)
+        + `<span>${ampliado ? 'Reducir' : 'Ampliar'}</span>`;
+      boton.title = ampliado ? 'Reducir el mapa (Esc)' : 'Ampliar el mapa';
+      boton.setAttribute('aria-label', boton.title);
+      boton.setAttribute('aria-pressed', String(ampliado));
+    }
+
+    function refrescarTamano(map) {
+      requestAnimationFrame(() => {
+        map.invalidateSize();
+        setTimeout(() => map.invalidateSize(), 120);
+      });
+    }
+
+    function ampliar(estado) {
+      if (activo) reducir();
+      const { map, cont, boton, cinta } = estado;
+
+      // Se deja un hueco del mismo alto para que la página no «salte».
+      const hueco = document.createElement('div');
+      hueco.className = 'mapa-ampliar__hueco';
+      hueco.style.height = `${cont.getBoundingClientRect().height}px`;
+      cont.parentNode.insertBefore(hueco, cont);
+
+      const fondo = document.createElement('div');
+      fondo.className = 'mapa-ampliar__fondo';
+      fondo.addEventListener('click', reducir);
+
+      // El mapa se mueve a <body> para quedar por encima de cualquier modal.
+      document.body.appendChild(fondo);
+      document.body.appendChild(cont);
+      cont.classList.add('mapa-ampliado');
+      document.body.classList.add('mapa-ampliado-activo');
+
+      pintarBoton(boton, true);
+      if (cinta) cinta.hidden = false;
+
+      activo = { map, cont, hueco, fondo, boton, cinta };
+      refrescarTamano(map);
+    }
+
+    function reducir() {
+      if (!activo) return;
+      const { map, cont, hueco, fondo, boton, cinta } = activo;
+      activo = null;
+
+      cont.classList.remove('mapa-ampliado');
+      document.body.classList.remove('mapa-ampliado-activo');
+
+      if (hueco.parentNode) {
+        hueco.parentNode.insertBefore(cont, hueco);
+        hueco.remove();
+      }
+      fondo.remove();
+
+      pintarBoton(boton, false);
+      if (cinta) cinta.hidden = true;
+      refrescarTamano(map);
+    }
+
+    // Esc reduce el mapa (antes de que el modal reaccione a la misma tecla).
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && activo) {
+        e.stopPropagation();
+        e.preventDefault();
+        reducir();
+      }
+    }, true);
+
+    // ----------------------------------------------------------------
+    // Cinta de coordenadas en vivo (copia lo que muestra el panel lateral)
+    // ----------------------------------------------------------------
+    function crearCinta(map, cont) {
+      if (!document.getElementById('readout-value-1')) return null;
+
+      const cinta = document.createElement('div');
+      cinta.className = 'mapa-ampliar__coords';
+      cinta.hidden = true;
+      cinta.textContent = 'Mueve el cursor sobre el mapa';
+      cont.appendChild(cinta);
+
+      const texto = (id) => (document.getElementById(id)?.textContent || '').trim();
+
+      map.on('mousemove', () => {
+        if (!activo || activo.map !== map) return;
+        // Se lee un instante después, cuando el panel ya actualizó sus valores.
+        requestAnimationFrame(() => {
+          cinta.textContent = `${texto('readout-system')}   ${texto('readout-label-1')}: ${texto('readout-value-1')}   ${texto('readout-label-2')}: ${texto('readout-value-2')}`;
+        });
+      });
+
+      return cinta;
+    }
+
+    // ----------------------------------------------------------------
+    // Control del mapa
+    // ----------------------------------------------------------------
+    function agregarControl(map) {
+      if (map._mapaAmpliarListo) return;
+      map._mapaAmpliarListo = true;
+
+      const cont = map.getContainer();
+      // La cinta de coordenadas solo tiene sentido en el mapa del panel (el único con lectura en vivo).
+      const cinta = cont.id === 'admin-map' ? crearCinta(map, cont) : null;
+
+      const Control = L.Control.extend({
+        options: { position: 'topright' },
+        onAdd() {
+          const caja = L.DomUtil.create('div', 'leaflet-bar mapa-ampliar');
+          const boton = L.DomUtil.create('a', 'mapa-ampliar__btn', caja);
+          boton.href = '#';
+          boton.setAttribute('role', 'button');
+          pintarBoton(boton, false);
+
+          L.DomEvent.disableClickPropagation(caja);
+          L.DomEvent.disableScrollPropagation(caja);
+          L.DomEvent.on(boton, 'click', (e) => {
+            L.DomEvent.preventDefault(e);
+            const estado = { map, cont, boton, cinta };
+            if (activo && activo.map === map) reducir();
+            else ampliar(estado);
+          });
+          return caja;
+        },
+      });
+
+      new Control().addTo(map);
+    }
+
+    // Cualquier mapa que se cree a partir de ahora con uno de esos ids.
+    L.Map.addInitHook(function () {
+      const cont = this.getContainer();
+      if (cont && IDS_AMPLIABLES.has(cont.id)) agregarControl(this);
+    });
+
+    // Respaldo: si el mapa del panel ya se había creado antes de cargar este script.
+    if (typeof adminMap !== 'undefined' && adminMap && adminMap.getContainer) agregarControl(adminMap);
+  })();
+
+  // ================================================================
+  // Confirmación antes de cerrar sesión
+  // ================================================================
+  (function () {
+    'use strict';
+    if (window.__adminConfirmarSalida) return;   // evita ejecutarse dos veces
+    window.__adminConfirmarSalida = true;
+
+    const ID_BOTON = 'btn-cerrar-sesion';
+
+    // ----------------------------------------------------------------
+    // Estilos
+    // ----------------------------------------------------------------
+  
+
+    // ----------------------------------------------------------------
+    // Cuadro de confirmación (devuelve una promesa: true = confirmó)
+    // ----------------------------------------------------------------
+    let abierto = false;
+
+    function pedirConfirmacion() {
+      return new Promise((resolve) => {
+        abierto = true;
+        const previo = document.activeElement;
+
+        const fondo = document.createElement('div');
+        fondo.className = 'confirmar-salida';
+        fondo.innerHTML = `
+          <div class="confirmar-salida__caja" role="alertdialog" aria-modal="true"
+               aria-labelledby="confirmar-salida-titulo" aria-describedby="confirmar-salida-texto">
+            <div class="confirmar-salida__icono" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </div>
+            <h2 class="confirmar-salida__titulo" id="confirmar-salida-titulo">¿Cerrar sesión?</h2>
+            <p class="confirmar-salida__texto" id="confirmar-salida-texto">
+              Saldrás del panel de administración. Para volver a entrar tendrás que ingresar tu correo y contraseña.
+            </p>
+            <div class="confirmar-salida__acciones">
+              <button type="button" class="confirmar-salida__btn confirmar-salida__btn--cancelar" data-accion="cancelar">Cancelar</button>
+              <button type="button" class="confirmar-salida__btn confirmar-salida__btn--confirmar" data-accion="confirmar">Sí, cerrar sesión</button>
+            </div>
+          </div>`;
+        document.body.appendChild(fondo);
+
+        const botones = Array.from(fondo.querySelectorAll('button'));
+        botones[0].focus();   // «Cancelar» por defecto
+
+        function cerrar(resultado) {
+          document.removeEventListener('keydown', alTeclear, true);
+          fondo.remove();
+          abierto = false;
+          if (previo && typeof previo.focus === 'function') previo.focus();
+          resolve(resultado);
+        }
+
+        function alTeclear(e) {
+          if (e.key === 'Escape') {
+            e.stopPropagation();
+            e.preventDefault();
+            cerrar(false);
+          } else if (e.key === 'Tab') {
+            // El foco se queda dentro del cuadro.
+            const i = botones.indexOf(document.activeElement);
+            const siguiente = e.shiftKey ? (i <= 0 ? botones.length - 1 : i - 1) : (i + 1) % botones.length;
+            e.preventDefault();
+            botones[siguiente].focus();
+          }
+        }
+        document.addEventListener('keydown', alTeclear, true);
+
+        fondo.addEventListener('click', (e) => {
+          if (e.target === fondo) cerrar(false);                       // clic fuera del cuadro
+          else if (e.target.dataset.accion === 'cancelar') cerrar(false);
+          else if (e.target.dataset.accion === 'confirmar') cerrar(true);
+        });
+      });
+    }
+
+    // ----------------------------------------------------------------
+    // Interceptar el botón «Cerrar sesión»
+    // ----------------------------------------------------------------
+    document.addEventListener('click', async (e) => {
+      const boton = e.target.closest && e.target.closest('#' + ID_BOTON);
+      if (!boton) return;
+
+      // Segundo paso: el administrador ya confirmó, se deja pasar el clic.
+      if (boton.dataset.salidaConfirmada === '1') {
+        delete boton.dataset.salidaConfirmada;
+        return;
+      }
+
+      // Se detiene el clic original hasta que se confirme.
+      e.stopPropagation();
+      e.preventDefault();
+      if (abierto) return;
+
+      const confirmado = await pedirConfirmacion();
+      if (confirmado) {
+        boton.dataset.salidaConfirmada = '1';
+        boton.click();
+      }
+    }, true);
+  })();
   </script>
 
 </body>

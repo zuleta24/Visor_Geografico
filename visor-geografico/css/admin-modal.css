@@ -1,0 +1,240 @@
+/**
+ * admin-modal.css
+ * ------------------------------------------------------------------
+ * Rediseño del formulario «Nueva / Editar institución» del panel de
+ * administración. Solo CSS: no cambia el HTML ni la lógica.
+ *
+ *  - Modal más ancho, con encabezado fijo y barra de botones fija
+ *    (Cancelar / Guardar siempre visibles al hacer scroll).
+ *  - Campos organizados en columnas por grupo.
+ *  - «Ubicación»: campos a la izquierda y mapa a la derecha.
+ *  - Scrollbar oscuro y delgado, fondo con desenfoque.
+ *
+ * Todo está limitado a #admin-modal, así que no afecta a la ficha del
+ * visor público. Uso: en administracion.html, dentro de <head>, DESPUÉS
+ * de css/style.css:
+ *     <link rel="stylesheet" href="css/admin-modal.css" />
+ * ------------------------------------------------------------------
+ */
+
+/* ---------- Fondo ---------- */
+#admin-modal .institucion-modal__backdrop {
+  background: rgba(5, 9, 18, 0.74);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+/* ---------- Contenedor ---------- */
+#admin-modal .institucion-modal__panel {
+  --modal-bg: var(--bg-panel, #17233a);
+  background: var(--modal-bg);
+  display: flex;
+  flex-direction: column;
+  width: min(940px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100vh - 40px);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle, #1e293b);
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- Encabezado ---------- */
+#admin-modal .institucion-modal__nombre {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 22px 72px 18px 32px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary, #e6edf7);
+  border-bottom: 1px solid var(--border-subtle, #1e293b);
+}
+#admin-modal .institucion-modal__nombre::after {
+  content: "Los campos marcados con * son obligatorios";
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary, #8ea0ba);
+}
+#admin-modal .institucion-modal__close {
+  top: 18px;
+  right: 22px;
+  z-index: 3;
+}
+
+/* ---------- Cuerpo con scroll ---------- */
+#admin-modal .admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 22px 32px 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #2b3a52 transparent;
+}
+#admin-modal .admin-form::-webkit-scrollbar { width: 10px; }
+#admin-modal .admin-form::-webkit-scrollbar-track { background: transparent; }
+#admin-modal .admin-form::-webkit-scrollbar-thumb {
+  background: #2b3a52;
+  border: 3px solid transparent;
+  border-radius: 10px;
+  background-clip: content-box;
+}
+#admin-modal .admin-form::-webkit-scrollbar-thumb:hover { background: #3a4d6c; background-clip: content-box; }
+
+/* ---------- Grupos (tarjetas) ---------- */
+#admin-modal .admin-form__grupo {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 14px 16px;
+  margin: 0;
+  padding: 20px 20px 22px;
+  min-width: 0;
+  border: 1px solid var(--border-subtle, #1e293b);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.018);
+}
+#admin-modal .admin-form__grupo > legend {
+  float: none;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent, #29e2b8);
+}
+
+/* ---------- Campos ---------- */
+#admin-modal .admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  grid-column: span 4;           /* por defecto, tres por fila */
+}
+#admin-modal .admin-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary, #8ea0ba);
+}
+#admin-modal .admin-field input,
+#admin-modal .admin-field select,
+#admin-modal .admin-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-primary, #e6edf7);
+  background: var(--bg-app, #0b1220);
+  border: 1px solid var(--border-subtle, #1e293b);
+  border-radius: 8px;
+  color-scheme: dark;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+#admin-modal .admin-field input,
+#admin-modal .admin-field select { height: 42px; }
+#admin-modal .admin-field textarea {
+  min-height: 88px;
+  padding: 10px 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+#admin-modal .admin-field input::placeholder,
+#admin-modal .admin-field textarea::placeholder { color: #5f7089; }
+#admin-modal .admin-field input:focus,
+#admin-modal .admin-field select:focus,
+#admin-modal .admin-field textarea:focus {
+  outline: none;
+  border-color: var(--accent, #29e2b8);
+  box-shadow: 0 0 0 3px rgba(41, 226, 184, 0.16);
+}
+#admin-modal .admin-field select option { background: #121824; color: #e6edf7; }
+
+/* ---------- Distribución por grupo ---------- */
+
+/* Datos básicos: nombre en una fila completa; tipo, sector y estrato debajo */
+#admin-modal .admin-field:has(#f-nombre) { grid-column: 1 / -1; }
+
+/* Ubicación: campos a la izquierda, mapa a la derecha */
+#admin-modal .admin-field:has(#f-direccion),
+#admin-modal .admin-field:has(#f-longitud),
+#admin-modal .admin-field:has(#f-latitud) { grid-column: 1 / span 5; }
+#admin-modal .ubicacion-picker {
+  grid-column: 6 / -1;
+  grid-row: 1 / span 4;          /* ocupa la altura de los tres campos */
+  align-self: stretch;
+  margin: 0;
+}
+#admin-modal #ubicacion-mapa {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 250px;
+}
+/* Longitud y latitud lado a lado dentro de la columna izquierda */
+#admin-modal .admin-field:has(#f-longitud) { grid-column: 1 / span 5; }
+#admin-modal .admin-field:has(#f-latitud)  { grid-column: 1 / span 5; }
+
+/* Contacto e imagen: tres arriba; URL de imagen y descripción a lo ancho */
+#admin-modal .admin-field:has(#f-imagen-url),
+#admin-modal .admin-field:has(#f-descripcion) { grid-column: 1 / -1; }
+
+/* Indicadores académicos: cuatro en una fila */
+#admin-modal .admin-field:has(#f-num-estudiantes),
+#admin-modal .admin-field:has(#f-cupos-disponibles),
+#admin-modal .admin-field:has(#f-recursos-tecnologicos),
+#admin-modal .admin-field:has(#f-num-docentes) { grid-column: span 3; }
+
+/* ---------- Mensaje de error ---------- */
+#admin-modal #form-error { margin: 0; }
+
+/* ---------- Barra de acciones fija ---------- */
+#admin-modal .admin-form__acciones {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin: 6px -32px 0;
+  padding: 16px 32px;
+  background: var(--modal-bg, #17233a);
+  border-top: 1px solid var(--border-subtle, #1e293b);
+}
+#admin-modal .admin-form__acciones .btn {
+  width: auto;
+  min-width: 112px;
+  height: 42px;
+  margin: 0;
+  padding: 0 24px;
+}
+
+/* ---------- Pantallas medianas y celulares ---------- */
+@media (max-width: 820px) {
+  #admin-modal .institucion-modal__nombre { padding: 18px 64px 14px 20px; }
+  #admin-modal .admin-form { padding: 18px 20px 0; }
+  #admin-modal .admin-form__acciones { margin: 6px -20px 0; padding: 14px 20px; }
+
+  #admin-modal .admin-field { grid-column: span 6; }
+  #admin-modal .admin-field:has(#f-nombre),
+  #admin-modal .admin-field:has(#f-direccion),
+  #admin-modal .admin-field:has(#f-longitud),
+  #admin-modal .admin-field:has(#f-latitud),
+  #admin-modal .admin-field:has(#f-imagen-url),
+  #admin-modal .admin-field:has(#f-descripcion) { grid-column: 1 / -1; }
+
+  #admin-modal .ubicacion-picker { grid-column: 1 / -1; grid-row: auto; }
+  #admin-modal #ubicacion-mapa { min-height: 220px; }
+}
+@media (max-width: 480px) {
+  #admin-modal .admin-field { grid-column: 1 / -1; }
+}
