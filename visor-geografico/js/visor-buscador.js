@@ -63,7 +63,7 @@
     return Number.isInteger(n) && n >= 1 && n <= 6 ? n : null;
   }
 
-  const COLOR_POR_DEFECTO = '#29e2b8';
+  const COLOR_POR_DEFECTO = '#69b544';
   const ETIQUETA_TIPO = { colegio: 'Colegio', universidad: 'Universidad' };
   const ETIQUETA_SECTOR = { publico: 'Público', privado: 'Privado' };
   const CATEGORIA_OFICIAL = /^(colegio|universidad)-(publico|privado)$/;
@@ -90,10 +90,10 @@
     .buscador__contador {
       font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 11px;
-      color: var(--text-secondary, #8ea0ba);
+      color: var(--text-secondary, #a3bba8);
       white-space: nowrap;
     }
-    .buscador__contador b { color: var(--accent, #29e2b8); }
+    .buscador__contador b { color: var(--accent, #69b544); }
 
     .buscador__form { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
     .buscador__fila { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -103,7 +103,7 @@
       font-weight: 600;
       letter-spacing: .06em;
       text-transform: uppercase;
-      color: var(--text-secondary, #8ea0ba);
+      color: var(--text-secondary, #a3bba8);
     }
     .buscador__input,
     .buscador__select {
@@ -112,23 +112,23 @@
       padding: 0 10px;
       font: inherit;
       font-size: 13px;
-      color: var(--text-primary, #e6edf7);
-      background: var(--bg-app, #0b1220);
-      border: 1px solid var(--border-subtle, #1e293b);
+      color: var(--text-primary, #eef5ea);
+      background: var(--bg-app, #07130c);
+      border: 1px solid var(--border-subtle, #21412e);
       border-radius: 8px;
       color-scheme: dark;
       transition: border-color .15s ease, box-shadow .15s ease;
     }
-    .buscador__input::placeholder { color: #5f7089; }
+    .buscador__input::placeholder { color: #6f8f78; }
     .buscador__input:focus,
     .buscador__select:focus {
       outline: none;
-      border-color: var(--accent, #29e2b8);
-      box-shadow: 0 0 0 3px rgba(41, 226, 184, .15);
+      border-color: var(--accent, #69b544);
+      box-shadow: 0 0 0 3px rgba(105,181,68, .15);
     }
-    .buscador__select option { background: #121824; color: #e6edf7; }
+    .buscador__select option { background: #12291b; color: #eef5ea; }
     .buscador__input--activo,
-    .buscador__select--activo { border-color: rgba(41, 226, 184, .6); }
+    .buscador__select--activo { border-color: rgba(105,181,68, .6); }
 
     .buscador__limpiar {
       align-self: end;
@@ -136,14 +136,14 @@
       font: inherit;
       font-size: 12px;
       font-weight: 600;
-      color: var(--text-secondary, #8ea0ba);
+      color: var(--text-secondary, #a3bba8);
       background: transparent;
-      border: 1px solid var(--border-subtle, #1e293b);
+      border: 1px solid var(--border-subtle, #21412e);
       border-radius: 8px;
       cursor: pointer;
       transition: color .15s ease, border-color .15s ease, opacity .15s ease;
     }
-    .buscador__limpiar:hover:not(:disabled) { color: var(--accent, #29e2b8); border-color: var(--accent, #29e2b8); }
+    .buscador__limpiar:hover:not(:disabled) { color: var(--accent, #69b544); border-color: var(--accent, #69b544); }
     .buscador__limpiar:disabled { opacity: .4; cursor: default; }
 
     .buscador__resultados {
@@ -164,8 +164,8 @@
       padding: 8px 10px;
       text-align: left;
       font: inherit;
-      color: var(--text-primary, #e6edf7);
-      background: var(--bg-app, #0b1220);
+      color: var(--text-primary, #eef5ea);
+      background: var(--bg-app, #07130c);
       border: 1px solid transparent;
       border-radius: 8px;
       cursor: pointer;
@@ -174,8 +174,8 @@
     .buscador__item:hover,
     .buscador__item:focus-visible {
       outline: none;
-      border-color: rgba(41, 226, 184, .55);
-      background: rgba(41, 226, 184, .06);
+      border-color: rgba(105,181,68, .55);
+      background: rgba(105,181,68, .06);
     }
     .buscador__punto { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .buscador__texto { display: flex; flex-direction: column; min-width: 0; }
@@ -187,15 +187,15 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .buscador__texto small { font-size: 11px; color: var(--text-secondary, #8ea0ba); }
+    .buscador__texto small { font-size: 11px; color: var(--text-secondary, #a3bba8); }
 
     .buscador__mensaje {
       margin: 12px 0 0;
       font-size: 12px;
       line-height: 1.5;
-      color: var(--text-secondary, #8ea0ba);
+      color: var(--text-secondary, #a3bba8);
     }
-    .buscador__nota { margin: 10px 0 0; font-size: 11px; line-height: 1.45; color: #6b7a90; }
+    .buscador__nota { margin: 10px 0 0; font-size: 11px; line-height: 1.45; color: #7d9a85; }
 
     /* Aro que resalta la institución elegida */
     .buscador-pulso { animation: buscador-pulso 1.1s ease-out infinite; transform-origin: center; transform-box: fill-box; }

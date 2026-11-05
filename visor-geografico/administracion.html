@@ -24,8 +24,8 @@
       .admin-grid { grid-template-columns: 1fr; }
     }
     .admin-map-card {
-      background: var(--bg-panel-alt, #121824);
-      border: 1px solid var(--border-subtle, #1e293b);
+      background: var(--bg-panel-alt, #12291b);
+      border: 1px solid var(--border-subtle, #21412e);
       border-radius: 12px;
       padding: 16px;
       display: flex;
@@ -36,7 +36,7 @@
       width: 100%;
       height: 520px;
       border-radius: 8px;
-      border: 1px solid var(--border-subtle, #1e293b);
+      border: 1px solid var(--border-subtle, #21412e);
       z-index: 1;
     }
     .admin-side { display: flex; flex-direction: column; gap: 16px; }
@@ -54,10 +54,10 @@
     /* Lista desplegable del selector de CRS: tema oscuro */
     .admin-panel .select { width: 100%; color-scheme: dark; }
     .admin-panel .select option {
-      background: #121824;
-      color: #e6edf7;
+      background: #12291b;
+      color: #eef5ea;
     }
-    .admin-panel .select option:disabled { color: #6b7a90; }
+    .admin-panel .select option:disabled { color: #7d9a85; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -372,10 +372,10 @@ function cargarLimiteMunicipal(map) {
 
       const limite = L.geoJSON(soloPoligonos, {
         style: { 
-          color: '#00d9a5', 
+          color: '#8fc374', 
           weight: 3, 
           opacity: 1, 
-          fillColor: '#00d9a5', 
+          fillColor: '#8fc374', 
           fillOpacity: 0.08, 
           dashArray: '7, 5' 
         },
@@ -1244,7 +1244,7 @@ function cargarLimiteMunicipal(map) {
     function pulso(mapa, latlng) {
       const aro = L.circleMarker(latlng, {
         radius: 22,
-        color: '#29e2b8',
+        color: '#69b544',
         weight: 3,
         fill: false,
         interactive: false,
@@ -1793,5 +1793,8 @@ function cargarLimiteMunicipal(map) {
   })();
   </script>
 
+<script src="js/herramientas-mapa.js"></script>
+<script src="js/analisis-cobertura.js"></script>
+<script src="js/comparador-instituciones.js"></script>
 </body>
 </html>
