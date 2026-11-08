@@ -3,22 +3,244 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0c6434" />
   <title>Visor Geográfico · Sabaneta</title>
 
   <!-- Tipografías -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Leaflet -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <!-- NUEVO: CSS de Leaflet Routing Machine -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
 
-  <!-- Estilos (visor + administración) -->
+  <!-- Estilos del proyecto -->
   <link rel="stylesheet" href="css/style.css" />
 
   <style>
     body:not(.admin-body) { overflow-x: hidden; overflow-y: auto; }
+
+    /* Logo e identidad en la barra superior */
+    .top-navbar__brand {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      text-decoration: none !important;
+      color: #ffffff !important;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .top-navbar__brand svg {
+      flex-shrink: 0;
+      border-radius: 4px;
+    }
+
+    /* Pestaña activa con resaltado amarillo */
+    .top-navbar__links a[aria-current="page"] {
+      color: #f5c324 !important;
+      font-weight: 700 !important;
+      background: rgba(245, 195, 36, 0.15) !important;
+      border-radius: 6px;
+      padding: 6px 12px;
+    }
+
+    /* Modal de calificación y opinión superpuesto con máxima prioridad */
+    .calificar-modal-backdrop {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(0, 0, 0, 0.85) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      z-index: 9999999 !important;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calificar-modal-backdrop.is-active {
+      display: flex !important;
+    }
+
+    /* Es un <dialog> modal: se muestra en la «capa superior» del navegador */
+    dialog.calificar-modal-backdrop {
+      margin: 0 !important;
+      padding: 0 !important;
+      border: 0 !important;
+      max-width: none !important;
+      max-height: none !important;
+      inset: 0 !important;
+      color: inherit;
+      overflow: auto;
+    }
+    dialog.calificar-modal-backdrop::backdrop { background: transparent; }
+
+    .calificar-modal-panel {
+      position: relative !important;
+      z-index: 10000000 !important;
+      background: #12291b !important;
+      border: 1px solid var(--border-subtle, #21412e) !important;
+      border-radius: 14px !important;
+      padding: 24px !important;
+      width: 90% !important;
+      max-width: 460px !important;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.9) !important;
+    }
+
+    .rating-stars {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 18px 0;
+      font-size: 36px;
+      cursor: pointer;
+    }
+
+    .rating-stars span {
+      color: #4b5563;
+      transition: color 0.15s ease, transform 0.15s ease;
+      user-select: none;
+      display: inline-block;
+    }
+
+    .rating-stars span:hover,
+    .rating-stars span.active {
+      color: #f5c324 !important;
+      transform: scale(1.15);
+    }
+
+    .opinion-textarea {
+      width: 100% !important;
+      height: 110px !important;
+      padding: 12px !important;
+      background: #07130c !important;
+      border: 1px solid #21412e !important;
+      border-radius: 8px !important;
+      color: #ffffff !important;
+      font-family: inherit !important;
+      font-size: 13.5px !important;
+      resize: none !important;
+      box-sizing: border-box !important;
+      margin-bottom: 18px !important;
+      display: block !important;
+    }
+
+    .opinion-textarea:focus {
+      outline: none !important;
+      border-color: #69b544 !important;
+      box-shadow: 0 0 0 3px rgba(105, 181, 68, 0.2) !important;
+    }
+
+    .btn-enviar-op {
+      width: 100% !important;
+      height: 44px !important;
+      background: #69b544 !important;
+      color: #07130c !important;
+      font-weight: 800 !important;
+      font-size: 14px !important;
+      border: none !important;
+      border-radius: 8px !important;
+      cursor: pointer !important;
+      transition: background 0.15s ease !important;
+    }
+
+    .btn-enviar-op:hover {
+      background: #7bc755 !important;
+    }
+
+    /* Directoriode instituciones educativas (ventana «Instituciones») */
+    #informe-modal { padding: 28px 20px; }
+    #informe-modal .institucion-modal__backdrop { background: rgba(3, 10, 6, 0.82); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+    #informe-modal .informe-modal__panel {
+      max-width: 1240px; width: 100%; margin: 0 auto; padding: 0;
+      display: flex; flex-direction: column; max-height: calc(100vh - 56px);
+      background: linear-gradient(180deg, #0f2417 0%, #0a1b11 100%);
+      border: 1px solid rgba(105, 181, 68, 0.28); border-radius: 18px; overflow: hidden;
+      box-shadow: 0 40px 90px rgba(0, 0, 0, 0.65);
+    }
+    #informe-modal .informe-modal__panel::before {
+      content: ""; display: block; flex: none; height: 4px;
+      background: linear-gradient(90deg, #0c6434 0%, #2f8f46 35%, #69b544 70%, #d3d934 100%);
+    }
+    #informe-modal .institucion-modal__close {
+      top: 18px; right: 18px; width: 36px; height: 36px; font-size: 22px;
+      background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); color: #cfe0d3;
+      transition: background .15s ease, color .15s ease;
+    }
+    #informe-modal .institucion-modal__close:hover { background: rgba(248, 113, 113, 0.2); color: #fff; }
+
+    #informe-modal .informe-modal__header {
+      flex: none; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px 24px;
+      padding: 26px 76px 20px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    #informe-modal .informe-modal__title-group { min-width: 0; }
+    #informe-modal .informe-modal__title {
+      margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
+      font-size: clamp(20px, 2.6vw, 26px); font-weight: 800; letter-spacing: -0.01em; color: #fff;
+    }
+    #informe-modal .informe-modal__count {
+      font: 600 12px 'JetBrains Mono', monospace; padding: 4px 10px; border-radius: 999px;
+      color: #69b544; background: rgba(105, 181, 68, 0.14); border: 1px solid rgba(105, 181, 68, 0.3);
+    }
+    #informe-modal .informe-modal__count:empty { display: none; }
+    #informe-modal .informe-modal__subtitle { margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: #a3bba8; }
+
+    #informe-modal .informe-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    #informe-modal .informe-actions .btn {
+      display: inline-flex; align-items: center; gap: 8px; width: auto; height: 40px; padding: 0 16px;
+      border-radius: 10px; font-family: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer;
+      transition: transform .12s ease, background .15s ease, border-color .15s ease;
+    }
+    #informe-modal .informe-actions .btn:hover { transform: translateY(-1px); }
+    #informe-modal .btn--pdf { color: #fecaca; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.45); }
+    #informe-modal .btn--pdf:hover { background: rgba(239, 68, 68, 0.24); }
+    #informe-modal .btn--excel { color: #07130c; background: #69b544; border: 1px solid #69b544; }
+    #informe-modal .btn--excel:hover { background: #7bc755; }
+
+    #informe-modal .informe-modal__table-wrap { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0 12px 14px; -webkit-overflow-scrolling: touch; }
+    #informe-modal .informe-table { width: 100%; min-width: 980px; border-collapse: separate; border-spacing: 0; font-size: 13.5px; color: #e6efe8; }
+    #informe-modal .informe-table thead th {
+      position: sticky; top: 0; z-index: 2; padding: 14px 14px; text-align: left; white-space: nowrap;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #9db8a3;
+      background: #0d2015; border-bottom: 1px solid rgba(105, 181, 68, 0.35);
+    }
+    #informe-modal .informe-table tbody td { padding: 14px; vertical-align: middle; line-height: 1.45; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+    #informe-modal .informe-table tbody tr { transition: background .12s ease; }
+    #informe-modal .informe-table tbody tr:hover { background: rgba(105, 181, 68, 0.09); }
+    #informe-modal .informe-table tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.022); }
+    #informe-modal .informe-table tbody tr:nth-child(even):hover { background: rgba(105, 181, 68, 0.09); }
+    #informe-modal .informe-table td:first-child { font-weight: 700; color: #fff; min-width: 220px; }
+    #informe-modal .informe-table td.dir-direccion { color: #a3bba8; min-width: 200px; }
+    #informe-modal .informe-table td.dir-contacto { color: #a3bba8; font-size: 12.5px; min-width: 130px; word-break: break-word; }
+    #informe-modal .informe-table td.dir-num { text-align: center; font: 600 13px 'JetBrains Mono', monospace; color: #e6efe8; }
+    #informe-modal .informe-table td.dir-nd, #informe-modal .informe-table td .dir-nd { color: #6f8a77; font-weight: 500; }
+
+    .dir-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+      font-size: 11.5px; font-weight: 700; text-transform: capitalize; border: 1px solid transparent;
+    }
+    .dir-badge--colegio { color: #93c5fd; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.35); }
+    .dir-badge--universidad { color: #d8b4fe; background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.35); }
+    .dir-badge--publico { color: #86efac; background: rgba(34, 197, 94, 0.14); border-color: rgba(34, 197, 94, 0.35); }
+    .dir-badge--privado { color: #fdba74; background: rgba(249, 115, 22, 0.14); border-color: rgba(249, 115, 22, 0.35); }
+    .dir-estrato {
+      display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+      font: 700 12.5px 'JetBrains Mono', monospace; color: #07130c; background: #d3d934;
+    }
+
+    @media (max-width: 760px) {
+      #informe-modal { padding: 12px 8px; }
+      #informe-modal .informe-modal__panel { max-height: calc(100vh - 24px); border-radius: 14px; }
+      #informe-modal .informe-modal__header { padding: 20px 60px 16px 18px; }
+      #informe-modal .informe-actions { width: 100%; }
+      #informe-modal .informe-actions .btn { flex: 1 1 auto; justify-content: center; }
+      #informe-modal .informe-modal__table-wrap { padding: 0 4px 10px; }
+    }
+
+    /* Preguntas frecuentes */
     .faq { background: var(--bg-app); border-top: 1px solid var(--border-subtle); padding: 64px 24px 72px; }
     .faq__inner { max-width: 820px; margin: 0 auto; }
     .faq__eyebrow { display: block; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: var(--accent); }
@@ -31,8 +253,8 @@
     .faq__question::-webkit-details-marker { display: none; }
     .faq__question::before { content: ""; width: 3px; height: 16px; flex-shrink: 0; border-radius: 2px; background: var(--accent); }
     .faq__question span { flex: 1; }
-    .faq__chev { flex-shrink: 0; color: var(--text-secondary); transition: transform .2s ease; }
-    .faq__item[open] .faq__chev { transform: rotate(180deg); color: var(--accent); }
+    .faq__question .faq__chev { flex: 0 0 8px; width: 8px; height: 8px; margin: -4px 4px 0 0; border-right: 2px solid var(--text-secondary); border-bottom: 2px solid var(--text-secondary); transform: rotate(45deg); transition: transform .2s ease; }
+    .faq__item[open] .faq__question .faq__chev { transform: rotate(-135deg) translate(-2px, -2px); border-color: var(--accent); }
     .faq__question:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
     .faq__answer { margin: 0; padding: 0 18px 18px 33px; font-size: 14px; line-height: 1.65; color: #c3d0e4; }
     .faq__answer a { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
@@ -62,12 +284,20 @@
   <!-- NAVBAR SUPERIOR -->
   <nav class="top-navbar">
     <a class="top-navbar__brand" href="index.html">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="6" fill="#ffffff"/>
+        <path d="M16 4C10 4 6 7 6 13C6 21 16 28 16 28C16 28 26 21 26 13C26 7 22 4 16 4Z" fill="#0c6434"/>
+        <path d="M16 6C11.5 6 8.5 8.5 8.5 13.5C8.5 19.5 16 25.5 16 25.5C16 25.5 23.5 19.5 23.5 13.5C23.5 8.5 20.5 6 16 6Z" fill="#f5c324"/>
+        <path d="M16 9L18 13.5H23L19 16.5L20.5 21L16 18L11.5 21L13 16.5L9 13.5H14L16 9Z" fill="#0c6434"/>
+      </svg>
       <span>Geovisor Sabaneta</span>
     </a>
     <div class="top-navbar__links">
-      <a href="index.html" aria-current="page">Mapas</a>
-      <a href="administracion.html">Administración</a>
+      <a href="index.html" id="btn-nav-inicio" aria-current="page">Inicio</a>
+      <a href="index.html#instituciones" id="btn-nav-instituciones">Instituciones</a>
+      <a href="comparador.html" id="btn-nav-comparador">Comparador &amp; Becas</a>
+      <a href="index.html#faq" id="btn-nav-faq">Preguntas frecuentes</a>
+      <a href="administracion.html" id="btn-nav-admin">Administración</a>
     </div>
   </nav>
 
@@ -75,9 +305,6 @@
   <div id="app">
     <aside class="sidebar">
       <header class="sidebar__header">
-        <div class="sidebar__logo" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-        </div>
         <div>
           <h1 class="sidebar__title">Herramientas espaciales</h1>
           <p class="sidebar__subtitle">Capas y coordenadas</p>
@@ -88,26 +315,6 @@
         <h2 class="panel__title">Capas del mapa</h2>
         <p class="panel__hint" id="instituciones-total">Cargando…</p>
         <ul class="category-list" id="category-list"></ul>
-      </section>
-
-      <section class="panel">
-        <h2 class="panel__title">Sistema de coordenadas</h2>
-        <select id="display-crs-select" class="select"></select>
-      </section>
-
-      <section class="panel panel--readout">
-        <h2 class="panel__title">Lectura del cursor</h2>
-        <div class="readout" id="readout-system">EPSG:4326 · WGS84</div>
-        <div class="readout-grid">
-          <div class="readout-field">
-            <span class="readout-field__label" id="readout-label-1">LAT</span>
-            <span class="readout-field__value" id="readout-value-1">—</span>
-          </div>
-          <div class="readout-field">
-            <span class="readout-field__label" id="readout-label-2">LON</span>
-            <span class="readout-field__value" id="readout-value-2">—</span>
-          </div>
-        </div>
       </section>
 
       <footer class="sidebar__footer">
@@ -136,6 +343,47 @@
     </main>
   </div>
 
+  <!-- MODAL DE INSTITUCIONES (DIRECTORIO AMPLIO) -->
+  <div id="informe-modal" class="institucion-modal">
+    <div class="institucion-modal__backdrop" data-cerrar-informe></div>
+    <div class="institucion-modal__panel informe-modal__panel" role="dialog" aria-modal="true">
+      <button type="button" class="institucion-modal__close" data-cerrar-informe aria-label="Cerrar">&times;</button>
+
+      <div class="informe-modal__header">
+        <div class="informe-modal__title-group">
+          <h2 class="informe-modal__title">Directorio de Instituciones Educativas <span class="informe-modal__count" id="informe-conteo"></span></h2>
+          <p class="informe-modal__subtitle">Consulta detallada de colegios y universidades del municipio de Sabaneta</p>
+        </div>
+        
+        <div class="informe-actions">
+          <button id="btn-exportar-pdf" class="btn btn--pdf">📄 Exportar PDF</button>
+          <button id="btn-exportar-excel" class="btn btn--excel">📊 Exportar Excel (.xlsx)</button>
+        </div>
+      </div>
+
+      <div class="informe-modal__table-wrap">
+        <table class="informe-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Sector</th>
+              <th>Estrato</th>
+              <th>Dirección</th>
+              <th style="text-align:center;">Estudiantes</th>
+              <th style="text-align:center;">Cupos</th>
+              <th style="text-align:center;">Docentes</th>
+              <th>Contacto</th>
+            </tr>
+          </thead>
+          <tbody id="informe-tabla-body">
+            <tr><td colspan="9" style="text-align:center; padding: 24px; color: #94a3b8;">Cargando instituciones...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- PREGUNTAS FRECUENTES -->
   <section class="faq" id="faq" aria-labelledby="faq-title">
     <div class="faq__inner">
@@ -144,35 +392,65 @@
       <p class="faq__intro">Resolvemos las dudas más comunes sobre cupos, traslados, becas y beneficios para las instituciones educativas de Sabaneta.</p>
       <div class="faq__list">
         <details class="faq__item">
-          <summary class="faq__question"><span>¿Dónde puedo solicitar un cupo?</span><svg class="faq__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <summary class="faq__question"><span>¿Dónde puedo solicitar un cupo?</span><span class="faq__chev" aria-hidden="true"></span></summary>
           <p class="faq__answer">Puedes realizar el trámite paso a paso ingresando directamente a la plataforma oficial en el siguiente enlace: <a href="https://micuenta.sabaneta.gov.co/" target="_blank" rel="noopener noreferrer">Mi Cuenta Sabaneta</a>, donde deberás iniciar sesión y seguir las instrucciones del sistema para la solicitud de cupos educativos.</p>
         </details>
         <details class="faq__item">
-          <summary class="faq__question"><span>¿Dónde puedo solicitar mi traslado?</span><svg class="faq__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <summary class="faq__question"><span>¿Dónde puedo solicitar mi traslado?</span><span class="faq__chev" aria-hidden="true"></span></summary>
           <p class="faq__answer">El proceso se gestiona de manera virtual. Dirígete a la plataforma <a href="https://micuenta.sabaneta.gov.co/" target="_blank" rel="noopener noreferrer">Mi Cuenta Sabaneta</a>, accede con tus datos y sigue el paso a paso indicado para radicar la solicitud de traslado institucional.</p>
         </details>
         <details class="faq__item">
-          <summary class="faq__question"><span>¿Dónde puedo saber información sobre becas?</span><svg class="faq__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
-          <p class="faq__answer">Para consultar la oferta, requisitos y convocatorias vigentes sobre becas, debes dirigirte directamente a las instalaciones de la Alcaldía de Sabaneta o consultar sus canales de atención oficiales.</p>
+          <summary class="faq__question"><span>¿Dónde puedo saber información sobre becas?</span><span class="faq__chev" aria-hidden="true"></span></summary>
+          <p class="faq__answer">Para consultar la oferta, requisitos y convocatorias vigentes sobre becas, ingresa a nuestro apartado de <a href="comparador.html">Comparador & Becas</a> o acude a las instalaciones de la Alcaldía de Sabaneta.</p>
         </details>
         <details class="faq__item">
-          <summary class="faq__question"><span>¿Hay algún beneficio o preferencia por ser persona con discapacidad o víctima del conflicto?</span><svg class="faq__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <summary class="faq__question"><span>¿Hay algún beneficio o preferencia por ser persona con discapacidad o víctima del conflicto?</span><span class="faq__chev" aria-hidden="true"></span></summary>
           <p class="faq__answer">Sí. El municipio cuenta con preferencias y enfoques diferenciales para personas en condición de discapacidad, con enfermedades o víctimas del conflicto armado. Durante el proceso digital o presencial del trámite, el formulario incluirá casillas y preguntas específicas para identificar tu condición y aplicar estos beneficios.</p>
         </details>
       </div>
     </div>
   </section>
 
-  <!-- LIBRERÍAS -->
+  <!-- MODAL INDEPENDIENTE PARA CALIFICACIÓN Y OPINIÓN -->
+  <dialog id="modal-calificacion" class="calificar-modal-backdrop" aria-labelledby="calificacion-titulo">
+    <div class="calificar-modal-panel" role="dialog" aria-modal="true">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 id="calificacion-titulo" style="margin:0; color:#fff; font-size:18px; font-weight:700;">Calificar institución</h3>
+        <button type="button" id="btn-cerrar-calificacion" style="background:none; border:none; color:#a3bba8; font-size:24px; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+      <p id="calificacion-nombre-inst" style="font-size:14px; color:#29e2b8; margin:6px 0 12px 0; font-weight:600;"></p>
+
+      <!-- ESTRELLAS DE CALIFICACIÓN -->
+      <div class="rating-stars" id="contenedor-estrellas">
+        <span data-star="1">★</span>
+        <span data-star="2">★</span>
+        <span data-star="3">★</span>
+        <span data-star="4">★</span>
+        <span data-star="5">★</span>
+      </div>
+
+      <!-- TEXTAREA PARA RESEÑA Y OPINIÓN -->
+      <div style="margin-bottom:18px;">
+        <label style="display:block; font-size:11.5px; color:#a3bba8; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Tu opinión o reseña</label>
+        <textarea id="texto-opinion" class="opinion-textarea" placeholder="Escribe tu opinión o reseña sobre los docentes, instalaciones o calidad de esta institución..."></textarea>
+      </div>
+
+      <button type="button" id="btn-enviar-opinion" class="btn-enviar-op">
+        Enviar calificación y reseña
+      </button>
+    </div>
+  </dialog>
+
+  <!-- LIBRERÍAS EXTERNAS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- NUEVO: JS de Leaflet Routing Machine -->
-  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-  
   <script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/shpjs/6.2.0/shp.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <!-- LIBRERÍAS DE EXPORTACIÓN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
   <!-- SCRIPTS DEL PROYECTO -->
   <script src="js/crs.js"></script>
@@ -185,20 +463,523 @@
   <script src="js/landing.js"></script>
   <script src="js/visor-buscador.js"></script>
   <script src="js/tiempo-real-instituciones.js"></script>
-   <script src="js/herramientas-mapa.js"></script>
-   <script src="js/analisis-cobertura.js"></script>
-   <script src="js/comparador-instituciones.js"></script>
+  <script src="js/herramientas-mapa.js"></script>
+  <script src="js/informes.js"></script>
+  <script src="js/mi-ubicacion.js"></script>
 
+  <!-- CONTROLADOR PRINCIPAL Y DIRECCIONAMIENTO A GOOGLE MAPS -->
   <script>
     (function () {
-      var app = document.getElementById('app');
-      var btn = document.getElementById('sidebar-toggle');
-      btn.addEventListener('click', function () {
-        var cerrado = app.classList.toggle('is-collapsed');
-        btn.setAttribute('aria-expanded', String(!cerrado));
-        btn.setAttribute('aria-label', cerrado ? 'Mostrar panel de herramientas' : 'Ocultar panel de herramientas');
-        btn.querySelector('span').textContent = cerrado ? 'Mostrar panel' : 'Ocultar panel';
-        setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 260);
+      function ocultarLanding() {
+        var landing = document.getElementById('landing-screen');
+        if (landing) {
+          landing.style.display = 'none';
+        }
+      }
+
+      function procesarRuta() {
+        var hash = window.location.hash;
+        var ref = document.referrer || '';
+
+        // Ocultar landing si viene con ancla o desde otra página del proyecto
+        if (hash || ref.indexOf('comparador.html') !== -1 || ref.indexOf('administracion.html') !== -1) {
+          ocultarLanding();
+        }
+
+        // Abrir modal de instituciones si el hash es #instituciones
+        if (hash === '#instituciones') {
+          ocultarLanding();
+          var modal = document.getElementById('informe-modal');
+          if (modal) modal.classList.add('is-active');
+          window.scrollTo(0, 0);
+        } else if (!hash || hash === '#app') {
+          // Si se hace clic en Inicio o no hay hash, posicionar la pantalla arriba del todo
+          window.scrollTo(0, 0);
+        }
+      }
+
+      procesarRuta();
+
+      document.addEventListener('DOMContentLoaded', function () {
+        procesarRuta();
+
+        var btnNavInst = document.getElementById('btn-nav-instituciones');
+        if (btnNavInst) {
+          btnNavInst.addEventListener('click', function (e) {
+            ocultarLanding();
+            var modal = document.getElementById('informe-modal');
+            if (modal) modal.classList.add('is-active');
+            window.scrollTo(0, 0);
+          });
+        }
+
+        var btnNavInicio = document.getElementById('btn-nav-inicio');
+        if (btnNavInicio) {
+          btnNavInicio.addEventListener('click', function () {
+            ocultarLanding();
+            var modal = document.getElementById('informe-modal');
+            if (modal) modal.classList.remove('is-active');
+            window.scrollTo(0, 0);
+          });
+        }
+
+        window.addEventListener('hashchange', procesarRuta);
+
+        var app = document.getElementById('app');
+        var btn = document.getElementById('sidebar-toggle');
+        if (btn && app) {
+          btn.addEventListener('click', function () {
+            var cerrado = app.classList.toggle('is-collapsed');
+            btn.setAttribute('aria-expanded', String(!cerrado));
+            btn.setAttribute('aria-label', cerrado ? 'Mostrar panel de herramientas' : 'Ocultar panel de herramientas');
+            btn.querySelector('span').textContent = cerrado ? 'Mostrar panel' : 'Ocultar panel';
+            setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 260);
+          });
+        }
+      });
+    })();
+
+
+    // ================================================================
+    // DIRECTORIO DE INSTITUCIONES: da formato a las filas que genera informes.js
+    // (insignias de tipo y sector, estrato, cifras centradas) y cuenta las instituciones
+    // ================================================================
+    (function () {
+      var cuerpo = document.getElementById('informe-tabla-body');
+      var conteo = document.getElementById('informe-conteo');
+      if (!cuerpo) return;
+
+      function normal(t) {
+        return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+      }
+      function vacio(t) { var n = normal(t); return n === '' || n === 'n/d' || n === '-' || n === '—' || n === 'null' || n === 'no especificado'; }
+
+      function insignia(td, clase) {
+        if (td.children.length) return;
+        var texto = td.textContent.trim();
+        if (vacio(texto)) { td.innerHTML = '<span class="dir-nd">—</span>'; return; }
+        var span = document.createElement('span');
+        span.className = 'dir-badge ' + clase;
+        span.textContent = texto;
+        td.textContent = '';
+        td.appendChild(span);
+      }
+
+      function mejorar() {
+        var n = 0;
+        cuerpo.querySelectorAll('tr').forEach(function (tr) {
+          var td = tr.children;
+          if (td.length < 9) return;       // fila de «Cargando…» o de aviso
+          n++;
+          if (tr.dataset.mejorada) return;
+          tr.dataset.mejorada = '1';
+
+          var tipo = normal(td[1].textContent);
+          insignia(td[1], tipo.indexOf('univ') === 0 ? 'dir-badge--universidad' : 'dir-badge--colegio');
+          var sector = normal(td[2].textContent);
+          insignia(td[2], sector.indexOf('priv') === 0 ? 'dir-badge--privado' : 'dir-badge--publico');
+
+          if (!td[3].children.length) {
+            var est = td[3].textContent.trim();
+            td[3].innerHTML = /^\d+$/.test(est) ? '<span class="dir-estrato">' + est + '</span>' : '<span class="dir-nd">—</span>';
+          }
+          td[4].classList.add('dir-direccion');
+          [5, 6, 7].forEach(function (i) {
+            td[i].classList.add('dir-num');
+            td[i].style.textAlign = 'center';
+            if (!td[i].children.length && vacio(td[i].textContent)) { td[i].textContent = '—'; td[i].classList.add('dir-nd'); }
+          });
+          td[8].classList.add('dir-contacto');
+          if (!td[8].children.length && vacio(td[8].textContent)) { td[8].textContent = 'Sin contacto'; td[8].classList.add('dir-nd'); }
+        });
+        if (conteo) conteo.textContent = n ? n + (n === 1 ? ' institución' : ' instituciones') : '';
+      }
+
+      new MutationObserver(mejorar).observe(cuerpo, { childList: true });
+      mejorar();
+    })();
+
+    // ================================================================
+    // CAPAS INICIALES: al abrir el geovisor solo quedan activas
+    // colegios públicos, colegios privados, universidades privadas y el límite municipal
+    // ================================================================
+    (function () {
+      var ACTIVAS = ['colegios publicos', 'colegios privados', 'universidades privadas', 'limite municipal'];
+      var intervenido = false;
+      var pasadas = 0;
+
+      function normal(t) {
+        return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+      }
+      function debeEstarActiva(texto) {
+        var n = normal(texto);
+        return ACTIVAS.some(function (a) { return n.indexOf(a) === 0; });
+      }
+
+      function ajustar() {
+        var cajas = document.querySelectorAll('aside.sidebar .category-toggle input[type="checkbox"]');
+        if (!cajas.length) return false;
+        cajas.forEach(function (caja) {
+          var etiqueta = caja.closest('label');
+          var deseada = debeEstarActiva(etiqueta ? etiqueta.textContent : '');
+          if (caja.checked !== deseada) caja.click();   // dispara el mismo cambio que haría la persona
+        });
+        return true;
+      }
+
+      // Si la persona toca una capa por su cuenta, se deja de intervenir.
+      document.addEventListener('click', function (e) {
+        if (e.isTrusted && e.target.closest && e.target.closest('aside.sidebar .category-toggle')) intervenido = true;
+      }, true);
+
+      function esperar() {
+        if (intervenido || pasadas >= 3) return;
+        var total = document.getElementById('instituciones-total');
+        var listo = total && !/cargando/i.test(total.textContent) && document.querySelectorAll('aside.sidebar .category-toggle input').length > 0;
+        if (listo) {
+          ajustar();
+          pasadas++;
+          setTimeout(esperar, pasadas === 1 ? 2500 : 5000);   // se repite por si alguna capa terminó de cargar después
+        } else {
+          setTimeout(esperar, 400);
+        }
+      }
+      setTimeout(esperar, 800);
+    })();
+
+    // ================================================================
+    // «CÓMO LLEGAR»: abre Google Maps de inmediato, sin avisos ni esperas
+    // ================================================================
+    function urlRuta(lat, lng, origen) {
+      return 'https://www.google.com/maps/dir/?api=1&origin=' + origen.lat.toFixed(6) + ',' + origen.lon.toFixed(6) +
+        '&destination=' + lat + ',' + lng + '&travelmode=driving';
+    }
+
+    function inyectarEstilosRuta() {
+      if (document.getElementById('ruta-estilos')) return;
+      var st = document.createElement('style');
+      st.id = 'ruta-estilos';
+      st.textContent =
+        '.ruta-aviso{position:fixed;z-index:2147483000;top:76px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;max-width:calc(100vw - 24px);padding:10px 14px;border-radius:10px;background:#12291b;border:1px solid #69b544;color:#fff;font:600 14px/1.35 system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.6)}' +
+        '.ruta-aviso button,.ruta-aviso a{flex:none;padding:7px 12px;border-radius:6px;border:1px solid #21412e;background:transparent;color:#eef5ea;font:600 13px system-ui,sans-serif;cursor:pointer;text-decoration:none}' +
+        '.ruta-aviso a.ruta-primario{background:#69b544;border-color:#69b544;color:#07130c}';
+      document.head.appendChild(st);
+    }
+
+    // Abre Google Maps; si el navegador bloquea la pestaña, ofrece un botón.
+    function abrirRuta(lat, lng, origen) {
+      var url = urlRuta(lat, lng, origen);
+      var ventana = window.open(url, '_blank');
+      if (ventana) { try { ventana.opener = null; } catch (err) { /* nada */ } return; }
+
+      inyectarEstilosRuta();
+      var barra = document.createElement('div');
+      barra.className = 'ruta-aviso';
+      barra.setAttribute('role', 'status');
+      barra.innerHTML = '<span>Tu ruta está lista</span><a class="ruta-primario" href="' + url + '" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>';
+      document.body.appendChild(barra);
+      barra.querySelector('a').addEventListener('click', function () { barra.remove(); });
+      setTimeout(function () { barra.remove(); }, 20000);
+    }
+
+    // La persona toca el mapa para indicar dónde está
+    function elegirPuntoEnMapa(lat, lng, lectura) {
+      var m = (typeof map !== 'undefined') ? map : null;
+      if (!m) return;
+      inyectarEstilosRuta();
+      if (typeof cerrarModalInstitucion === 'function') cerrarModalInstitucion();
+
+      var motivo = lectura
+        ? 'Tu dispositivo no entregó una ubicación utilizable (± ' + Math.round(lectura.precision) + ' m).'
+        : 'No pudimos detectar tu ubicación (revisa el permiso del navegador).';
+      var barra = document.createElement('div');
+      barra.className = 'ruta-aviso';
+      barra.setAttribute('role', 'status');
+      barra.innerHTML = '<span>' + motivo + ' Toca en el mapa el punto donde estás.</span><button type="button">Cancelar</button>';
+      document.body.appendChild(barra);
+      var contenedor = m.getContainer();
+      contenedor.style.cursor = 'crosshair';
+
+      function limpiar() {
+        barra.remove();
+        contenedor.style.cursor = '';
+        m.off('click', alClic);
+        document.removeEventListener('keydown', alTecla, true);
+      }
+      function alClic(ev) {
+        limpiar();
+        var origen = { lat: ev.latlng.lat, lon: ev.latlng.lng };
+        if (window.MiUbicacion && window.MiUbicacion.fijar) window.MiUbicacion.fijar(origen.lat, origen.lon);
+        abrirRuta(lat, lng, origen);
+      }
+      function alTecla(ev) { if (ev.key === 'Escape') limpiar(); }
+
+      m.on('click', alClic);
+      document.addEventListener('keydown', alTecla, true);
+      barra.querySelector('button').addEventListener('click', limpiar);
+    }
+
+    function abrirGoogleMaps(lat, lng) {
+      var nLat = parseFloat(lat);
+      var nLng = parseFloat(lng);
+      if (isNaN(nLat) || isNaN(nLng) || nLat === 0 || nLng === 0) {
+        alert('Esta institución no tiene coordenadas geográficas registradas.');
+        return;
+      }
+
+      var ubic = window.MiUbicacion;
+      var pin = ubic && ubic.actual ? ubic.actual() : null;
+      var reciente = pin && pin.t && (Date.now() - pin.t) < 5 * 60 * 1000;
+      if (pin && (pin.manual || pin.precision <= 100 || reciente)) {
+        abrirRuta(nLat, nLng, pin);
+        return;
+      }
+      if (!ubic || !ubic.medir) {
+        elegirPuntoEnMapa(nLat, nLng, null);
+        return;
+      }
+
+      ubic.medir({ tiempo: 8000, objetivo: 30, dibujar: true }).then(function (lectura) {
+        if (lectura && lectura.precision <= 3000) abrirRuta(nLat, nLng, lectura);
+        else elegirPuntoEnMapa(nLat, nLng, lectura);
+      });
+    }
+
+    window.trazarRutaHacia = function (destLat, destLng) {
+      abrirGoogleMaps(destLat, destLng);
+    };
+
+    window.addEventListener('click', function (e) {
+      var el = e.target.closest && e.target.closest('button, a, [onclick]');
+      if (!el) return;
+
+      var onclick = el.getAttribute('onclick') || '';
+      var esBotonRuta = el.classList.contains('btn--como-llegar') || /trazarRutaHacia\s*\(/.test(onclick);
+      if (!esBotonRuta) return;
+
+      var lat = el.dataset.lat || el.dataset.latitud;
+      var lng = el.dataset.lng || el.dataset.longitud;
+      if (lat === undefined || lng === undefined) {
+        var m = onclick.match(/trazarRutaHacia\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)/);
+        if (m) { lat = m[1]; lng = m[2]; }
+      }
+      if (lat === undefined || lng === undefined) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      abrirGoogleMaps(lat, lng);
+    }, true);
+
+    (function () {
+      var confirmOriginal = window.confirm;
+      window.confirm = function (mensaje) {
+        if (/google maps/i.test(String(mensaje || ''))) return true;
+        return confirmOriginal.apply(window, arguments);
+      };
+    })();
+
+    // ================================================================
+    // GENERADOR GLOBAL DE LA TARJETA DE INSTITUCIÓN
+    // ================================================================
+    window.generarHTMLTarjetaInstitucion = function (inst) {
+      var escNombre = String(inst.nombre || '').replace(/'/g, "\\'");
+      var lat = inst.latitud;
+      var lng = inst.longitud;
+
+      return `
+        <div class="card-institucion-popup">
+          <img src="${inst.imagen_url || 'img/colegio-default.jpg'}" alt="${inst.nombre}" class="card-img" />
+          
+          <div class="card-body">
+            <h3 class="card-title">${inst.nombre}</h3>
+            
+            <div class="card-rating-line" style="margin-bottom: 12px; font-size: 13px;">
+              <span style="color: #a3bba8;">★ Sin calificar</span>
+              <span style="color: #69b544; margin: 0 6px;">•</span>
+              <a href="javascript:void(0)" 
+                 onclick="window.abrirModalCalificar('${inst.id}', '${escNombre}')" 
+                 style="color: #29e2b8; font-weight: 700; text-decoration: underline;">
+                 Escribir una opinión
+              </a>
+            </div>
+
+            <div class="card-tags">
+              <span class="tag tag--tipo">${(inst.tipo || 'colegio').toUpperCase()}</span>
+              <span class="tag tag--sector">SECTOR ${(inst.sector || 'publico').toUpperCase()}</span>
+              <span class="tag tag--estrato">ESTRATO ${inst.estrato || 'N/D'}</span>
+            </div>
+
+            <button type="button" 
+                    class="btn btn--como-llegar" 
+                    onclick="window.trazarRutaHacia(${lat}, ${lng}, '${escNombre}')"
+                    style="width:100%; height:40px; margin:14px 0; background:#29e2b8; color:#07130c; font-weight:800; border:none; border-radius:8px; cursor:pointer;">
+              📍 Cómo llegar desde mi ubicación
+            </button>
+
+            <div class="card-stats-grid">
+              <div class="stat-box"><span>Estudiantes</span><strong>${inst.num_estudiantes || 0}</strong></div>
+              <div class="stat-box"><span>Cupos disponibles</span><strong>${inst.cupos_disponibles || 0}</strong></div>
+              <div class="stat-box"><span>Recursos tecnol.</span><strong>${inst.recursos_tecnologicos || 0}</strong></div>
+              <div class="stat-box"><span>Docentes</span><strong>${inst.num_docentes || 0}</strong></div>
+            </div>
+
+            <div class="card-footer-info">
+              <p><strong>Dirección:</strong> ${inst.direccion || 'No especificada'}</p>
+              <p><strong>Teléfono:</strong> ${inst.telefono || 'Sin teléfono registrado'}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    // ================================================================
+    // SUBSISTEMA DE CALIFICACIÓN Y OPINIÓN (CONEXIÓN SUPABASE)
+    // ================================================================
+    (function () {
+      'use strict';
+
+      var instSeleccionadaId = null;
+      var instSeleccionadaNombre = '';
+      var calificacionSeleccionada = 5;
+
+      var modal = document.getElementById('modal-calificacion');
+      var btnCerrar = document.getElementById('btn-cerrar-calificacion');
+      var btnEnviar = document.getElementById('btn-enviar-opinion');
+      var txtOpinion = document.getElementById('texto-opinion');
+      var elNombreInst = document.getElementById('calificacion-nombre-inst');
+      var contenedorEstrellas = document.getElementById('contenedor-estrellas');
+
+      function actualizarEstrellas(valor) {
+        calificacionSeleccionada = valor;
+        if (!contenedorEstrellas) return;
+        var estrellas = contenedorEstrellas.querySelectorAll('span');
+        estrellas.forEach(function (el) {
+          var starVal = Number(el.dataset.star);
+          if (starVal <= valor) {
+            el.classList.add('active');
+            el.style.color = '#f5c324';
+          } else {
+            el.classList.remove('active');
+            el.style.color = '#4b5563';
+          }
+        });
+      }
+
+      window.abrirModalCalificar = function (id, nombre) {
+        instSeleccionadaId = id;
+        instSeleccionadaNombre = nombre || 'Institución Educativa';
+        calificacionSeleccionada = 5;
+
+        if (elNombreInst) elNombreInst.textContent = instSeleccionadaNombre;
+        if (txtOpinion) txtOpinion.value = '';
+
+        actualizarEstrellas(5);
+        mostrarModal();
+      };
+
+      function mostrarModal() {
+        if (!modal) return;
+        document.body.appendChild(modal);
+        modal.style.setProperty('z-index', '2147483647', 'important');
+        modal.classList.add('is-active');
+        try {
+          if (typeof modal.showModal === 'function' && !modal.open) modal.showModal();
+        } catch (err) { /* nada */ }
+        setTimeout(function () { if (txtOpinion) txtOpinion.focus(); }, 50);
+      }
+
+      function cerrarModal() {
+        if (!modal) return;
+        modal.classList.remove('is-active');
+        try {
+          if (typeof modal.close === 'function' && modal.open) modal.close();
+        } catch (err) { /* nada */ }
+      }
+
+      if (modal) modal.addEventListener('close', function () { modal.classList.remove('is-active'); });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal && modal.classList.contains('is-active')) {
+          e.preventDefault();
+          e.stopPropagation();
+          cerrarModal();
+        }
+      }, true);
+      if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) cerrarModal(); });
+
+      if (btnCerrar) btnCerrar.addEventListener('click', cerrarModal);
+
+      if (contenedorEstrellas) {
+        contenedorEstrellas.addEventListener('click', function (e) {
+          var star = e.target.closest('[data-star]');
+          if (star) {
+            actualizarEstrellas(Number(star.dataset.star));
+          }
+        });
+      }
+
+      if (btnEnviar) {
+        btnEnviar.addEventListener('click', async function () {
+          var opinionText = txtOpinion ? txtOpinion.value.trim() : '';
+
+          if (!instSeleccionadaNombre) {
+            alert('No se pudo identificar la institución.');
+            return;
+          }
+
+          btnEnviar.disabled = true;
+          btnEnviar.textContent = 'Enviando...';
+
+          var client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+
+          if (!client) {
+            alert('Error: Conexión a la base de datos no disponible.');
+            btnEnviar.disabled = false;
+            btnEnviar.textContent = 'Enviar calificación y reseña';
+            return;
+          }
+
+          var payload = {
+            institucion_id: instSeleccionadaId ? Number(instSeleccionadaId) : null,
+            institucion_nombre: instSeleccionadaNombre,
+            calificacion: calificacionSeleccionada,
+            opinion: opinionText || 'Sin comentario escrito.'
+          };
+
+          try {
+            var { error } = await client.from('opiniones_instituciones').insert([payload]);
+
+            if (error) {
+              alert('Error al registrar la reseña: ' + error.message);
+            } else {
+              alert('¡Gracias! Tu opinión ha sido enviada correctamente.');
+              cerrarModal();
+            }
+          } catch (err) {
+            alert('Ocurrió un error al procesar el envío.');
+          } finally {
+            btnEnviar.disabled = false;
+            btnEnviar.textContent = 'Enviar calificación y reseña';
+          }
+        });
+      }
+
+      window.abrirFormularioOpinion = function (localId) {
+        var entrada = (typeof institucionesIndex !== 'undefined') ? institucionesIndex[localId] : null;
+        var props = entrada ? entrada.props : null;
+        if (!props) return;
+        window.abrirModalCalificar(props.db_id, props.nombre);
+      };
+
+      document.addEventListener('click', function (e) {
+        var trigger = e.target.closest('[data-abrir-calificar]');
+        if (trigger) {
+          e.preventDefault();
+          var id = trigger.dataset.instId || trigger.dataset.id;
+          var nombre = trigger.dataset.instNombre || trigger.dataset.nombre;
+          window.abrirModalCalificar(id, nombre);
+        }
       });
     })();
   </script>

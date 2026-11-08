@@ -5,191 +5,504 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Administración · Visor Geográfico Sabaneta</title>
 
+  <!-- Tipografías -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Leaflet CSS -->
+  <!-- Leaflet CSS y Estilos del Proyecto -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="css/style.css" />
 
   <style>
+    /* ESTILOS BASE Y TEMA VERDE SIG */
+    body.admin-body {
+      background: var(--bg-app, #07130c) !important;
+      color: var(--text-primary, #eef5ea);
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    .top-navbar__links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .top-navbar__links a[aria-current="page"] {
+      color: #f5c324 !important;
+      font-weight: 700 !important;
+      background: rgba(245, 195, 36, 0.15) !important;
+      border-radius: 6px;
+      padding: 6px 12px;
+    }
+
+    .btn-logout-nav {
+      background: rgba(239, 68, 68, 0.18);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-left: 10px;
+    }
+
+    .btn-logout-nav:hover {
+      background: #dc2626;
+      color: #ffffff;
+      border-color: #dc2626;
+    }
+
+    /* CONTENEDOR PRINCIPAL */
+    .admin-container {
+      max-width: 1400px;
+      margin: 24px auto 60px auto;
+      padding: 0 24px;
+      box-sizing: border-box;
+    }
+
+    .admin-header-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle, #21412e);
+      padding-bottom: 14px;
+    }
+
+    .admin-header-title h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 0;
+    }
+
+    /* MAPA Y PANELES */
     .admin-grid {
       display: grid;
       grid-template-columns: 1fr 360px;
       gap: 20px;
-      margin-top: 20px;
+      margin-top: 24px;
       align-items: start;
     }
+
     @media (max-width: 1024px) {
       .admin-grid { grid-template-columns: 1fr; }
     }
+
     .admin-map-card {
-      background: var(--bg-panel-alt, #12291b);
-      border: 1px solid var(--border-subtle, #21412e);
+      background: #12291b;
+      border: 1px solid #21412e;
       border-radius: 12px;
       padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
+
     #admin-map {
       width: 100%;
       height: 520px;
       border-radius: 8px;
-      border: 1px solid var(--border-subtle, #21412e);
+      border: 1px solid #21412e;
       z-index: 1;
     }
+
     .admin-side { display: flex; flex-direction: column; gap: 16px; }
 
-    /* Fila inferior debajo del mapa para coordenadas */
     .admin-map-bottom-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
     }
+
     @media (max-width: 768px) {
       .admin-map-bottom-row { grid-template-columns: 1fr; }
     }
 
-    /* Lista desplegable del selector de CRS: tema oscuro */
     .admin-panel .select { width: 100%; color-scheme: dark; }
-    .admin-panel .select option {
+    .admin-panel .select option { background: #12291b; color: #eef5ea; }
+
+    /* FILTROS DE TABLA */
+    .admin-filtros {
       background: #12291b;
-      color: #eef5ea;
+      border: 1px solid #21412e;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
     }
-    .admin-panel .select option:disabled { color: #7d9a85; }
+
+    .admin-filtros__cabecera {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .admin-filtros__titulo {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0;
+    }
+
+    .admin-filtros__cabecera-der {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .admin-filtros__sync {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      color: #a3bba8;
+      cursor: pointer;
+    }
+
+    .admin-filtros__sync input { accent-color: #69b544; }
+
+    .admin-filtros__contador {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #29e2b8;
+    }
+
+    .admin-filtros__grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    @media (max-width: 900px) {
+      .admin-filtros__grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .admin-filtros__campo {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .admin-filtros__campo span {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #a3bba8;
+    }
+
+    .admin-filtros__input, .admin-filtros__select {
+      height: 38px;
+      padding: 0 10px;
+      background: #07130c;
+      border: 1px solid #21412e;
+      border-radius: 6px;
+      color: #ffffff;
+      font-size: 13px;
+    }
+
+    .admin-filtros__input:focus, .admin-filtros__select:focus {
+      outline: none;
+      border-color: #69b544;
+    }
+
+    .admin-filtros__limpiar {
+      height: 38px;
+      padding: 0 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #21412e;
+      border-radius: 6px;
+      color: #a3bba8;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .admin-filtros__limpiar:hover:not(:disabled) {
+      color: #ffffff;
+      border-color: #69b544;
+    }
+
+    .admin-filtros__limpiar:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* BOTÓN RESEÑAS EN TABLA */
+    .admin-table__btn--opinion {
+      background: rgba(41, 226, 184, 0.12) !important;
+      color: #29e2b8 !important;
+      border-color: rgba(41, 226, 184, 0.3) !important;
+    }
+    .admin-table__btn--opinion:hover {
+      background: #29e2b8 !important;
+      color: #07130c !important;
+    }
+
+    /* MINI-MAPA DE UBICACIÓN EN MODAL */
+    .ubicacion-picker {
+      margin-top: 10px;
+      background: #07130c;
+      border: 1px solid #21412e;
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .ubicacion-picker__barra {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .ubicacion-picker__titulo { font-size: 12px; font-weight: 700; color: #a3bba8; text-transform: uppercase; }
+
+    .ubicacion-picker__buscar {
+      background: #69b544;
+      color: #07130c;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .ubicacion-picker__buscar:hover { background: #7bc755; }
+
+    #ubicacion-mapa {
+      width: 100%;
+      height: 230px;
+      border-radius: 6px;
+      border: 1px solid #21412e;
+    }
+
+    .ubicacion-picker__ayuda { font-size: 11.5px; color: #7d9a85; margin: 6px 0 0 0; }
+
+    .ubicacion-pin {
+      width: 16px;
+      height: 16px;
+      background: #f5c324;
+      border: 2px solid #07130c;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(245, 195, 36, 0.8);
+    }
+
+    /* MODAL DE RESEÑAS POR INSTITUCIÓN */
+    .modal-opiniones {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+      z-index: 100010;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-opiniones.is-active { display: flex !important; }
+
+    .modal-opiniones__panel {
+      background: #12291b;
+      border: 1px solid #21412e;
+      border-radius: 14px;
+      padding: 24px;
+      width: 90%;
+      max-width: 680px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    /* AMPLIACIÓN FULLSCREEN DE MAPA */
+    .mapa-ampliado {
+      position: fixed !important;
+      top: 20px !important; left: 20px !important; right: 20px !important; bottom: 20px !important;
+      width: auto !important; height: auto !important;
+      z-index: 99999 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 0 0 9999px rgba(7, 19, 12, 0.85) !important;
+    }
+
+    .mapa-ampliar__btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 10px;
+      background: #12291b !important; color: #ffffff !important;
+      border: 1px solid #21412e !important; border-radius: 6px !important;
+      font-size: 12px; font-weight: 600; text-decoration: none;
+    }
+
+    /* ANIMACIÓN PULSO AL HACER CLIC EN VER */
+    @keyframes admin-pulso-anim {
+      0% { transform: scale(0.4); opacity: 1; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+    .admin-pulso { animation: admin-pulso-anim 1.5s ease-out infinite; }
+
+    /* DIÁLOGO MODAL DE CONFIRMACIÓN DE CERRAR SESIÓN */
+    .confirmar-salida {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
+      z-index: 100005; display: flex; align-items: center; justify-content: center;
+    }
+    .confirmar-salida__caja {
+      background: #12291b; border: 1px solid #21412e; border-radius: 14px;
+      padding: 24px; max-width: 400px; width: 90%; text-align: center;
+    }
+    .confirmar-salida__icono {
+      width: 44px; height: 44px; background: rgba(239, 68, 68, 0.15); color: #f87171;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px auto; font-size: 20px;
+    }
+    .confirmar-salida__titulo { font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 8px 0; }
+    .confirmar-salida__texto { font-size: 13.5px; color: #a3bba8; margin: 0 0 20px 0; line-height: 1.5; }
+    .confirmar-salida__acciones { display: flex; gap: 10px; }
+    .confirmar-salida__btn { flex: 1; height: 38px; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; }
+    .confirmar-salida__btn--cancelar { background: rgba(255, 255, 255, 0.08); color: #fff; }
+    .confirmar-salida__btn--confirmar { background: #dc2626; color: #fff; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/supabaseClient.js"></script>
-
 </head>
 <body class="admin-body">
 
-  <nav class="admin-nav">
-    <a href="index.html" class="admin-nav__link">← Volver al mapa</a>
-    <span class="admin-nav__title">Panel de administración</span>
-    <button id="btn-cerrar-sesion" class="admin-nav__logout" hidden>Cerrar sesión</button>
+  <!-- NAVBAR PRINCIPAL -->
+  <nav class="top-navbar">
+    <a class="top-navbar__brand" href="index.html#app"><span>Geovisor Sabaneta</span></a>
+    <div class="top-navbar__links">
+      <a href="index.html#app">Inicio</a>
+      <a href="index.html#instituciones">Instituciones</a>
+      <a href="comparador.html">Comparador & Becas</a>
+      <a href="index.html#faq">Preguntas frecuentes</a>
+      <a href="administracion.html" aria-current="page">Administración</a>
+      <button id="btn-cerrar-sesion" class="btn-logout-nav" hidden>Cerrar sesión</button>
+    </div>
   </nav>
 
-  <!-- PANTALLA DE LOGIN -->
-  <div id="login-screen" class="admin-login">
-    <form id="form-login" class="admin-login__card">
-      <h1 class="admin-login__title">Acceso administrativo</h1>
-      <p class="admin-login__hint">Ingresa con tu cuenta de administrador para gestionar las instituciones y las capas del mapa.</p>
+  <div class="admin-container">
 
-      <label class="admin-field">
-        <span>Correo</span>
-        <input type="email" id="login-email" required autocomplete="username" />
-      </label>
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="admin-login">
+      <form id="form-login" class="admin-login__card">
+        <h1 class="admin-login__title">Acceso administrativo</h1>
+        <p class="admin-login__hint">Ingresa con tu cuenta de administrador para gestionar las instituciones y las capas del mapa.</p>
 
-      <label class="admin-field">
-        <span>Contraseña</span>
-        <input type="password" id="login-password" required autocomplete="current-password" />
-      </label>
+        <label class="admin-field">
+          <span>Correo</span>
+          <input type="email" id="login-email" required autocomplete="username" placeholder="admin@sabaneta.gov.co" />
+        </label>
 
-      <p id="login-error" class="admin-login__error" hidden></p>
+        <label class="admin-field">
+          <span>Contraseña</span>
+          <input type="password" id="login-password" required autocomplete="current-password" />
+        </label>
 
-      <button type="submit" class="btn btn--accent">Ingresar</button>
-    </form>
-  </div>
+        <p id="login-error" class="admin-login__error" hidden></p>
 
-  <!-- PANEL ADMINISTRATIVO (solo visible tras login) -->
-  <div id="admin-screen" class="admin-panel" hidden>
-
-    <!-- GESTIÓN DE INSTITUCIONES -->
-    <div class="admin-panel__toolbar">
-      <h2 class="admin-panel__heading">Instituciones educativas</h2>
-      <button id="btn-nueva-institucion" class="btn btn--accent admin-panel__btn-nueva">+ Nueva institución</button>
+        <button type="submit" class="btn btn--accent">Ingresar</button>
+      </form>
     </div>
 
-    <p id="admin-mensaje" class="admin-panel__mensaje" hidden></p>
+    <!-- PANEL ADMINISTRATIVO PRINCIPAL -->
+    <div id="admin-screen" class="admin-panel" hidden>
 
-    <div class="admin-table-wrap">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Tipo</th>
-            <th>Sector</th>
-            <th>Dirección</th>
-            <th>Estrato</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="admin-tabla-body">
-          <tr><td colspan="6" class="admin-table__vacio">Cargando…</td></tr>
-        </tbody>
-      </table>
-    </div>
+      <div class="admin-header-title">
+        <h1>Panel de Administración SIG</h1>
+        <button id="btn-nueva-institucion" class="btn btn--accent">+ Nueva institución</button>
+      </div>
 
-    <!-- MAPA DE ADMINISTRACIÓN: MÁQUINA PRINCIPAL DE MAPA Y HERRAMIENTAS -->
-    <div class="admin-grid">
+      <p id="admin-mensaje" class="admin-panel__mensaje" hidden></p>
 
-      <div class="admin-map-card">
-        <h2 class="panel__title" style="margin: 0; font-size: 16px;">Vista previa del mapa (igual que el visor público)</h2>
-        <div id="admin-map"></div>
+      <!-- TABLA DE DATOS -->
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Sector</th>
+              <th>Dirección</th>
+              <th>Estrato</th>
+              <th style="text-align:center;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="admin-tabla-body">
+            <tr><td colspan="6" class="admin-table__vacio">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- FILA DEBAJO DEL MAPA: SISTEMA DE COORDENADAS Y LECTURA EN VIVO (UNO AL LADO DEL OTRO) -->
-        <div class="admin-map-bottom-row">
+      <!-- MAPA DE ADMINISTRACIÓN Y HERRAMIENTAS ESPACIALES -->
+      <div class="admin-grid">
+        <div class="admin-map-card">
+          <h2 class="panel__title" style="margin: 0; font-size: 16px;">Vista previa del mapa (igual que el visor público)</h2>
+          <div id="admin-map"></div>
+
+          <div class="admin-map-bottom-row">
+            <section class="panel">
+              <h2 class="panel__title">Sistema de coordenadas</h2>
+              <select id="display-crs-select" class="select"></select>
+            </section>
+
+            <section class="panel panel--readout">
+              <h2 class="panel__title">Lectura de coordenadas en vivo</h2>
+              <div class="readout" id="readout-system">EPSG:4326 · WGS84</div>
+              <div class="readout-grid">
+                <div class="readout-field">
+                  <span class="readout-field__label" id="readout-label-1">LAT</span>
+                  <span class="readout-field__value" id="readout-value-1">—</span>
+                </div>
+                <div class="readout-field">
+                  <span class="readout-field__label" id="readout-label-2">LON</span>
+                  <span class="readout-field__value" id="readout-value-2">—</span>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="admin-side">
           <section class="panel">
-            <h2 class="panel__title">Sistema de coordenadas</h2>
-            <select id="display-crs-select" class="select"></select>
+            <h2 class="panel__title">Capas del mapa</h2>
+            <ul class="category-list" id="category-list"></ul>
           </section>
 
-          <section class="panel panel--readout">
-            <h2 class="panel__title">Lectura de coordenadas en vivo</h2>
-            <div class="readout" id="readout-system">EPSG:4326 · WGS84</div>
-            <div class="readout-grid">
-              <div class="readout-field">
-                <span class="readout-field__label" id="readout-label-1">LAT</span>
-                <span class="readout-field__value" id="readout-value-1">—</span>
-              </div>
-              <div class="readout-field">
-                <span class="readout-field__label" id="readout-label-2">LON</span>
-                <span class="readout-field__value" id="readout-value-2">—</span>
-              </div>
-            </div>
+          <section class="panel">
+            <h2 class="panel__title">Importar capa</h2>
+            <p class="panel__hint">GeoJSON (.geojson/.json) o Shapefile en .zip (.shp+.dbf+.prj)</p>
+            <label class="filedrop" for="file-input">
+              <span id="filedrop-label">Seleccionar archivo…</span>
+            </label>
+            <input type="file" id="file-input" accept=".geojson,.json,.zip" hidden />
+          </section>
+
+          <section class="panel" id="crs-detect-panel" hidden>
+            <h2 class="panel__title">Sistema de coordenadas detectado</h2>
+            <p class="panel__hint" id="crs-detect-hint">—</p>
+            <select id="crs-detect-select" class="select"></select>
+            <button id="crs-detect-confirm" class="btn btn--accent" style="margin-top: 8px;">Confirmar y añadir capa</button>
+          </section>
+
+          <section class="panel">
+            <h2 class="panel__title">Capas importadas</h2>
+            <ul id="layers-list" class="layers-list">
+              <li class="layers-list__empty">Aún no hay capas cargadas.</li>
+            </ul>
           </section>
         </div>
       </div>
 
-      <div class="admin-side">
-
-        <section class="panel">
-          <h2 class="panel__title">Capas del mapa</h2>
-          <ul class="category-list" id="category-list"></ul>
-        </section>
-
-        <section class="panel">
-          <h2 class="panel__title">Importar capa</h2>
-          <p class="panel__hint">GeoJSON (.geojson/.json) o Shapefile en .zip (.shp+.dbf+.prj)</p>
-          <label class="filedrop" for="file-input">
-            <span id="filedrop-label">Seleccionar archivo…</span>
-          </label>
-          <input type="file" id="file-input" accept=".geojson,.json,.zip" hidden />
-        </section>
-
-        <section class="panel" id="crs-detect-panel" hidden>
-          <h2 class="panel__title">Sistema de coordenadas detectado</h2>
-          <p class="panel__hint" id="crs-detect-hint">—</p>
-          <select id="crs-detect-select" class="select"></select>
-          <button id="crs-detect-confirm" class="btn btn--accent" style="margin-top: 8px;">Confirmar y añadir capa</button>
-        </section>
-
-        <section class="panel">
-          <h2 class="panel__title">Capas importadas</h2>
-          <ul id="layers-list" class="layers-list">
-            <li class="layers-list__empty">Aún no hay capas cargadas.</li>
-          </ul>
-        </section>
-
-      </div>
     </div>
-
   </div>
 
-  <!-- MODAL: CREAR / EDITAR INSTITUCIÓN -->
+  <!-- MODAL DE CREACIÓN / EDICIÓN DE INSTITUCIÓN -->
   <div id="admin-modal" class="institucion-modal">
     <div class="institucion-modal__backdrop" data-cerrar-admin-modal></div>
     <div class="institucion-modal__panel admin-modal__panel" role="dialog" aria-modal="true">
@@ -230,7 +543,7 @@
           <legend>Ubicación</legend>
           <label class="admin-field admin-field--ancho">
             <span>Dirección</span>
-            <input type="text" id="f-direccion" />
+            <input type="text" id="f-direccion" placeholder="Haz clic en el mapa para autocompletar..." />
           </label>
           <label class="admin-field">
             <span>Longitud</span>
@@ -296,1505 +609,847 @@
     </div>
   </div>
 
-  <!-- LIBRERÍAS -->
+  <!-- MODAL INDEPENDIENTE DE RESEÑAS Y OPINIONES POR INSTITUCIÓN -->
+  <div id="modal-opiniones-inst" class="modal-opiniones">
+    <div class="modal-opiniones__panel" role="dialog" aria-modal="true">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #21412e; padding-bottom:12px;">
+        <h3 id="modal-opiniones-titulo" style="margin:0; color:#fff; font-size:17px; font-weight:700;">Reseñas de la institución</h3>
+        <button type="button" id="btn-cerrar-modal-opiniones" style="background:none; border:none; color:#a3bba8; font-size:24px; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="informe-table" style="width:100%;">
+          <thead>
+            <tr>
+              <th style="text-align:center;">Calificación</th>
+              <th>Comentario / Opinión</th>
+              <th>Fecha</th>
+              <th style="text-align:center;">Acción</th>
+            </tr>
+          </thead>
+          <tbody id="modal-opiniones-tabla-body">
+            <tr><td colspan="4" style="text-align:center; padding:16px; color:#a3bba8;">Cargando opiniones...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIBRERÍAS EXTERNAS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/shpjs/6.2.0/shp.min.js"></script>
 
-  <!-- SCRIPTS DEL PROYECTO -->
+  <!-- SCRIPTS BASE DEL PROYECTO -->
   <script src="js/crs.js"></script>
   <script src="js/layers.js"></script>
   <script src="js/instituciones.js"></script>
   <script src="js/vias.js"></script>
   <script src="js/viviendas.js"></script>
 
+  <!-- LÓGICA PRINCIPAL DEL PANEL DE ADMINISTRACIÓN -->
   <script>
-  const TABLA = 'instituciones_educativas';
+    const TABLA = 'instituciones_educativas';
 
-  function esc(valor) {
-    return String(valor ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  const loginScreen = document.getElementById('login-screen');
-  const adminScreen = document.getElementById('admin-screen');
-  const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
-
-  // ----------------------------------------------------------------
-  // MAPA DE ADMINISTRACIÓN Y GRUPOS DE CAPAS
-  // ----------------------------------------------------------------
-  const SABANETA_CENTER = [6.1515, -75.6165];
-  const SABANETA_ZOOM = 14;
-  let currentDisplayEpsg = 'EPSG:4326';
-  let adminMap = null;
-
-  const ATTR_OSM = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>';
-
-  async function cargarCapasDelVisor(map) {
-    // Definimos los grupos de capas que requieren las funciones inicializadoras
-    const grupoInstituciones = L.layerGroup().addTo(map);
-    window.__grupoInstituciones = grupoInstituciones;   // lo usa el refresco en tiempo real
-    const grupoVias = L.layerGroup();
-    const grupoViviendas = L.layerGroup();
-
-    if (typeof initInstitucionesLayer === 'function') {
-      await initInstitucionesLayer(map, grupoInstituciones);
-    }
-    if (typeof initViasLayer === 'function') {
-      await initViasLayer(map, grupoVias);
-    }
-    if (typeof initViviendasPriorizadas === 'function') {
-      await initViviendasPriorizadas(map, grupoViviendas);
+    function esc(valor) {
+      return String(valor ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
-    cargarLimiteMunicipal(map);
-  }
+    function formatCoordValue(val, kind) {
+      if (val === null || val === undefined || isNaN(val)) return '—';
+      return kind === 'geografico' ? Number(val).toFixed(6) : Number(val).toFixed(2);
+    }
 
-function cargarLimiteMunicipal(map) {
-  const grupoLimiteMunicipal = L.layerGroup();
+    const loginScreen = document.getElementById('login-screen');
+    const adminScreen = document.getElementById('admin-screen');
+    const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
 
-  fetch('data/viviendas_priorizadas_colegios.geojson')
-    .then((r) => { if (!r.ok) throw new Error('archivo no encontrado'); return r.json(); })
-    .then((geojson) => {
-      // Filtrar el GeoJSON para conservar SOLO polígonos (el área/límite)
-      const soloPoligonos = {
-        type: 'FeatureCollection',
-        features: (geojson.features || []).filter((f) => 
-          f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
-        )
-      };
+    const SABANETA_CENTER = [6.1515, -75.6165];
+    const SABANETA_ZOOM = 14;
+    let currentDisplayEpsg = 'EPSG:4326';
+    let adminMap = null;
 
-      const limite = L.geoJSON(soloPoligonos, {
-        style: { 
-          color: '#8fc374', 
-          weight: 3, 
-          opacity: 1, 
-          fillColor: '#8fc374', 
-          fillOpacity: 0.08, 
-          dashArray: '7, 5' 
-        },
-        onEachFeature: (feature, layer) => {
-          const nombre = feature.properties?.name || feature.properties?.NOMBRE || 'Sabaneta';
-          layer.bindPopup(`<strong>Límite municipal</strong><br>${esc(nombre)}`);
-        }
-      });
+    const ATTR_OSM = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>';
 
-      limite.addTo(grupoLimiteMunicipal);
+    async function cargarCapasDelVisor(map) {
+      const grupoInstituciones = L.layerGroup().addTo(map);
+      window.__grupoInstituciones = grupoInstituciones;
+      const grupoVias = L.layerGroup();
+      const grupoViviendas = L.layerGroup();
 
-      // Buscar el checkbox del límite municipal en el DOM
-      const labels = Array.from(document.querySelectorAll('label, li, span'));
-      const targetLabel = labels.find(el => el.textContent.includes('Límite municipal'));
-      const checkbox = targetLabel 
-        ? (targetLabel.querySelector('input[type="checkbox"]') || targetLabel.closest('li')?.querySelector('input[type="checkbox"]'))
-        : null;
-
-      // Sincronizar estado inicial
-      if (checkbox && checkbox.checked) {
-        grupoLimiteMunicipal.addTo(map);
+      if (typeof initInstitucionesLayer === 'function') {
+        await initInstitucionesLayer(map, grupoInstituciones);
+      }
+      if (typeof initViasLayer === 'function') {
+        await initViasLayer(map, grupoVias);
+      }
+      if (typeof initViviendasPriorizadas === 'function') {
+        await initViviendasPriorizadas(map, grupoViviendas);
       }
 
-      // Evento para mostrar / ocultar al pulsar el checkbox
-      if (checkbox) {
-        checkbox.addEventListener('change', (e) => {
-          if (e.target.checked) {
-            map.addLayer(grupoLimiteMunicipal);
-          } else {
-            map.removeLayer(grupoLimiteMunicipal);
+      cargarLimiteMunicipal(map);
+    }
+
+    function cargarLimiteMunicipal(map) {
+      const grupoLimiteMunicipal = L.layerGroup();
+
+      fetch('data/viviendas_priorizadas_colegios.geojson')
+        .then((r) => { if (!r.ok) throw new Error('archivo no encontrado'); return r.json(); })
+        .then((geojson) => {
+          const soloPoligonos = {
+            type: 'FeatureCollection',
+            features: (geojson.features || []).filter((f) => 
+              f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
+            )
+          };
+
+          const limite = L.geoJSON(soloPoligonos, {
+            style: { 
+              color: '#8fc374', 
+              weight: 3, 
+              opacity: 1, 
+              fillColor: '#8fc374', 
+              fillOpacity: 0.08, 
+              dashArray: '7, 5' 
+            },
+            onEachFeature: (feature, layer) => {
+              const nombre = feature.properties?.name || feature.properties?.NOMBRE || 'Sabaneta';
+              layer.bindPopup(`<strong>Límite municipal</strong><br>${esc(nombre)}`);
+            }
+          });
+
+          limite.addTo(grupoLimiteMunicipal);
+
+          const labels = Array.from(document.querySelectorAll('label, li, span'));
+          const targetLabel = labels.find(el => el.textContent.includes('Límite municipal'));
+          const checkbox = targetLabel 
+            ? (targetLabel.querySelector('input[type="checkbox"]') || targetLabel.closest('li')?.querySelector('input[type="checkbox"]'))
+            : null;
+
+          if (checkbox && checkbox.checked) {
+            grupoLimiteMunicipal.addTo(map);
           }
+
+          if (checkbox) {
+            checkbox.addEventListener('change', (e) => {
+              if (e.target.checked) {
+                map.addLayer(grupoLimiteMunicipal);
+              } else {
+                map.removeLayer(grupoLimiteMunicipal);
+              }
+            });
+          }
+        })
+        .catch(() => {});
+    }
+
+    function inicializarMapaAdmin() {
+      if (adminMap) {
+        adminMap.invalidateSize();
+        return;
+      }
+
+      adminMap = L.map('admin-map', { zoomControl: false }).setView(SABANETA_CENTER, SABANETA_ZOOM);
+      L.control.zoom({ position: 'bottomright' }).addTo(adminMap);
+      L.control.scale({ position: 'bottomleft', imperial: false, metric: true }).addTo(adminMap);
+
+      const osmEstandar = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: ATTR_OSM });
+      const osmClaro = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, attribution: ATTR_OSM + ' &copy; CARTO' });
+      const osmOscuro = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, attribution: ATTR_OSM + ' &copy; CARTO' });
+
+      osmEstandar.addTo(adminMap);
+
+      L.control.layers({
+        'OpenStreetMap estándar': osmEstandar,
+        'OpenStreetMap claro': osmClaro,
+        'OpenStreetMap oscuro': osmOscuro
+      }, null, { collapsed: true, position: 'topright' }).addTo(adminMap);
+
+      cargarCapasDelVisor(adminMap);
+      configurarCoordenadas(adminMap);
+      configurarImportacion(adminMap);
+
+      setTimeout(() => adminMap.invalidateSize(), 200);
+    }
+
+    function configurarCoordenadas(map) {
+      const displaySelect = document.getElementById('display-crs-select');
+
+      function refreshDisplaySelect() {
+        if (typeof populateCrsSelect === 'function') {
+          populateCrsSelect(displaySelect, currentDisplayEpsg);
+        }
+      }
+
+      function updateReadoutHeader() {
+        if (typeof getCrsInfo !== 'function') return;
+        const info = getCrsInfo(currentDisplayEpsg);
+        if (!info) return;
+        document.getElementById('readout-system').textContent = `${currentDisplayEpsg} · ${info.label}`;
+        const geografico = info.kind === 'geografico';
+        document.getElementById('readout-label-1').textContent = geografico ? 'LAT' : 'NORTE (Y)';
+        document.getElementById('readout-label-2').textContent = geografico ? 'LON' : 'ESTE (X)';
+      }
+
+      refreshDisplaySelect();
+      updateReadoutHeader();
+
+      if (displaySelect) {
+        displaySelect.addEventListener('change', (event) => {
+          currentDisplayEpsg = event.target.value;
+          refreshDisplaySelect();
+          updateReadoutHeader();
         });
       }
-    })
-    .catch(() => {});
-}
 
-  function inicializarMapaAdmin() {
-    if (adminMap) {
-      adminMap.invalidateSize();
-      return;
-    }
+      const value1 = document.getElementById('readout-value-1');
+      const value2 = document.getElementById('readout-value-2');
 
-    adminMap = L.map('admin-map', { zoomControl: false }).setView(SABANETA_CENTER, SABANETA_ZOOM);
-    L.control.zoom({ position: 'bottomright' }).addTo(adminMap);
-    L.control.scale({ position: 'bottomleft', imperial: false, metric: true }).addTo(adminMap);
+      map.on('mousemove', (event) => {
+        if (typeof getCrsInfo !== 'function' || typeof convertFromWGS84 !== 'function') return;
+        const { lat, lng } = event.latlng;
+        const info = getCrsInfo(currentDisplayEpsg);
+        if (!info) return;
+        const { x, y } = convertFromWGS84(lat, lng, currentDisplayEpsg);
+        if (value1) value1.textContent = formatCoordValue(y, info.kind);
+        if (value2) value2.textContent = formatCoordValue(x, info.kind);
+      });
 
-    const osmEstandar = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: ATTR_OSM });
-    const osmClaro = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, attribution: ATTR_OSM + ' &copy; CARTO' });
-    const osmOscuro = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, attribution: ATTR_OSM + ' &copy; CARTO' });
-    const osmTopografico = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'Map data: ' + ATTR_OSM + ', SRTM | Map style: &copy; OpenTopoMap' });
-
-    osmEstandar.addTo(adminMap);
-
-    L.control.layers({
-      'OpenStreetMap estándar': osmEstandar,
-      'OpenStreetMap claro': osmClaro,
-      'OpenStreetMap oscuro': osmOscuro,
-      'OpenStreetMap topográfico': osmTopografico
-    }, null, { collapsed: true, position: 'topright' }).addTo(adminMap);
-
-    cargarCapasDelVisor(adminMap);
-
-    configurarCoordenadas(adminMap);
-    configurarImportacion(adminMap);
-
-    setTimeout(() => adminMap.invalidateSize(), 200);
-  }
-
-  // ----------------------------------------------------------------
-  // Selector de CRS y lectura de coordenadas en vivo
-  // ----------------------------------------------------------------
-  function configurarCoordenadas(map) {
-    const displaySelect = document.getElementById('display-crs-select');
-
-    function refreshDisplaySelect() {
-      if (typeof populateCrsSelect === 'function') {
-        populateCrsSelect(displaySelect, currentDisplayEpsg);
-      }
-    }
-
-    function updateReadoutHeader() {
-      if (typeof getCrsInfo !== 'function') return;
-      const info = getCrsInfo(currentDisplayEpsg);
-      if (!info) return;
-      document.getElementById('readout-system').textContent = `${currentDisplayEpsg} · ${info.label}`;
-      const geografico = info.kind === 'geografico';
-      document.getElementById('readout-label-1').textContent = geografico ? 'LAT' : 'NORTE (Y)';
-      document.getElementById('readout-label-2').textContent = geografico ? 'LON' : 'ESTE (X)';
-    }
-
-    refreshDisplaySelect();
-    updateReadoutHeader();
-
-    if (displaySelect) {
-      displaySelect.addEventListener('change', (event) => {
-        currentDisplayEpsg = event.target.value;
-        refreshDisplaySelect();
-        updateReadoutHeader();
+      map.on('mouseout', () => {
+        if (value1) value1.textContent = '—';
+        if (value2) value2.textContent = '—';
       });
     }
 
-    const value1 = document.getElementById('readout-value-1');
-    const value2 = document.getElementById('readout-value-2');
-
-    map.on('mousemove', (event) => {
-      if (typeof getCrsInfo !== 'function' || typeof convertFromWGS84 !== 'function') return;
-      const { lat, lng } = event.latlng;
-      const info = getCrsInfo(currentDisplayEpsg);
-      if (!info) return;
-      const { x, y } = convertFromWGS84(lat, lng, currentDisplayEpsg);
-      if (value1) value1.textContent = formatCoordValue(y, info.kind);
-      if (value2) value2.textContent = formatCoordValue(x, info.kind);
-    });
-
-    map.on('mouseout', () => {
-      if (value1) value1.textContent = '—';
-      if (value2) value2.textContent = '—';
-    });
-  }
-
-  // ----------------------------------------------------------------
-  // Importación de capas
-  // ----------------------------------------------------------------
-  function configurarImportacion(map) {
-    if (typeof window.LayerManager !== 'undefined' && typeof window.LayerManager.init === 'function') {
-      window.LayerManager.init(map);
-    }
-  }
-
-  // ----------------------------------------------------------------
-  // Sesión / login
-  // ----------------------------------------------------------------
-  async function mostrarSegunSesion() {
-    if (!supabaseClient) {
-      document.getElementById('login-error').hidden = false;
-      document.getElementById('login-error').textContent = 'Supabase no está configurado (ver js/supabaseClient.js).';
-      return;
+    function configurarImportacion(map) {
+      if (typeof window.LayerManager !== 'undefined' && typeof window.LayerManager.init === 'function') {
+        window.LayerManager.init(map);
+      }
     }
 
-    const { data: { session } } = await supabaseClient.auth.getSession();
-
-    if (session) {
-      loginScreen.hidden = true;
-      adminScreen.hidden = false;
-      btnCerrarSesion.hidden = false;
-      cargarInstituciones();
-      setTimeout(inicializarMapaAdmin, 100);
-    } else {
-      loginScreen.hidden = false;
-      adminScreen.hidden = true;
-      btnCerrarSesion.hidden = true;
-    }
-  }
-
-  document.getElementById('form-login').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-    const errorEl = document.getElementById('login-error');
-    errorEl.hidden = true;
-
-    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      errorEl.textContent = 'Correo o contraseña incorrectos.';
-      errorEl.hidden = false;
-      return;
-    }
-
-    await mostrarSegunSesion();
-  });
-
-  btnCerrarSesion.addEventListener('click', async () => {
-    await supabaseClient.auth.signOut();
-    await mostrarSegunSesion();
-  });
-
-  // ----------------------------------------------------------------
-  // Cargar y dibujar la tabla
-  // ----------------------------------------------------------------
-  async function cargarInstituciones() {
-    const tbody = document.getElementById('admin-tabla-body');
-    tbody.innerHTML = '<tr><td colspan="6" class="admin-table__vacio">Cargando…</td></tr>';
-
-    const { data, error } = await supabaseClient.from(TABLA).select('*').order('nombre');
-
-    if (error) {
-      tbody.innerHTML = `<tr><td colspan="6" class="admin-table__vacio">Error al cargar: ${esc(error.message)}</td></tr>`;
-      return;
-    }
-
-    if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="admin-table__vacio">No hay instituciones registradas.</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = data.map((row) => `
-      <tr>
-        <td>${esc(row.nombre)}</td>
-        <td>${esc(row.tipo)}</td>
-        <td>${esc(row.sector)}</td>
-        <td>${esc(row.direccion)}</td>
-        <td>${esc(row.estrato ?? 'N/D')}</td>
-        <td class="admin-table__acciones">
-          <button class="admin-table__btn admin-table__btn--ver" data-ver="${esc(row.id)}" title="Ver en el mapa" aria-label="Ver ${esc(row.nombre)} en el mapa"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></button>
-          <button class="admin-table__btn" data-editar="${esc(row.id)}">Editar</button>
-          <button class="admin-table__btn admin-table__btn--danger" data-borrar="${esc(row.id)}" data-nombre="${esc(row.nombre)}">Borrar</button>
-        </td>
-      </tr>
-    `).join('');
-
-    window.__institucionesCache = data;
-  }
-
-  document.getElementById('admin-tabla-body').addEventListener('click', (e) => {
-    const botonVer = e.target.closest('[data-ver]');
-    if (botonVer) {
-      if (window.verInstitucionEnMapa) window.verInstitucionEnMapa(botonVer.dataset.ver);
-      return;
-    }
-
-    const idEditar = e.target.dataset.editar;
-    const idBorrar = e.target.dataset.borrar;
-
-    if (idEditar) {
-      const row = (window.__institucionesCache || []).find((r) => String(r.id) === idEditar);
-      if (row) abrirModal('editar', row);
-    }
-
-    if (idBorrar) {
-      borrarInstitucion(idBorrar, e.target.dataset.nombre);
-    }
-  });
-
-  // ----------------------------------------------------------------
-  // Modal crear / editar
-  // ----------------------------------------------------------------
-  const modal = document.getElementById('admin-modal');
-  const form = document.getElementById('form-institucion');
-
-  function abrirModal(modo, row = null) {
-    document.getElementById('form-error').hidden = true;
-    document.getElementById('admin-modal-titulo').textContent =
-      modo === 'editar' ? 'Editar institución' : 'Nueva institución';
-
-    document.getElementById('f-id').value = row?.id ?? '';
-    document.getElementById('f-nombre').value = row?.nombre ?? '';
-    document.getElementById('f-tipo').value = row?.tipo ?? 'colegio';
-    document.getElementById('f-sector').value = row?.sector ?? 'publico';
-    document.getElementById('f-estrato').value = row?.estrato ?? '';
-    document.getElementById('f-direccion').value = row?.direccion ?? '';
-    document.getElementById('f-longitud').value = row?.longitud ?? '';
-    document.getElementById('f-latitud').value = row?.latitud ?? '';
-    document.getElementById('f-telefono').value = row?.telefono ?? '';
-    document.getElementById('f-sitio-web').value = row?.sitio_web ?? '';
-    document.getElementById('f-horario').value = row?.horario ?? '';
-    document.getElementById('f-imagen-url').value = row?.imagen_url ?? '';
-    document.getElementById('f-descripcion').value = row?.descripcion ?? '';
-    document.getElementById('f-num-estudiantes').value = row?.num_estudiantes ?? '';
-    document.getElementById('f-cupos-disponibles').value = row?.cupos_disponibles ?? '';
-    document.getElementById('f-recursos-tecnologicos').value = row?.recursos_tecnologicos ?? '';
-    document.getElementById('f-num-docentes').value = row?.num_docentes ?? '';
-
-    modal.classList.add('institucion-modal--open');
-  }
-
-  function cerrarModal() {
-    modal.classList.remove('institucion-modal--open');
-  }
-
-  document.getElementById('btn-nueva-institucion').addEventListener('click', () => abrirModal('crear'));
-
-  modal.addEventListener('click', (e) => {
-    if (e.target.dataset.cerrarAdminModal !== undefined) cerrarModal();
-  });
-
-  function numOrNull(valor) {
-    return valor === '' ? null : Number(valor);
-  }
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const id = document.getElementById('f-id').value;
-    const errorEl = document.getElementById('form-error');
-    errorEl.hidden = true;
-
-    const payload = {
-      nombre: document.getElementById('f-nombre').value.trim(),
-      tipo: document.getElementById('f-tipo').value,
-      sector: document.getElementById('f-sector').value,
-      estrato: numOrNull(document.getElementById('f-estrato').value),
-      direccion: document.getElementById('f-direccion').value.trim() || null,
-      longitud: numOrNull(document.getElementById('f-longitud').value),
-      latitud: numOrNull(document.getElementById('f-latitud').value),
-      telefono: document.getElementById('f-telefono').value.trim() || null,
-      sitio_web: document.getElementById('f-sitio-web').value.trim() || null,
-      horario: document.getElementById('f-horario').value.trim() || null,
-      imagen_url: document.getElementById('f-imagen-url').value.trim() || null,
-      descripcion: document.getElementById('f-descripcion').value.trim() || null,
-      num_estudiantes: numOrNull(document.getElementById('f-num-estudiantes').value),
-      cupos_disponibles: numOrNull(document.getElementById('f-cupos-disponibles').value),
-      recursos_tecnologicos: numOrNull(document.getElementById('f-recursos-tecnologicos').value),
-      num_docentes: numOrNull(document.getElementById('f-num-docentes').value),
-    };
-
-    const query = id
-      ? supabaseClient.from(TABLA).update(payload).eq('id', id)
-      : supabaseClient.from(TABLA).insert(payload);
-
-    const { error } = await query;
-
-    if (error) {
-      errorEl.textContent = `No se pudo guardar: ${error.message}`;
-      errorEl.hidden = false;
-      return;
-    }
-
-    cerrarModal();
-    mostrarMensaje(id ? 'Institución actualizada.' : 'Institución creada.');
-    cargarInstituciones();
-    if (window.refrescarInstituciones) window.refrescarInstituciones('local');   // actualiza mapa y fichas
-  });
-
-  // ----------------------------------------------------------------
-  // Borrar
-  // ----------------------------------------------------------------
-  async function borrarInstitucion(id, nombre) {
-    const confirmado = confirm(`¿Seguro que quieres borrar "${nombre}"? Esta acción no se puede deshacer.`);
-    if (!confirmado) return;
-
-    const { error } = await supabaseClient.from(TABLA).delete().eq('id', id);
-
-    if (error) {
-      mostrarMensaje(`No se pudo borrar: ${error.message}`, true);
-      return;
-    }
-
-    mostrarMensaje('Institución borrada.');
-    cargarInstituciones();
-    if (window.refrescarInstituciones) window.refrescarInstituciones('local');
-  }
-
-  function mostrarMensaje(texto, esError = false) {
-    const el = document.getElementById('admin-mensaje');
-    el.textContent = texto;
-    el.hidden = false;
-    el.classList.toggle('admin-panel__mensaje--error', esError);
-    setTimeout(() => { el.hidden = true; }, 4000);
-  }
-
-  // ----------------------------------------------------------------
-  // Arranque
-  // ----------------------------------------------------------------
-  mostrarSegunSesion();
-
-  if (supabaseClient) {
-    supabaseClient.auth.onAuthStateChange((evento) => {
-      if (evento === 'SIGNED_IN' || evento === 'SIGNED_OUT') mostrarSegunSesion();
-    });
-  }
-
-  // ****************************************************************
-  // MEJORAS DEL PANEL (cada bloque es independiente de los demás)
-  // ****************************************************************
-
-  // ================================================================
-  // Instituciones en tiempo real: el mapa, los popups y las fichas se
-  // actualizan solos cuando se crea, edita o borra una institución
-  // ================================================================
-  (function () {
-    'use strict';
-    if (window.__tiempoRealInstituciones) return;   // evita ejecutarse dos veces
-    window.__tiempoRealInstituciones = true;
-
-    const TABLA = window.TABLA_INSTITUCIONES || 'instituciones_educativas';
-    const INTERVALO_MS = window.TIEMPO_REAL_INTERVALO_MS || 20000;
-
-    let refrescando = false;
-    let pendiente = false;
-    let instantanea = null;        // texto de la tabla en la última revisión
-    let temporizador = null;
-    let canal = null;
-
-    function cliente() {
-      return (typeof supabaseClient !== 'undefined' && supabaseClient) ? supabaseClient : null;
-    }
-
-    function mapaActual() {
-      if (typeof adminMap !== 'undefined' && adminMap) return adminMap;
-      if (typeof map !== 'undefined' && map) return map;
+    function clienteSupabase() {
+      if (typeof window.supabaseClient !== 'undefined' && window.supabaseClient) return window.supabaseClient;
+      if (typeof supabaseClient !== 'undefined' && supabaseClient) return supabaseClient;
       return null;
     }
 
-    function grupoActual() {
-      if (window.__grupoInstituciones) return window.__grupoInstituciones;
-      if (typeof grupoInstituciones !== 'undefined') return grupoInstituciones;
-      return undefined;
-    }
-
-    function clavesCategorias() {
-      return (typeof CATEGORIAS_INSTITUCIONES !== 'undefined' ? CATEGORIAS_INSTITUCIONES : []);
-    }
-
-    /** ¿Este <li> de «Capas del mapa» pertenece a las instituciones? */
-    function esItemDeInstituciones(li) {
-      const casilla = li.querySelector('input[data-category]');
-      const cats = clavesCategorias();
-      if (casilla) return cats.some((c) => c.key === casilla.dataset.category);
-      const nota = li.querySelector('.category-note');
-      return Boolean(nota) && cats.some((c) => nota.textContent.indexOf(c.label) === 0);
-    }
-
-    // ----------------------------------------------------------------
-    // Redibujar las instituciones
-    // ----------------------------------------------------------------
-    async function redibujar() {
-      const mapa = mapaActual();
-      if (!mapa || typeof initInstitucionesLayer !== 'function') return false;
-
-      const lista = document.getElementById('category-list');
-
-      // Estado actual de las casillas y de las capas que no son instituciones.
-      const encendidas = {};
-      document.querySelectorAll('input[data-category]').forEach((c) => { encendidas[c.dataset.category] = c.checked; });
-      const itemsAjenos = lista
-        ? Array.from(lista.children).filter((li) => !esItemDeInstituciones(li))
-        : [];
-
-      // Se quitan los puntos viejos.
-      if (typeof institucionesLayers !== 'undefined') {
-        Object.keys(institucionesLayers).forEach((key) => {
-          const capa = institucionesLayers[key];
-          if (capa && mapa.hasLayer(capa)) mapa.removeLayer(capa);
-          delete institucionesLayers[key];
-        });
-      }
-      const grupo = grupoActual();
-      if (grupo && typeof grupo.clearLayers === 'function') grupo.clearLayers();
-
-      // Se vuelven a dibujar con el mismo código del proyecto.
-      await initInstitucionesLayer(mapa, grupo);
-
-      // Se restauran las capas ajenas y las casillas.
-      if (lista) itemsAjenos.forEach((li) => lista.appendChild(li));
-      Object.entries(encendidas).forEach(([key, activa]) => {
-        const casilla = document.querySelector(`input[data-category="${key}"]`);
-        if (casilla && casilla.checked !== activa) {
-          casilla.checked = activa;
-          casilla.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      });
-      return true;
-    }
-
-    async function leerInstantanea() {
-      const c = cliente();
-      if (!c) return null;
-      try {
-        const { data, error } = await c.from(TABLA).select('*');
-        if (error || !data) return null;
-        return JSON.stringify(data);
-      } catch (e) {
-        return null;
-      }
-    }
-
-    async function refrescar(origen) {
-      if (refrescando) { pendiente = true; return; }
-      refrescando = true;
-      try {
-        const ok = await redibujar();
-        if (ok) {
-          instantanea = await leerInstantanea();
-          document.dispatchEvent(new CustomEvent('instituciones:actualizadas', { detail: { origen: origen || 'remoto' } }));
-        }
-      } catch (error) {
-        console.warn('[tiempo-real] No se pudieron redibujar las instituciones:', error);
-      } finally {
-        refrescando = false;
-        if (pendiente) { pendiente = false; refrescar(origen); }
-      }
-    }
-
-    // Varios cambios seguidos (p. ej. importar muchas filas) se agrupan en un solo redibujado.
-    function programar(origen, espera) {
-      clearTimeout(temporizador);
-      temporizador = setTimeout(() => refrescar(origen), espera === undefined ? 500 : espera);
-    }
-
-    window.refrescarInstituciones = function (origen) {
-      programar(origen || 'local', 0);
-    };
-
-    // ----------------------------------------------------------------
-    // Realtime de Supabase
-    // ----------------------------------------------------------------
-    function suscribir() {
-      const c = cliente();
-      if (!c || typeof c.channel !== 'function') return;
-      try {
-        canal = c.channel(`tiempo-real-${TABLA}`)
-          .on('postgres_changes', { event: '*', schema: 'public', table: TABLA }, () => programar('remoto'))
-          .subscribe();
-      } catch (error) {
-        console.warn('[tiempo-real] No se pudo abrir el canal Realtime; queda la revisión periódica.', error);
-      }
-    }
-
-    // ----------------------------------------------------------------
-    // Respaldo: revisión periódica de la tabla
-    // ----------------------------------------------------------------
-    async function revisar() {
-      if (document.hidden || refrescando) return;
-      const actual = await leerInstantanea();
-      if (actual === null) return;
-      if (instantanea === null) { instantanea = actual; return; }
-      if (actual !== instantanea) programar('remoto', 0);
-    }
-
-    // Se espera a que las instituciones se dibujen por primera vez.
-    (function esperarInicio(intentos) {
-      const listo = typeof institucionesLayers !== 'undefined' && Object.keys(institucionesLayers).length > 0;
-      if (listo) {
-        leerInstantanea().then((texto) => { instantanea = texto; });
-        suscribir();
-        setInterval(revisar, INTERVALO_MS);
-        document.addEventListener('visibilitychange', () => { if (!document.hidden) revisar(); });
+    async function mostrarSegunSesion() {
+      const client = clienteSupabase();
+      if (!client) {
+        const err = document.getElementById('login-error');
+        err.hidden = false;
+        err.textContent = 'Error: cliente de Supabase no configurado.';
         return;
       }
-      if (intentos < 240) setTimeout(() => esperarInicio(intentos + 1), 500);
-    })(0);
-  })();
 
-  // Si el cambio vino de otra sesión (otro administrador), se recarga también la tabla.
-  document.addEventListener('instituciones:actualizadas', (e) => {
-    if (!e.detail || e.detail.origen !== 'local') cargarInstituciones();
-  });
+      const { data: { session } } = await client.auth.getSession();
 
-  // ================================================================
-  // Filtros de la tabla: búsqueda, tipo, sector y estrato
-  // (también filtran el mapa de abajo y dan el botón «Ver en el mapa»)
-  // ================================================================
-  (function () {
-    'use strict';
-    if (window.__adminFiltros) return;   // evita ejecutarse dos veces
-    window.__adminFiltros = true;
-
-    const tabla = document.querySelector('.admin-table');
-    const tbody = document.getElementById('admin-tabla-body') || (tabla && tabla.tBodies[0]);
-    const contenedorTabla = document.querySelector('.admin-table-wrap') || (tabla && tabla.parentElement);
-
-    if (!tabla || !tbody || !contenedorTabla) {
-      console.warn('[admin-filtros] No se encontró la tabla de instituciones; los filtros no se activaron.');
-      return;
-    }
-
-    // ----------------------------------------------------------------
-    // Utilidades
-    // ----------------------------------------------------------------
-    function norm(texto) {
-      return String(texto ?? '')
-        .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
-        .toLowerCase()
-        .trim();
-    }
-
-    const encabezados = Array.from(tabla.querySelectorAll('thead th')).map((th) => norm(th.textContent));
-    const col = {
-      nombre: encabezados.indexOf('nombre'),
-      tipo: encabezados.indexOf('tipo'),
-      sector: encabezados.indexOf('sector'),
-      direccion: encabezados.indexOf('direccion'),
-      estrato: encabezados.indexOf('estrato'),
-    };
-
-    function celda(fila, indice) {
-      return indice >= 0 && fila.cells[indice] ? fila.cells[indice].textContent : '';
-    }
-
-    // ----------------------------------------------------------------
-    // Barra de filtros
-    // ----------------------------------------------------------------
-    const barra = document.createElement('section');
-    barra.className = 'admin-filtros';
-    barra.setAttribute('aria-label', 'Filtros de instituciones');
-    barra.innerHTML = `
-      <div class="admin-filtros__cabecera">
-        <h3 class="admin-filtros__titulo">Filtrar instituciones</h3>
-        <div class="admin-filtros__cabecera-der">
-          <label class="admin-filtros__sync" title="Muestra en el mapa solo las instituciones que cumplen los filtros">
-            <input type="checkbox" id="filtros-sync" checked />
-            <span>Aplicar al mapa</span>
-          </label>
-          <span class="admin-filtros__contador" id="filtros-contador" aria-live="polite"></span>
-        </div>
-      </div>
-
-      <div class="admin-filtros__grid">
-        <label class="admin-filtros__campo admin-filtros__campo--busqueda">
-          <span>Buscar</span>
-          <input type="search" id="filtro-texto" class="admin-filtros__input"
-                 placeholder="Nombre o dirección…" autocomplete="off" />
-        </label>
-
-        <label class="admin-filtros__campo">
-          <span>Tipo</span>
-          <select id="filtro-tipo" class="admin-filtros__select">
-            <option value="">Todos</option>
-            <option value="colegio">Colegio</option>
-            <option value="universidad">Universidad</option>
-          </select>
-        </label>
-
-        <label class="admin-filtros__campo">
-          <span>Sector</span>
-          <select id="filtro-sector" class="admin-filtros__select">
-            <option value="">Todos</option>
-            <option value="publico">Público</option>
-            <option value="privado">Privado</option>
-          </select>
-        </label>
-
-        <label class="admin-filtros__campo">
-          <span>Estrato</span>
-          <select id="filtro-estrato" class="admin-filtros__select">
-            <option value="">Todos</option>
-            <option value="1">Estrato 1</option>
-            <option value="2">Estrato 2</option>
-            <option value="3">Estrato 3</option>
-            <option value="4">Estrato 4</option>
-            <option value="5">Estrato 5</option>
-            <option value="6">Estrato 6</option>
-            <option value="nd">Sin estrato (N/D)</option>
-          </select>
-        </label>
-
-        <button type="button" id="filtros-limpiar" class="admin-filtros__limpiar">Limpiar filtros</button>
-      </div>
-
-      <p class="admin-filtros__nota" id="filtros-nota">Cargando el mapa…</p>
-    `;
-    contenedorTabla.parentNode.insertBefore(barra, contenedorTabla);
-
-    // Mensaje cuando ninguna fila cumple los filtros (fuera del <tbody>,
-    // para que no se borre cuando la tabla se vuelve a dibujar).
-    const vacio = document.createElement('p');
-    vacio.className = 'admin-filtros__vacio';
-    vacio.hidden = true;
-    vacio.innerHTML = '<strong>Ninguna institución coincide con los filtros.</strong><br>Prueba con otra búsqueda o pulsa «Limpiar filtros».';
-    contenedorTabla.parentNode.insertBefore(vacio, contenedorTabla.nextSibling);
-
-    const $texto = barra.querySelector('#filtro-texto');
-    const $tipo = barra.querySelector('#filtro-tipo');
-    const $sector = barra.querySelector('#filtro-sector');
-    const $estrato = barra.querySelector('#filtro-estrato');
-    const $limpiar = barra.querySelector('#filtros-limpiar');
-    const $contador = barra.querySelector('#filtros-contador');
-
-    // ----------------------------------------------------------------
-    // Lógica de filtrado
-    // ----------------------------------------------------------------
-    function esFilaDeDatos(fila) {
-      return !fila.querySelector('.admin-table__vacio');
-    }
-
-    function estratoDeFila(fila) {
-      const valor = norm(celda(fila, col.estrato));
-      return /^[1-6]$/.test(valor) ? valor : 'nd';
-    }
-
-    function aplicarFiltros() {
-      const texto = norm($texto.value);
-      const tipo = $tipo.value;
-      const sector = $sector.value;
-      const estrato = $estrato.value;
-
-      const filas = Array.from(tbody.rows).filter(esFilaDeDatos);
-      let visibles = 0;
-
-      filas.forEach((fila) => {
-        const coincideTexto = !texto
-          || norm(celda(fila, col.nombre)).includes(texto)
-          || norm(celda(fila, col.direccion)).includes(texto);
-        const coincideTipo = !tipo || norm(celda(fila, col.tipo)) === tipo;
-        const coincideSector = !sector || norm(celda(fila, col.sector)) === sector;
-        const coincideEstrato = !estrato || estratoDeFila(fila) === estrato;
-
-        const mostrar = coincideTexto && coincideTipo && coincideSector && coincideEstrato;
-        if (fila.hidden === mostrar) fila.hidden = !mostrar;   // evita escrituras innecesarias
-        if (mostrar) visibles += 1;
-      });
-
-      const hayFiltros = Boolean(texto || tipo || sector || estrato);
-
-      $texto.classList.toggle('admin-filtros__input--activo', Boolean(texto));
-      [$tipo, $sector, $estrato].forEach((sel) =>
-        sel.classList.toggle('admin-filtros__select--activo', sel.value !== ''));
-      $limpiar.disabled = !hayFiltros;
-
-      if (!filas.length) {
-        $contador.textContent = '';
-        vacio.hidden = true;
+      if (session) {
+        loginScreen.hidden = true;
+        adminScreen.hidden = false;
+        btnCerrarSesion.hidden = false;
+        cargarInstituciones();
+        setTimeout(inicializarMapaAdmin, 100);
       } else {
-        $contador.innerHTML = `Mostrando <b>${visibles}</b> de ${filas.length}`;
-        vacio.hidden = visibles > 0;
+        loginScreen.hidden = false;
+        adminScreen.hidden = true;
+        btnCerrarSesion.hidden = true;
       }
     }
 
-    function alCambiarFiltros() {
-      aplicarFiltros();
-      programarMapa();
-    }
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errorEl = document.getElementById('login-error');
+      errorEl.hidden = true;
 
-    [$texto, $tipo, $sector, $estrato].forEach((el) => {
-      el.addEventListener(el === $texto ? 'input' : 'change', alCambiarFiltros);
-    });
+      const client = clienteSupabase();
+      if (!client) return;
 
-    $limpiar.addEventListener('click', () => {
-      $texto.value = '';
-      $tipo.value = '';
-      $sector.value = '';
-      $estrato.value = '';
-      aplicarFiltros();
-      programarMapa();
-      $texto.focus();
-    });
+      const { error } = await client.auth.signInWithPassword({ email, password });
 
-    // La tabla se redibuja al cargar, guardar o borrar: se vuelven a aplicar los filtros.
-    new MutationObserver(aplicarFiltros).observe(tbody, { childList: true });
-
-    // ----------------------------------------------------------------
-    // Sincronización con el mapa de administración
-    // ----------------------------------------------------------------
-    const CATEGORIA_OFICIAL = /^(colegio|universidad)-(publico|privado)$/;
-    const $sync = barra.querySelector('#filtros-sync');
-    const $nota = barra.querySelector('#filtros-nota');
-    let registroMapa = [];          // { key, grupo, marker, nombre, tipo, sector, direccion, estrato, latlng }
-    let temporizadorMapa = null;
-
-    function mapaAdmin() {
-      // `adminMap` lo crea el script principal de la página después de iniciar sesión.
-      return (typeof adminMap !== 'undefined' && adminMap) ? adminMap : null;
-    }
-
-    function centroSabaneta() {
-      return typeof SABANETA_CENTER !== 'undefined' ? SABANETA_CENTER : [6.1515, -75.6165];
-    }
-    function zoomSabaneta() {
-      return typeof SABANETA_ZOOM !== 'undefined' ? SABANETA_ZOOM : 14;
-    }
-
-    function aEstrato(valor) {
-      if (valor === null || valor === undefined || valor === '') return null;
-      const n = Number(valor);
-      return Number.isInteger(n) && n >= 1 && n <= 6 ? n : null;
-    }
-
-    /** Lee los puntos que dibujó instituciones.js (solo el directorio oficial). */
-    function leerMarcadores() {
-      const salida = [];
-      if (typeof institucionesLayers === 'undefined') return salida;
-
-      Object.entries(institucionesLayers).forEach(([key, grupo]) => {
-        if (!CATEGORIA_OFICIAL.test(key) || !grupo || typeof grupo.eachLayer !== 'function') return;
-        grupo.eachLayer((marker) => {
-          const p = (marker.feature && marker.feature.properties) || {};
-          const latlng = marker.getLatLng && marker.getLatLng();
-          if (!latlng) return;
-          salida.push({
-            key,
-            grupo,
-            marker,
-            nombre: p.nombre || '',
-            tipo: norm(p.tipo),
-            sector: norm(p.sector),
-            direccion: p.direccion || '',
-            estrato: aEstrato(p.estrato),
-            latlng,
-          });
-        });
-      });
-      return salida;
-    }
-
-    function registroListo() {
-      if (registroMapa.length) return true;
-      registroMapa = leerMarcadores();
-      return registroMapa.length > 0;
-    }
-
-    function coincideMarcador(r, f) {
-      if (f.tipo && r.tipo !== f.tipo) return false;
-      if (f.sector && r.sector !== f.sector) return false;
-      if (f.estrato === 'nd' && r.estrato !== null) return false;
-      if (f.estrato && f.estrato !== 'nd' && r.estrato !== Number(f.estrato)) return false;
-      if (f.texto && !(norm(r.nombre).includes(f.texto) || norm(r.direccion).includes(f.texto))) return false;
-      return true;
-    }
-
-    /** Aplica los filtros a los puntos del mapa. Devuelve false si el mapa aún no está listo. */
-    function actualizarMapa({ ajustar = false } = {}) {
-      const mapa = mapaAdmin();
-      if (!mapa || !registroListo()) {
-        $nota.textContent = 'Cargando el mapa…';
-        return false;
-      }
-
-      const f = { texto: norm($texto.value), tipo: $tipo.value, sector: $sector.value, estrato: $estrato.value };
-      const hayFiltros = Boolean(f.texto || f.tipo || f.sector || f.estrato);
-      const filtrar = $sync.checked;
-      const visibles = [];
-
-      registroMapa.forEach((r) => {
-        const mostrar = !filtrar || coincideMarcador(r, f);
-        const presente = r.grupo.hasLayer(r.marker);
-        if (mostrar && !presente) r.grupo.addLayer(r.marker);
-        if (!mostrar && presente) r.grupo.removeLayer(r.marker);
-        if (mostrar) visibles.push(r);
-      });
-
-      $nota.innerHTML = filtrar
-        ? `Mapa: <b>${visibles.length}</b> de ${registroMapa.length} instituciones visibles. Las capas de OpenStreetMap no se filtran.`
-        : 'El mapa muestra todas las instituciones (filtro del mapa desactivado).';
-
-      if (ajustar && filtrar) {
-        if (hayFiltros && visibles.length) {
-          mapa.flyToBounds(L.latLngBounds(visibles.map((r) => r.latlng)), { padding: [50, 50], maxZoom: 17, duration: 0.7 });
-        } else if (!hayFiltros) {
-          mapa.flyTo(centroSabaneta(), zoomSabaneta(), { duration: 0.7 });
-        }
-      }
-      return true;
-    }
-
-    function programarMapa() {
-      clearTimeout(temporizadorMapa);
-      temporizadorMapa = setTimeout(() => actualizarMapa({ ajustar: true }), 300);
-    }
-
-    $sync.addEventListener('change', () => actualizarMapa({ ajustar: true }));
-
-    // Si las instituciones se redibujan (cambio en la base de datos), se vuelven a leer los puntos.
-    document.addEventListener('instituciones:actualizadas', () => {
-      registroMapa = [];
-      actualizarMapa();
-    });
-
-    // El mapa y sus puntos se crean un poco después de iniciar sesión: se espera a que estén.
-    (function esperarMapa(intento) {
-      if (actualizarMapa()) return;
-      if (intento < 80) setTimeout(() => esperarMapa(intento + 1), 500);
-      else $nota.textContent = 'No se pudo conectar el mapa con los filtros.';
-    })(0);
-
-    // ----------------------------------------------------------------
-    // Botón «Ver en el mapa» de cada fila
-    // ----------------------------------------------------------------
-    function avisar(texto) {
-      if (typeof mostrarMensaje === 'function') mostrarMensaje(texto, true);
-      else console.warn('[admin-filtros]', texto);
-    }
-
-    function pulso(mapa, latlng) {
-      const aro = L.circleMarker(latlng, {
-        radius: 22,
-        color: '#69b544',
-        weight: 3,
-        fill: false,
-        interactive: false,
-        className: 'admin-pulso',
-      }).addTo(mapa);
-      setTimeout(() => aro.remove(), 3200);
-    }
-
-    window.verInstitucionEnMapa = function (id) {
-      const mapa = mapaAdmin();
-      const fila = (window.__institucionesCache || []).find((r) => String(r.id) === String(id));
-      if (!mapa || !fila) {
-        avisar('El mapa todavía se está cargando. Inténtalo de nuevo en un momento.');
+      if (error) {
+        errorEl.textContent = 'Correo o contraseña incorrectos.';
+        errorEl.hidden = false;
         return;
       }
+
+      await mostrarSegunSesion();
+    });
+
+    btnCerrarSesion.addEventListener('click', async () => {
+      const client = clienteSupabase();
+      if (client) await client.auth.signOut();
+      await mostrarSegunSesion();
+    });
+
+    async function cargarInstituciones() {
+      const tbody = document.getElementById('admin-tabla-body');
+      tbody.innerHTML = '<tr><td colspan="6" class="admin-table__vacio">Cargando…</td></tr>';
+
+      const client = clienteSupabase();
+      if (!client) return;
+
+      const { data, error } = await client.from(TABLA).select('*').order('nombre');
+
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="6" class="admin-table__vacio">Error al cargar: ${esc(error.message)}</td></tr>`;
+        return;
+      }
+
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="admin-table__vacio">No hay instituciones registradas.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map((row) => `
+        <tr>
+          <td><strong>${esc(row.nombre)}</strong></td>
+          <td>${esc(row.tipo)}</td>
+          <td>${esc(row.sector)}</td>
+          <td>${esc(row.direccion)}</td>
+          <td>${esc(row.estrato ?? 'N/D')}</td>
+          <td class="admin-table__acciones" style="text-align:center;">
+            <button class="admin-table__btn admin-table__btn--ver" data-ver="${esc(row.id)}" title="Ver en el mapa">Ver</button>
+            <button class="admin-table__btn admin-table__btn--opinion" data-reseñas="${esc(row.id)}" data-nombre="${esc(row.nombre)}" title="Ver opiniones">💬 Reseñas</button>
+            <button class="admin-table__btn" data-editar="${esc(row.id)}">Editar</button>
+            <button class="admin-table__btn admin-table__btn--danger" data-borrar="${esc(row.id)}" data-nombre="${esc(row.nombre)}">Borrar</button>
+          </td>
+        </tr>
+      `).join('');
+
+      window.__institucionesCache = data;
+    }
+
+    // BOTÓN VER EN MAPA Y DELEGACIÓN DE ACCIONES
+    document.getElementById('admin-tabla-body').addEventListener('click', (e) => {
+      const botonVer = e.target.closest('[data-ver]');
+      if (botonVer) {
+        if (window.verInstitucionEnMapa) window.verInstitucionEnMapa(botonVer.dataset.ver);
+        return;
+      }
+
+      const botonResenas = e.target.closest('[data-reseñas]');
+      if (botonResenas) {
+        abrirModalOpiniones(botonResenas.dataset.reseñas, botonResenas.dataset.nombre);
+        return;
+      }
+
+      const idEditar = e.target.dataset.editar;
+      const idBorrar = e.target.dataset.borrar;
+
+      if (idEditar) {
+        const row = (window.__institucionesCache || []).find((r) => String(r.id) === idEditar);
+        if (row) abrirModal('editar', row);
+      }
+
+      if (idBorrar) {
+        borrarInstitucion(idBorrar, e.target.dataset.nombre);
+      }
+    });
+
+    // LÓGICA DE VER INSTITUCIÓN EN MAPA CON ANIMACIÓN Y DESPLAZAMIENTO
+    window.verInstitucionEnMapa = function (id) {
+      const mapa = adminMap;
+      const fila = (window.__institucionesCache || []).find((r) => String(r.id) === String(id));
+      if (!mapa || !fila) return;
 
       const lat = Number(fila.latitud);
       const lng = Number(fila.longitud);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-        avisar('Esta institución no tiene coordenadas registradas.');
+        alert('Esta institución no tiene coordenadas válidas registradas.');
         return;
+      }
+
+      const mapElem = document.getElementById('admin-map');
+      if (mapElem) {
+        mapElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
 
       const destino = L.latLng(lat, lng);
-      registroListo();
-      const cerca = (r) => Math.abs(r.latlng.lat - lat) < 1e-5 && Math.abs(r.latlng.lng - lng) < 1e-5;
-      const r = registroMapa.find((x) => cerca(x) && norm(x.nombre) === norm(fila.nombre))
-        || registroMapa.find((x) => norm(x.nombre) === norm(fila.nombre));
+      mapa.flyTo(destino, 17, { duration: 1.0 });
 
-      if (r) {
-        // Si su categoría estaba apagada en «Capas del mapa», se enciende.
-        const casilla = document.querySelector(`input[data-category="${r.key}"]`);
-        if (casilla && !casilla.checked) {
-          casilla.checked = true;
-          casilla.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        if (!r.grupo.hasLayer(r.marker)) r.grupo.addLayer(r.marker);
-      }
+      const aro = L.circleMarker(destino, { radius: 22, color: '#f5c324', fillColor: '#69b544', fillOpacity: 0.4, weight: 3, className: 'admin-pulso' }).addTo(mapa);
+      setTimeout(() => aro.remove(), 3500);
 
-      const contenedor = mapa.getContainer();
-      if (!contenedor.classList.contains('mapa-ampliado')) {
-        contenedor.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-
-      mapa.flyTo(destino, Math.max(mapa.getZoom(), 17), { duration: 0.8 });
-      pulso(mapa, destino);
-
-      if (r) {
-        setTimeout(() => {
-          try {
-            r.marker.fire('click', { latlng: destino });
-          } catch (error) {
-            console.warn('[admin-filtros] No se pudo abrir la ficha automáticamente:', error);
-            try { r.marker.openPopup(); } catch (_) { /* sin popup asociado */ }
+      const grupo = window.__grupoInstituciones;
+      if (grupo && typeof grupo.eachLayer === 'function') {
+        grupo.eachLayer((marker) => {
+          if (marker.getLatLng) {
+            const mPos = marker.getLatLng();
+            if (Math.abs(mPos.lat - lat) < 0.0001 && Math.abs(mPos.lng - lng) < 0.0001) {
+              setTimeout(() => { try { marker.openPopup(); } catch (_) {} }, 1100);
+            }
           }
-        }, 1000);
+        });
       }
     };
 
-    aplicarFiltros();
-  })();
+    // MODAL RESEÑAS ESPECÍFICAS DE CADA INSTITUCIÓN
+    async function abrirModalOpiniones(instId, instNombre) {
+      const modal = document.getElementById('modal-opiniones-inst');
+      const titulo = document.getElementById('modal-opiniones-titulo');
+      const tbody = document.getElementById('modal-opiniones-tabla-body');
 
-  // ================================================================
-  // Selector de ubicación en el formulario (mini-mapa)
-  // ================================================================
-  (function () {
-    'use strict';
-    if (window.__adminUbicacion) return;   // evita ejecutarse dos veces
-    window.__adminUbicacion = true;
+      titulo.textContent = `Reseñas de ${instNombre}`;
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:16px; color:#a3bba8;">Cargando opiniones...</td></tr>';
+      modal.classList.add('is-active');
 
-    const modal = document.getElementById('admin-modal');
-    const inLat = document.getElementById('f-latitud');
-    const inLng = document.getElementById('f-longitud');
-    const inDir = document.getElementById('f-direccion');
+      const client = clienteSupabase();
+      if (!client) return;
 
-    if (!modal || !inLat || !inLng || typeof L === 'undefined') {
-      console.warn('[admin-ubicacion] Faltan el formulario o Leaflet; el selector de ubicación no se activó.');
-      return;
-    }
+      // Consulta de opiniones filtradas por la institución seleccionada
+      let query = client.from('opiniones_instituciones').select('*').eq('institucion_id', instId).order('creado_en', { ascending: false });
+      let { data, error } = await query;
 
-    const fieldset = inLat.closest('fieldset') || inLat.parentElement;
-
-    const CENTRO_SABANETA = [6.1515, -75.6165];
-    const ZOOM_INICIAL = 14;
-    const ZOOM_PUNTO = 17;
-    // Caja generosa alrededor del municipio, solo para avisar de errores evidentes.
-    const LIMITES = L.latLngBounds([6.10, -75.70], [6.20, -75.55]);
-
-    // ----------------------------------------------------------------
-    // Estilos
-    // ----------------------------------------------------------------
-  
-
-    // ----------------------------------------------------------------
-    // Estructura (dentro del grupo «Ubicación»)
-    // ----------------------------------------------------------------
-    const bloque = document.createElement('div');
-    bloque.className = 'ubicacion-picker admin-field--ancho';
-    bloque.innerHTML = `
-      <div class="ubicacion-picker__barra">
-        <span class="ubicacion-picker__titulo">Ubicación en el mapa</span>
-        <button type="button" class="ubicacion-picker__buscar" id="ubicacion-buscar">Buscar dirección</button>
-      </div>
-      <div id="ubicacion-mapa" role="application" aria-label="Mapa para elegir la ubicación"></div>
-      <p class="ubicacion-picker__ayuda" id="ubicacion-ayuda"></p>
-    `;
-    fieldset.appendChild(bloque);
-
-    const $mapa = bloque.querySelector('#ubicacion-mapa');
-    const $ayuda = bloque.querySelector('#ubicacion-ayuda');
-    const $buscar = bloque.querySelector('#ubicacion-buscar');
-
-    const AYUDA_BASE = 'Haz clic en el mapa o arrastra el marcador. Longitud y latitud se llenan solas (WGS84).';
-
-    function ayuda(texto, tipo) {
-      $ayuda.textContent = texto;
-      $ayuda.className = 'ubicacion-picker__ayuda' + (tipo ? ` ubicacion-picker__ayuda--${tipo}` : '');
-    }
-
-    // ----------------------------------------------------------------
-    // Mapa y marcador (se crean al abrir el modal por primera vez)
-    // ----------------------------------------------------------------
-    let mapa = null;
-    let marcador = null;
-
-    function crearMapa() {
-      mapa = L.map($mapa, { zoomControl: true }).setView(CENTRO_SABANETA, ZOOM_INICIAL);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>'
-      }).addTo(mapa);
-
-      mapa.on('click', (e) => fijarPunto(e.latlng.lat, e.latlng.lng, { escribir: true }));
-    }
-
-    function leerCoordenadas() {
-      const lat = parseFloat(inLat.value);
-      const lng = parseFloat(inLng.value);
-      const valido = Number.isFinite(lat) && Number.isFinite(lng)
-        && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
-      return valido ? { lat, lng } : null;
-    }
-
-    function escribirCampos(lat, lng) {
-      inLat.value = lat.toFixed(6);
-      inLng.value = lng.toFixed(6);
-      // Por si otro código escucha cambios en los campos.
-      inLat.dispatchEvent(new Event('input', { bubbles: true }));
-      inLng.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-
-    function evaluarAyuda(lat, lng) {
-      if (LIMITES.contains([lat, lng])) {
-        ayuda(`Ubicación fijada: ${lat.toFixed(6)}, ${lng.toFixed(6)}. Puedes arrastrar el marcador para afinarla.`, 'ok');
-      } else {
-        ayuda('Ojo: este punto queda fuera de Sabaneta. Revisa que latitud y longitud no estén invertidas.', 'aviso');
-      }
-    }
-
-    function fijarPunto(lat, lng, { escribir = false, centrar = false } = {}) {
-      const latlng = L.latLng(lat, lng);
-
-      if (!marcador) {
-        marcador = L.marker(latlng, {
-          draggable: true,
-          icon: L.divIcon({ className: '', html: '<div class="ubicacion-pin"></div>', iconSize: [20, 20], iconAnchor: [10, 10] }),
-          keyboard: false,
-        }).addTo(mapa);
-
-        marcador.on('dragend', () => {
-          const p = marcador.getLatLng();
-          escribirCampos(p.lat, p.lng);
-          evaluarAyuda(p.lat, p.lng);
-        });
-      } else {
-        marcador.setLatLng(latlng);
+      if (error || !data) {
+        const queryAlt = client.from('opiniones_instituciones').select('*').eq('institucion_nombre', instNombre);
+        const resAlt = await queryAlt;
+        data = resAlt.data || [];
       }
 
-      if (escribir) escribirCampos(lat, lng);
-      if (centrar) mapa.setView(latlng, Math.max(mapa.getZoom(), ZOOM_PUNTO));
-      evaluarAyuda(lat, lng);
-    }
-
-    function quitarPunto() {
-      if (marcador) {
-        marcador.remove();
-        marcador = null;
-      }
-    }
-
-    /** Lleva el mapa al estado de los campos del formulario. */
-    function sincronizarDesdeCampos({ centrar = false } = {}) {
-      if (!mapa) return;
-      const c = leerCoordenadas();
-      if (c) {
-        fijarPunto(c.lat, c.lng, { centrar });
-      } else {
-        quitarPunto();
-        ayuda(AYUDA_BASE);
-        if (centrar) mapa.setView(CENTRO_SABANETA, ZOOM_INICIAL);
-      }
-    }
-
-    // Si se escriben las coordenadas a mano, el marcador las sigue.
-    [inLat, inLng].forEach((campo) => {
-      campo.addEventListener('change', () => sincronizarDesdeCampos({ centrar: true }));
-    });
-
-    // ----------------------------------------------------------------
-    // Abrir el modal -> crear / refrescar el mapa
-    // ----------------------------------------------------------------
-    function alAbrirModal() {
-      if (!mapa) crearMapa();
-      sincronizarDesdeCampos({ centrar: true });
-      // El contenedor estaba oculto: Leaflet necesita recalcular su tamaño.
-      setTimeout(() => {
-        mapa.invalidateSize();
-        sincronizarDesdeCampos({ centrar: true });
-      }, 120);
-    }
-
-    let estabaAbierto = modal.classList.contains('institucion-modal--open');
-    new MutationObserver(() => {
-      const abierto = modal.classList.contains('institucion-modal--open');
-      if (abierto && !estabaAbierto) alAbrirModal();
-      estabaAbierto = abierto;
-    }).observe(modal, { attributes: true, attributeFilter: ['class'] });
-
-    if (estabaAbierto) alAbrirModal();
-
-    // ----------------------------------------------------------------
-    // Buscar dirección (OpenStreetMap Nominatim)
-    // ----------------------------------------------------------------
-    $buscar.addEventListener('click', async () => {
-      const direccion = (inDir && inDir.value || '').trim();
-      if (!direccion) {
-        ayuda('Escribe primero la dirección en el campo «Dirección».', 'aviso');
+      if (!data || !data.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#a3bba8;">Esta institución aún no tiene opiniones registradas.</td></tr>';
         return;
       }
 
-      const consulta = /sabaneta/i.test(direccion) ? direccion : `${direccion}, Sabaneta, Antioquia`;
-      const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=co'
-        + '&viewbox=-75.70,6.20,-75.55,6.10&accept-language=es&q=' + encodeURIComponent(consulta);
+      tbody.innerHTML = data.map((op) => `
+        <tr>
+          <td style="text-align:center; color:#f5c324; font-weight:700;">${'★'.repeat(op.calificacion || 5)}</td>
+          <td style="font-size:13px; color:#eef5ea;">${esc(op.opinion || op.comentario || 'Sin comentario')}</td>
+          <td style="font-size:11.5px; color:#839d89;">${op.creado_en ? new Date(op.creado_en).toLocaleDateString('es-CO') : '—'}</td>
+          <td style="text-align:center;">
+            <button class="admin-table__btn admin-table__btn--danger" onclick="borrarOpinion('${op.id}', '${instId}', '${esc(instNombre)}')">Eliminar</button>
+          </td>
+        </tr>
+      `).join('');
+    }
 
-      $buscar.disabled = true;
-      $buscar.textContent = 'Buscando…';
-      ayuda('Buscando la dirección…');
+    async function borrarOpinion(opId, instId, instNombre) {
+      if (!confirm('¿Seguro que deseas eliminar esta reseña?')) return;
+      const client = clienteSupabase();
+      if (!client) return;
 
-      try {
-        const respuesta = await fetch(url, { headers: { Accept: 'application/json' } });
-        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
-        const resultados = await respuesta.json();
+      await client.from('opiniones_instituciones').delete().eq('id', opId);
+      abrirModalOpiniones(instId, instNombre);
+    }
 
-        if (!resultados.length) {
-          ayuda('No se encontró esa dirección. Ubícala haciendo clic en el mapa.', 'aviso');
+    document.getElementById('btn-cerrar-modal-opiniones')?.addEventListener('click', () => {
+      document.getElementById('modal-opiniones-inst').classList.remove('is-active');
+    });
+
+    const modal = document.getElementById('admin-modal');
+    const form = document.getElementById('form-institucion');
+
+    function abrirModal(modo, row = null) {
+      document.getElementById('form-error').hidden = true;
+      document.getElementById('admin-modal-titulo').textContent = modo === 'editar' ? 'Editar institución' : 'Nueva institución';
+
+      document.getElementById('f-id').value = row?.id ?? '';
+      document.getElementById('f-nombre').value = row?.nombre ?? '';
+      document.getElementById('f-tipo').value = row?.tipo ?? 'colegio';
+      document.getElementById('f-sector').value = row?.sector ?? 'publico';
+      document.getElementById('f-estrato').value = row?.estrato ?? '';
+      document.getElementById('f-direccion').value = row?.direccion ?? '';
+      document.getElementById('f-longitud').value = row?.longitud ?? '';
+      document.getElementById('f-latitud').value = row?.latitud ?? '';
+      document.getElementById('f-telefono').value = row?.telefono ?? '';
+      document.getElementById('f-sitio-web').value = row?.sitio_web ?? '';
+      document.getElementById('f-horario').value = row?.horario ?? '';
+      document.getElementById('f-imagen-url').value = row?.imagen_url ?? '';
+      document.getElementById('f-descripcion').value = row?.descripcion ?? '';
+      document.getElementById('f-num-estudiantes').value = row?.num_estudiantes ?? '';
+      document.getElementById('f-cupos-disponibles').value = row?.cupos_disponibles ?? '';
+      document.getElementById('f-recursos-tecnologicos').value = row?.recursos_tecnologicos ?? '';
+      document.getElementById('f-num-docentes').value = row?.num_docentes ?? '';
+
+      modal.classList.add('institucion-modal--open');
+    }
+
+    function cerrarModal() {
+      modal.classList.remove('institucion-modal--open');
+    }
+
+    document.getElementById('btn-nueva-institucion').addEventListener('click', () => abrirModal('crear'));
+
+    modal.addEventListener('click', (e) => {
+      if (e.target.dataset.cerrarAdminModal !== undefined) cerrarModal();
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('f-id').value;
+      const errorEl = document.getElementById('form-error');
+      errorEl.hidden = true;
+
+      const numOrNull = (v) => v === '' ? null : Number(v);
+
+      const payload = {
+        nombre: document.getElementById('f-nombre').value.trim(),
+        tipo: document.getElementById('f-tipo').value,
+        sector: document.getElementById('f-sector').value,
+        estrato: numOrNull(document.getElementById('f-estrato').value),
+        direccion: document.getElementById('f-direccion').value.trim() || null,
+        longitud: numOrNull(document.getElementById('f-longitud').value),
+        latitud: numOrNull(document.getElementById('f-latitud').value),
+        telefono: document.getElementById('f-telefono').value.trim() || null,
+        sitio_web: document.getElementById('f-sitio-web').value.trim() || null,
+        horario: document.getElementById('f-horario').value.trim() || null,
+        imagen_url: document.getElementById('f-imagen-url').value.trim() || null,
+        descripcion: document.getElementById('f-descripcion').value.trim() || null,
+        num_estudiantes: numOrNull(document.getElementById('f-num-estudiantes').value),
+        cupos_disponibles: numOrNull(document.getElementById('f-cupos-disponibles').value),
+        recursos_tecnologicos: numOrNull(document.getElementById('f-recursos-tecnologicos').value),
+        num_docentes: numOrNull(document.getElementById('f-num-docentes').value),
+      };
+
+      const client = clienteSupabase();
+      if (!client) return;
+
+      const query = id
+        ? client.from(TABLA).update(payload).eq('id', id)
+        : client.from(TABLA).insert(payload);
+
+      const { error } = await query;
+
+      if (error) {
+        errorEl.textContent = `No se pudo guardar: ${error.message}`;
+        errorEl.hidden = false;
+        return;
+      }
+
+      cerrarModal();
+      mostrarMensaje(id ? 'Institución actualizada.' : 'Institución creada.');
+      cargarInstituciones();
+      if (window.refrescarInstituciones) window.refrescarInstituciones('local');
+    });
+
+    async function borrarInstitucion(id, nombre) {
+      const confirmado = confirm(`¿Seguro que quieres borrar "${nombre}"? Esta acción no se puede deshacer.`);
+      if (!confirmado) return;
+
+      const client = clienteSupabase();
+      if (!client) return;
+
+      const { error } = await client.from(TABLA).delete().eq('id', id);
+
+      if (error) {
+        mostrarMensaje(`No se pudo borrar: ${error.message}`, true);
+        return;
+      }
+
+      mostrarMensaje('Institución borrada.');
+      cargarInstituciones();
+      if (window.refrescarInstituciones) window.refrescarInstituciones('local');
+    }
+
+    function mostrarMensaje(texto, esError = false) {
+      const el = document.getElementById('admin-mensaje');
+      if (!el) return;
+      el.textContent = texto;
+      el.hidden = false;
+      el.classList.toggle('admin-panel__mensaje--error', esError);
+      setTimeout(() => { el.hidden = true; }, 4000);
+    }
+
+    document.addEventListener('DOMContentLoaded', mostrarSegunSesion);
+
+    // ================================================================
+    // REVERSE GEOCODING Y MINI-MAPA DE UBICACIÓN
+    // ================================================================
+    (function () {
+      'use strict';
+      if (window.__adminUbicacion) return;
+      window.__adminUbicacion = true;
+
+      const modal = document.getElementById('admin-modal');
+      const inLat = document.getElementById('f-latitud');
+      const inLng = document.getElementById('f-longitud');
+      const inDir = document.getElementById('f-direccion');
+      if (!modal || !inLat || !inLng) return;
+
+      const fieldset = inLat.closest('fieldset') || inLat.parentElement;
+      const bloque = document.createElement('div');
+      bloque.className = 'ubicacion-picker admin-field--ancho';
+      bloque.innerHTML = `
+        <div class="ubicacion-picker__barra">
+          <span class="ubicacion-picker__titulo">Ubicación en el mapa</span>
+          <button type="button" class="ubicacion-picker__buscar" id="ubicacion-buscar">Buscar dirección</button>
+        </div>
+        <div id="ubicacion-mapa"></div>
+        <p class="ubicacion-picker__ayuda" id="ubicacion-ayuda">Haz clic en el mapa o arrastra el marcador para obtener la dirección automáticamente.</p>
+      `;
+      fieldset.appendChild(bloque);
+
+      let miniMapa = null;
+      let marcador = null;
+
+      function initMiniMapa() {
+        if (miniMapa) return;
+        miniMapa = L.map('ubicacion-mapa').setView(SABANETA_CENTER, 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(miniMapa);
+
+        miniMapa.on('click', (e) => {
+          fijarPunto(e.latlng.lat, e.latlng.lng, true);
+        });
+      }
+
+      async function obtenerDireccionReverse(lat, lng) {
+        const ayuda = document.getElementById('ubicacion-ayuda');
+        if (ayuda) ayuda.textContent = 'Obteniendo dirección aproximada...';
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+          const data = await res.json();
+          if (data && data.address) {
+            const addr = data.address;
+            const via = addr.road || addr.pedestrian || addr.street || addr.suburb || '';
+            const num = addr.house_number ? ` #${addr.house_number}` : '';
+            const barrio = addr.neighbourhood || addr.suburb || '';
+            let dirFormateada = `${via}${num}`.trim();
+            if (!dirFormateada && barrio) dirFormateada = barrio;
+            if (dirFormateada) {
+              inDir.value = dirFormateada;
+            }
+            if (ayuda) ayuda.textContent = `Ubicación: ${data.display_name.split(',')[0]}`;
+          }
+        } catch (e) {
+          if (ayuda) ayuda.textContent = 'Coordenadas fijadas correctamente.';
+        }
+      }
+
+      function fijarPunto(lat, lng, buscarDireccion = false) {
+        inLat.value = lat.toFixed(6);
+        inLng.value = lng.toFixed(6);
+        const latlng = L.latLng(lat, lng);
+
+        if (!marcador) {
+          marcador = L.marker(latlng, {
+            draggable: true,
+            icon: L.divIcon({ className: '', html: '<div class="ubicacion-pin"></div>', iconSize: [16, 16], iconAnchor: [8, 8] })
+          }).addTo(miniMapa);
+
+          marcador.on('dragend', () => {
+            const p = marcador.getLatLng();
+            inLat.value = p.lat.toFixed(6);
+            inLng.value = p.lng.toFixed(6);
+            obtenerDireccionReverse(p.lat, p.lng);
+          });
+        } else {
+          marcador.setLatLng(latlng);
+        }
+
+        if (buscarDireccion) {
+          obtenerDireccionReverse(lat, lng);
+        }
+      }
+
+      new MutationObserver(() => {
+        if (modal.classList.contains('institucion-modal--open')) {
+          initMiniMapa();
+          setTimeout(() => {
+            miniMapa.invalidateSize();
+            const valLat = parseFloat(inLat.value);
+            const valLng = parseFloat(inLng.value);
+            if (Number.isFinite(valLat) && Number.isFinite(valLng)) {
+              fijarPunto(valLat, valLng, false);
+              miniMapa.setView([valLat, valLng], 16);
+            } else {
+              miniMapa.setView(SABANETA_CENTER, 14);
+            }
+          }, 200);
+        }
+      }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+
+      document.getElementById('ubicacion-buscar')?.addEventListener('click', async () => {
+        const dir = (inDir.value || '').trim();
+        if (!dir) {
+          alert('Escribe una dirección para buscarla en el mapa.');
+          return;
+        }
+        const q = dir.toLowerCase().includes('sabaneta') ? dir : `${dir}, Sabaneta, Antioquia`;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+          const data = await res.json();
+          if (data && data.length) {
+            const lat = parseFloat(data[0].lat);
+            const lon = parseFloat(data[0].lon);
+            fijarPunto(lat, lon, false);
+            miniMapa.setView([lat, lon], 17);
+          } else {
+            alert('No se encontraron coordenadas para esa dirección. Selecciona la posición directamente en el mapa.');
+          }
+        } catch (e) {
+          console.warn('Búsqueda fallida', e);
+        }
+      });
+    })();
+
+    // ================================================================
+    // SUBSISTEMA DE FILTROS EN TABLA DE ADMINISTRACIÓN
+    // ================================================================
+    (function () {
+      'use strict';
+      if (window.__adminFiltros) return;
+      window.__adminFiltros = true;
+
+      const tabla = document.querySelector('.admin-table');
+      const tbody = document.getElementById('admin-tabla-body');
+      const contenedorTabla = document.querySelector('.admin-table-wrap');
+
+      if (!tabla || !tbody || !contenedorTabla) return;
+
+      function norm(texto) {
+        return String(texto ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+      }
+
+      const barra = document.createElement('section');
+      barra.className = 'admin-filtros';
+      barra.innerHTML = `
+        <div class="admin-filtros__cabecera">
+          <h3 class="admin-filtros__titulo">Filtrar instituciones</h3>
+          <div class="admin-filtros__cabecera-der">
+            <span class="admin-filtros__contador" id="filtros-contador"></span>
+          </div>
+        </div>
+        <div class="admin-filtros__grid">
+          <label class="admin-filtros__campo">
+            <span>Buscar</span>
+            <input type="search" id="filtro-texto" class="admin-filtros__input" placeholder="Nombre o dirección…" autocomplete="off" />
+          </label>
+          <label class="admin-filtros__campo">
+            <span>Tipo</span>
+            <select id="filtro-tipo" class="admin-filtros__select">
+              <option value="">Todos</option>
+              <option value="colegio">Colegio</option>
+              <option value="universidad">Universidad</option>
+            </select>
+          </label>
+          <label class="admin-filtros__campo">
+            <span>Sector</span>
+            <select id="filtro-sector" class="admin-filtros__select">
+              <option value="">Todos</option>
+              <option value="publico">Público</option>
+              <option value="privado">Privado</option>
+            </select>
+          </label>
+          <label class="admin-filtros__campo">
+            <span>Estrato</span>
+            <select id="filtro-estrato" class="admin-filtros__select">
+              <option value="">Todos</option>
+              <option value="1">Estrato 1</option>
+              <option value="2">Estrato 2</option>
+              <option value="3">Estrato 3</option>
+              <option value="4">Estrato 4</option>
+              <option value="5">Estrato 5</option>
+              <option value="6">Estrato 6</option>
+            </select>
+          </label>
+          <button type="button" id="filtros-limpiar" class="admin-filtros__limpiar">Limpiar filtros</button>
+        </div>
+      `;
+      contenedorTabla.parentNode.insertBefore(barra, contenedorTabla);
+
+      const $texto = barra.querySelector('#filtro-texto');
+      const $tipo = barra.querySelector('#filtro-tipo');
+      const $sector = barra.querySelector('#filtro-sector');
+      const $estrato = barra.querySelector('#filtro-estrato');
+      const $limpiar = barra.querySelector('#filtros-limpiar');
+      const $contador = barra.querySelector('#filtros-contador');
+
+      function aplicarFiltros() {
+        const texto = norm($texto.value);
+        const tipo = $tipo.value;
+        const sector = $sector.value;
+        const estrato = $estrato.value;
+
+        const filas = Array.from(tbody.rows).filter(r => !r.querySelector('.admin-table__vacio'));
+        let visibles = 0;
+
+        filas.forEach((fila) => {
+          const nNombre = norm(fila.cells[0]?.textContent);
+          const nTipo = norm(fila.cells[1]?.textContent);
+          const nSector = norm(fila.cells[2]?.textContent);
+          const nDireccion = norm(fila.cells[3]?.textContent);
+          const nEstrato = norm(fila.cells[4]?.textContent);
+
+          const matchT = !texto || nNombre.includes(texto) || nDireccion.includes(texto);
+          const matchTipo = !tipo || nTipo === tipo;
+          const matchSec = !sector || nSector === sector;
+          const matchEst = !estrato || nEstrato === estrato;
+
+          const mostrar = matchT && matchTipo && matchSec && matchEst;
+          fila.hidden = !mostrar;
+          if (mostrar) visibles++;
+        });
+
+        $contador.innerHTML = `Mostrando <b>${visibles}</b> de ${filas.length}`;
+        $limpiar.disabled = !(texto || tipo || sector || estrato);
+      }
+
+      [$texto, $tipo, $sector, $estrato].forEach(el => {
+        el.addEventListener(el === $texto ? 'input' : 'change', aplicarFiltros);
+      });
+
+      $limpiar.addEventListener('click', () => {
+        $texto.value = ''; $tipo.value = ''; $sector.value = ''; $estrato.value = '';
+        aplicarFiltros();
+      });
+
+      new MutationObserver(aplicarFiltros).observe(tbody, { childList: true });
+    })();
+
+    // ================================================================
+    // CONFIRMACIÓN AL CERRAR SESIÓN
+    // ================================================================
+    (function () {
+      'use strict';
+      if (window.__adminConfirmarSalida) return;
+      window.__adminConfirmarSalida = true;
+
+      document.getElementById('btn-cerrar-sesion')?.addEventListener('click', async (e) => {
+        if (e.target.dataset.confirmado === '1') {
+          delete e.target.dataset.confirmado;
           return;
         }
 
-        const lat = parseFloat(resultados[0].lat);
-        const lng = parseFloat(resultados[0].lon);
-        fijarPunto(lat, lng, { escribir: true, centrar: true });
-        ayuda('Ubicación aproximada encontrada. Arrastra el marcador si necesitas afinarla.', 'ok');
-      } catch (error) {
-        console.warn('[admin-ubicacion] Falló la búsqueda de dirección:', error);
-        ayuda('No se pudo buscar la dirección ahora. Ubícala haciendo clic en el mapa.', 'aviso');
-      } finally {
-        $buscar.disabled = false;
-        $buscar.textContent = 'Buscar dirección';
-      }
-    });
-
-    ayuda(AYUDA_BASE);
-  })();
-
-  // ================================================================
-  // Botón Ampliar / Reducir en los mapas del panel
-  // ================================================================
-  (function () {
-    'use strict';
-    if (window.__adminMapasAmpliar) return;   // evita ejecutarse dos veces
-    window.__adminMapasAmpliar = true;
-
-    if (typeof L === 'undefined' || !L.Map || typeof L.Map.addInitHook !== 'function') {
-      console.warn('[admin-mapas-ampliar] Leaflet no está cargado; carga este script después de leaflet.js.');
-      return;
-    }
-
-    const IDS_AMPLIABLES = new Set(['admin-map', 'ubicacion-mapa']);
-
-    const ICONO_AMPLIAR = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
-    const ICONO_REDUCIR = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
-
-    // ----------------------------------------------------------------
-    // Estilos
-    // ----------------------------------------------------------------
-  
-
-    // ----------------------------------------------------------------
-    // Estado: solo un mapa puede estar ampliado a la vez
-    // ----------------------------------------------------------------
-    let activo = null;   // { map, cont, hueco, fondo, boton, cinta }
-
-    function pintarBoton(boton, ampliado) {
-      boton.innerHTML = (ampliado ? ICONO_REDUCIR : ICONO_AMPLIAR)
-        + `<span>${ampliado ? 'Reducir' : 'Ampliar'}</span>`;
-      boton.title = ampliado ? 'Reducir el mapa (Esc)' : 'Ampliar el mapa';
-      boton.setAttribute('aria-label', boton.title);
-      boton.setAttribute('aria-pressed', String(ampliado));
-    }
-
-    function refrescarTamano(map) {
-      requestAnimationFrame(() => {
-        map.invalidateSize();
-        setTimeout(() => map.invalidateSize(), 120);
-      });
-    }
-
-    function ampliar(estado) {
-      if (activo) reducir();
-      const { map, cont, boton, cinta } = estado;
-
-      // Se deja un hueco del mismo alto para que la página no «salte».
-      const hueco = document.createElement('div');
-      hueco.className = 'mapa-ampliar__hueco';
-      hueco.style.height = `${cont.getBoundingClientRect().height}px`;
-      cont.parentNode.insertBefore(hueco, cont);
-
-      const fondo = document.createElement('div');
-      fondo.className = 'mapa-ampliar__fondo';
-      fondo.addEventListener('click', reducir);
-
-      // El mapa se mueve a <body> para quedar por encima de cualquier modal.
-      document.body.appendChild(fondo);
-      document.body.appendChild(cont);
-      cont.classList.add('mapa-ampliado');
-      document.body.classList.add('mapa-ampliado-activo');
-
-      pintarBoton(boton, true);
-      if (cinta) cinta.hidden = false;
-
-      activo = { map, cont, hueco, fondo, boton, cinta };
-      refrescarTamano(map);
-    }
-
-    function reducir() {
-      if (!activo) return;
-      const { map, cont, hueco, fondo, boton, cinta } = activo;
-      activo = null;
-
-      cont.classList.remove('mapa-ampliado');
-      document.body.classList.remove('mapa-ampliado-activo');
-
-      if (hueco.parentNode) {
-        hueco.parentNode.insertBefore(cont, hueco);
-        hueco.remove();
-      }
-      fondo.remove();
-
-      pintarBoton(boton, false);
-      if (cinta) cinta.hidden = true;
-      refrescarTamano(map);
-    }
-
-    // Esc reduce el mapa (antes de que el modal reaccione a la misma tecla).
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && activo) {
-        e.stopPropagation();
         e.preventDefault();
-        reducir();
-      }
-    }, true);
+        e.stopPropagation();
 
-    // ----------------------------------------------------------------
-    // Cinta de coordenadas en vivo (copia lo que muestra el panel lateral)
-    // ----------------------------------------------------------------
-    function crearCinta(map, cont) {
-      if (!document.getElementById('readout-value-1')) return null;
-
-      const cinta = document.createElement('div');
-      cinta.className = 'mapa-ampliar__coords';
-      cinta.hidden = true;
-      cinta.textContent = 'Mueve el cursor sobre el mapa';
-      cont.appendChild(cinta);
-
-      const texto = (id) => (document.getElementById(id)?.textContent || '').trim();
-
-      map.on('mousemove', () => {
-        if (!activo || activo.map !== map) return;
-        // Se lee un instante después, cuando el panel ya actualizó sus valores.
-        requestAnimationFrame(() => {
-          cinta.textContent = `${texto('readout-system')}   ${texto('readout-label-1')}: ${texto('readout-value-1')}   ${texto('readout-label-2')}: ${texto('readout-value-2')}`;
-        });
-      });
-
-      return cinta;
-    }
-
-    // ----------------------------------------------------------------
-    // Control del mapa
-    // ----------------------------------------------------------------
-    function agregarControl(map) {
-      if (map._mapaAmpliarListo) return;
-      map._mapaAmpliarListo = true;
-
-      const cont = map.getContainer();
-      // La cinta de coordenadas solo tiene sentido en el mapa del panel (el único con lectura en vivo).
-      const cinta = cont.id === 'admin-map' ? crearCinta(map, cont) : null;
-
-      const Control = L.Control.extend({
-        options: { position: 'topright' },
-        onAdd() {
-          const caja = L.DomUtil.create('div', 'leaflet-bar mapa-ampliar');
-          const boton = L.DomUtil.create('a', 'mapa-ampliar__btn', caja);
-          boton.href = '#';
-          boton.setAttribute('role', 'button');
-          pintarBoton(boton, false);
-
-          L.DomEvent.disableClickPropagation(caja);
-          L.DomEvent.disableScrollPropagation(caja);
-          L.DomEvent.on(boton, 'click', (e) => {
-            L.DomEvent.preventDefault(e);
-            const estado = { map, cont, boton, cinta };
-            if (activo && activo.map === map) reducir();
-            else ampliar(estado);
-          });
-          return caja;
-        },
-      });
-
-      new Control().addTo(map);
-    }
-
-    // Cualquier mapa que se cree a partir de ahora con uno de esos ids.
-    L.Map.addInitHook(function () {
-      const cont = this.getContainer();
-      if (cont && IDS_AMPLIABLES.has(cont.id)) agregarControl(this);
-    });
-
-    // Respaldo: si el mapa del panel ya se había creado antes de cargar este script.
-    if (typeof adminMap !== 'undefined' && adminMap && adminMap.getContainer) agregarControl(adminMap);
-  })();
-
-  // ================================================================
-  // Confirmación antes de cerrar sesión
-  // ================================================================
-  (function () {
-    'use strict';
-    if (window.__adminConfirmarSalida) return;   // evita ejecutarse dos veces
-    window.__adminConfirmarSalida = true;
-
-    const ID_BOTON = 'btn-cerrar-sesion';
-
-    // ----------------------------------------------------------------
-    // Estilos
-    // ----------------------------------------------------------------
-  
-
-    // ----------------------------------------------------------------
-    // Cuadro de confirmación (devuelve una promesa: true = confirmó)
-    // ----------------------------------------------------------------
-    let abierto = false;
-
-    function pedirConfirmacion() {
-      return new Promise((resolve) => {
-        abierto = true;
-        const previo = document.activeElement;
-
-        const fondo = document.createElement('div');
-        fondo.className = 'confirmar-salida';
-        fondo.innerHTML = `
-          <div class="confirmar-salida__caja" role="alertdialog" aria-modal="true"
-               aria-labelledby="confirmar-salida-titulo" aria-describedby="confirmar-salida-texto">
-            <div class="confirmar-salida__icono" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            </div>
-            <h2 class="confirmar-salida__titulo" id="confirmar-salida-titulo">¿Cerrar sesión?</h2>
-            <p class="confirmar-salida__texto" id="confirmar-salida-texto">
-              Saldrás del panel de administración. Para volver a entrar tendrás que ingresar tu correo y contraseña.
-            </p>
+        const backdrop = document.createElement('div');
+        backdrop.className = 'confirmar-salida';
+        backdrop.innerHTML = `
+          <div class="confirmar-salida__caja">
+            <div class="confirmar-salida__icono">⚠</div>
+            <h3 class="confirmar-salida__titulo">¿Cerrar sesión?</h3>
+            <p class="confirmar-salida__texto">Saldrás del panel de administración del Visor Geográfico de Sabaneta.</p>
             <div class="confirmar-salida__acciones">
-              <button type="button" class="confirmar-salida__btn confirmar-salida__btn--cancelar" data-accion="cancelar">Cancelar</button>
-              <button type="button" class="confirmar-salida__btn confirmar-salida__btn--confirmar" data-accion="confirmar">Sí, cerrar sesión</button>
+              <button class="confirmar-salida__btn confirmar-salida__btn--cancelar" id="btn-cancel-logout">Cancelar</button>
+              <button class="confirmar-salida__btn confirmar-salida__btn--confirmar" id="btn-ok-logout">Sí, salir</button>
             </div>
-          </div>`;
-        document.body.appendChild(fondo);
+          </div>
+        `;
+        document.body.appendChild(backdrop);
 
-        const botones = Array.from(fondo.querySelectorAll('button'));
-        botones[0].focus();   // «Cancelar» por defecto
-
-        function cerrar(resultado) {
-          document.removeEventListener('keydown', alTeclear, true);
-          fondo.remove();
-          abierto = false;
-          if (previo && typeof previo.focus === 'function') previo.focus();
-          resolve(resultado);
-        }
-
-        function alTeclear(e) {
-          if (e.key === 'Escape') {
-            e.stopPropagation();
-            e.preventDefault();
-            cerrar(false);
-          } else if (e.key === 'Tab') {
-            // El foco se queda dentro del cuadro.
-            const i = botones.indexOf(document.activeElement);
-            const siguiente = e.shiftKey ? (i <= 0 ? botones.length - 1 : i - 1) : (i + 1) % botones.length;
-            e.preventDefault();
-            botones[siguiente].focus();
-          }
-        }
-        document.addEventListener('keydown', alTeclear, true);
-
-        fondo.addEventListener('click', (e) => {
-          if (e.target === fondo) cerrar(false);                       // clic fuera del cuadro
-          else if (e.target.dataset.accion === 'cancelar') cerrar(false);
-          else if (e.target.dataset.accion === 'confirmar') cerrar(true);
-        });
-      });
-    }
-
-    // ----------------------------------------------------------------
-    // Interceptar el botón «Cerrar sesión»
-    // ----------------------------------------------------------------
-    document.addEventListener('click', async (e) => {
-      const boton = e.target.closest && e.target.closest('#' + ID_BOTON);
-      if (!boton) return;
-
-      // Segundo paso: el administrador ya confirmó, se deja pasar el clic.
-      if (boton.dataset.salidaConfirmada === '1') {
-        delete boton.dataset.salidaConfirmada;
-        return;
-      }
-
-      // Se detiene el clic original hasta que se confirme.
-      e.stopPropagation();
-      e.preventDefault();
-      if (abierto) return;
-
-      const confirmado = await pedirConfirmacion();
-      if (confirmado) {
-        boton.dataset.salidaConfirmada = '1';
-        boton.click();
-      }
-    }, true);
-  })();
+        document.getElementById('btn-cancel-logout').onclick = () => backdrop.remove();
+        document.getElementById('btn-ok-logout').onclick = () => {
+          backdrop.remove();
+          const btn = document.getElementById('btn-cerrar-sesion');
+          btn.dataset.confirmado = '1';
+          btn.click();
+        };
+      }, true);
+    })();
   </script>
 
-<script src="js/herramientas-mapa.js"></script>
-<script src="js/analisis-cobertura.js"></script>
-<script src="js/comparador-instituciones.js"></script>
+  <!-- SCRIPT ADICIONAL DE ADMINISTRACIÓN -->
+  <script src="js/admin.js"></script>
 </body>
 </html>

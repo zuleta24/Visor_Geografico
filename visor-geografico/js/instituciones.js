@@ -1,7 +1,7 @@
 /**
  * instituciones.js
  * ------------------------------------------------------------------
- * Carga instituciones educativas desde fuentes de Supabase y OpenStreetMap.
+ * Carga las instituciones educativas desde Supabase (tabla instituciones_educativas).
  * Gestiona capas, duplicados, modal de detalles, enrutamiento y sistema de opiniones.
  * ------------------------------------------------------------------
  */
@@ -13,7 +13,6 @@ const CATEGORIAS_INSTITUCIONES = [
   { key: 'colegio-publico',      label: 'Colegios públicos',                color: '#3b82f6', source: 'oficial', tipo: 'colegio',     sector: 'publico' },
   { key: 'colegio-privado',      label: 'Colegios privados',                color: '#f97316', source: 'oficial', tipo: 'colegio',     sector: 'privado' },
   { key: 'universidad-privado',  label: 'Universidades privadas',           color: '#a855f7', source: 'oficial', tipo: 'universidad', sector: 'privado' },
-  { key: 'osm-colegios-basico',  label: 'Colegios (OSM · consulta básica)', color: '#eab308', source: 'capa1' },
 ];
 
 const ESTILO_LIMITE_SABANETA = { 
@@ -43,35 +42,6 @@ let controlRuta = null;
 // ==========================================
 function categoriaKeyDe(props) {
   return `${props.tipo}-${props.sector}`;
-}
-
-function normalizarNombre(nombre) {
-  return (nombre || '')
-    .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/\b(i\.?e\.?|institucion educativa|colegio|instituto|gimnasio)\b/g, '')
-    .replace(/[^a-z0-9\s]/g, '')
-    .split(/\s+/)
-    .filter((w) => w.length > 2 && !['de', 'la', 'el', 'los', 'las', 'del'].includes(w));
-}
-
-function esDuplicado(nombreA, nombreB) {
-  const tokensA = normalizarNombre(nombreA);
-  const tokensB = normalizarNombre(nombreB);
-  
-  if (tokensA.length === 0 || tokensB.length === 0) return false;
-  
-  const setA = new Set(tokensA);
-  const comunes = tokensB.filter((t) => setA.has(t));
-  const minLen = Math.min(tokensA.length, tokensB.length);
-  
-  return (comunes.length / minLen) >= 0.6;
-}
-
-function quitarDuplicados(features, nombresOficiales) {
-  return features.filter(
-    (f) => !nombresOficiales.some((nombreOficial) => esDuplicado(f.properties.nombre, nombreOficial))
-  );
 }
 
 function generarEstrellasHtml(calificacion, numOpiniones, localId) {
@@ -642,35 +612,14 @@ async function initInstitucionesLayer(mapaLocal, grupoInstituciones) {
     return;
   }
 
-  const [
-    featuresOficial,
-    featuresCapa1Raw,
-    featuresCapa2Raw
-  ] = await Promise.all([
-    fetchFeatures('instituciones_educativas'),
-    fetchFeatures('capa1_colegios_geojson'),
-    fetchFeatures('capa2_colegios_detalle_geojson')
-  ]);
-
-  const nombresOficiales = featuresOficial.map((feature) => feature.properties.nombre);
-
-  const featuresCapa1 = quitarDuplicados(featuresCapa1Raw, nombresOficiales);
-  const featuresCapa2 = quitarDuplicados(featuresCapa2Raw, nombresOficiales);
+  const featuresOficial = await fetchFeatures('instituciones_educativas');
 
   let totalGeneral = 0;
 
   CATEGORIAS_INSTITUCIONES.forEach((cat) => {
-    let featuresCategoria = [];
-
-    if (cat.source === 'oficial') {
-      featuresCategoria = featuresOficial.filter(
-        (feature) => categoriaKeyDe(feature.properties) === cat.key
-      );
-    } else if (cat.source === 'capa1') {
-      featuresCategoria = featuresCapa1;
-    } else if (cat.source === 'capa2') {
-      featuresCategoria = featuresCapa2;
-    }
+    const featuresCategoria = featuresOficial.filter(
+      (feature) => categoriaKeyDe(feature.properties) === cat.key
+    );
 
     totalGeneral += crearCapaInstitucion(
       featuresCategoria,
@@ -686,3 +635,95 @@ async function initInstitucionesLayer(mapaLocal, grupoInstituciones) {
 
   await initLimiteMunicipal(mapaLocal);
 }
+
+/**
+ * Lógica de Calificación y Opiniones para Instituciones
+ */
+(function() {
+  let instSeleccionadaId = null;
+  let valorCalificacion = 0;
+
+  // Abrir modal de opinión directo sobre el detalle de la institución
+  window.abrirModalOpinion = function(id, nombre) {
+    instSeleccionadaId = id;
+    valorCalificacion = 0;
+
+    const $modal = document.getElementById('modal-calificacion');
+    const $nombre = document.getElementById('calificacion-nombre-inst');
+    const $textarea = document.getElementById('texto-opinion');
+
+    if ($nombre) $nombre.textContent = nombre;
+    if ($textarea) $textarea.value = '';
+
+    // Resetear estrellas
+    document.querySelectorAll('#contenedor-estrellas span').forEach(s => s.classList.remove('active'));
+
+    if ($modal) $modal.classList.add('is-active');
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const $modal = document.getElementById('modal-calificacion');
+    const $btnCerrar = document.getElementById('btn-cerrar-calificacion');
+    const $btnEnviar = document.getElementById('btn-enviar-opinion');
+    const $estrellas = document.querySelectorAll('#contenedor-estrellas span');
+
+    // Cerrar modal
+    if ($btnCerrar) {
+      $btnCerrar.addEventListener('click', () => {
+        if ($modal) $modal.classList.remove('is-active');
+      });
+    }
+
+    // Selección de estrellas
+    $estrellas.forEach(star => {
+      star.addEventListener('click', () => {
+        valorCalificacion = parseInt(star.dataset.star, 10);
+        $estrellas.forEach(s => {
+          const val = parseInt(s.dataset.star, 10);
+          s.classList.toggle('active', val <= valorCalificacion);
+        });
+      });
+    });
+
+    // Guardar opinión en Supabase
+    if ($btnEnviar) {
+      $btnEnviar.addEventListener('click', async () => {
+        if (!instSeleccionadaId) return;
+        if (valorCalificacion === 0) {
+          alert('Por favor selecciona al menos 1 estrella para calificar.');
+          return;
+        }
+
+        const comentario = document.getElementById('texto-opinion').value.trim();
+        const client = (typeof window.supabaseClient !== 'undefined') ? window.supabaseClient : null;
+
+        if (!client) {
+          alert('Error de conexión con la base de datos.');
+          return;
+        }
+
+        try {
+          const { error } = await client.from('opiniones').insert([
+            {
+              institucion_id: instSeleccionadaId,
+              calificacion: valorCalificacion,
+              comentario: comentario
+            }
+          ]);
+
+          if (error) throw error;
+
+          alert('¡Muchas gracias! Tu opinión ha sido guardada exitosamente.');
+          if ($modal) $modal.classList.remove('is-active');
+
+          // Notificar actualización general de datos
+          document.dispatchEvent(new CustomEvent('opiniones:actualizadas'));
+
+        } catch (err) {
+          console.error('Error al guardar opinión:', err);
+          alert('No se pudo guardar la opinión. Inténtalo nuevamente.');
+        }
+      });
+    }
+  });
+})();
