@@ -19,22 +19,8 @@
   <style>
     body:not(.admin-body) { overflow-x: hidden; overflow-y: auto; }
 
-    /* Logo e identidad en la barra superior */
-    .top-navbar__brand {
-      display: flex !important;
-      align-items: center !important;
-      gap: 10px !important;
-      text-decoration: none !important;
-      color: #ffffff !important;
-      font-weight: 700;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .top-navbar__brand svg {
-      flex-shrink: 0;
-      border-radius: 4px;
-    }
+    /* El nombre de la barra es solo un rótulo: no es clicable */
+    .top-navbar__brand { cursor: default; user-select: none; }
 
     /* Pestaña activa con resaltado amarillo */
     .top-navbar__links a[aria-current="page"] {
@@ -65,7 +51,7 @@
       display: flex !important;
     }
 
-    /* Es un <dialog> modal: se muestra en la «capa superior» del navegador */
+    /* Es un <dialog> modal: se muestra en la «capa superior» del navegador y queda por encima de cualquier ficha, ventana o mapa ampliado. */
     dialog.calificar-modal-backdrop {
       margin: 0 !important;
       padding: 0 !important;
@@ -151,7 +137,10 @@
       background: #7bc755 !important;
     }
 
-    /* Directoriode instituciones educativas (ventana «Instituciones») */
+
+    /* ============================================================
+       Directorio de instituciones educativas (ventana «Instituciones»)
+       ============================================================ */
     #informe-modal { padding: 28px 20px; }
     #informe-modal .institucion-modal__backdrop { background: rgba(3, 10, 6, 0.82); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
     #informe-modal .informe-modal__panel {
@@ -261,6 +250,277 @@
     .faq__answer a:hover { filter: brightness(1.15); }
     .faq__answer a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
     @media (max-width: 760px) { .faq { padding: 48px 16px 56px; } .faq__question { padding: 14px; font-size: 14px; } .faq__answer { padding: 0 14px 16px 29px; } }
+
+    /* ================================================================
+       PIE DE PÁGINA
+       ================================================================ */
+    .site-footer {
+      position: relative;
+      color: var(--text-secondary);
+      background:
+        radial-gradient(900px 340px at 12% -10%, rgba(105, 181, 68, 0.20), transparent 70%),
+        radial-gradient(700px 320px at 95% 0%, rgba(245, 195, 36, 0.10), transparent 70%),
+        linear-gradient(180deg, #08200f 0%, #061509 100%);
+      border-top: 1px solid var(--border-subtle);
+      font-size: 14px;
+      line-height: 1.6;
+      overflow: hidden;
+    }
+    .site-footer :where(a) { color: inherit; text-decoration: none; }
+    .site-footer__franja {
+      height: 4px;
+      background: linear-gradient(90deg, var(--sab-verde) 0%, var(--sab-verde-medio) 35%, var(--sab-lima) 70%, var(--sab-amarillo) 100%);
+    }
+    .sf-inner { max-width: 1240px; margin: 0 auto; padding: 56px 28px 24px; }
+
+    /* Bloque de llamada a la acción */
+    .sf-cta {
+      display: flex; align-items: center; justify-content: space-between; gap: 28px;
+      padding: 28px 32px; margin-bottom: 28px;
+      border-radius: 20px;
+      border: 1px solid rgba(105, 181, 68, 0.35);
+      background: linear-gradient(110deg, rgba(12, 100, 52, 0.85), rgba(105, 181, 68, 0.22));
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    }
+    .sf-eyebrow { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--sab-lima); }
+    .sf-cta h2 { margin: 0 0 6px; font-size: clamp(20px, 2.6vw, 28px); font-weight: 800; line-height: 1.2; color: #fff; }
+    .sf-cta p { margin: 0; max-width: 560px; color: #cfe3c8; }
+    .sf-cta__acciones { display: flex; flex-wrap: wrap; gap: 10px; flex: none; }
+    .sf-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 18px; border-radius: 999px;
+      font: inherit; font-weight: 700; font-size: 14px; color: #fff; cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.08);
+      transition: transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .sf-btn:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.6); }
+    .sf-btn--primario { color: #08210f; background: linear-gradient(135deg, var(--sab-lima), var(--sab-verde)); border-color: transparent; box-shadow: 0 8px 22px rgba(105, 181, 68, 0.35); }
+    .sf-btn--primario:hover { background: linear-gradient(135deg, #e3ea4e, #7ccb52); border-color: transparent; box-shadow: 0 12px 28px rgba(105, 181, 68, 0.5); }
+    .sf-btn svg { width: 16px; height: 16px; flex: none; }
+    .sf-btn:focus-visible, .sf-col a:focus-visible, .sf-chip:focus-visible, .sf-subir:focus-visible, .sf-summary:focus-visible { outline: 2px solid var(--sab-amarillo); outline-offset: 2px; }
+
+    /* Cifras en vivo */
+    .sf-stats { list-style: none; margin: 0 0 8px; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .sf-stat {
+      position: relative; padding: 18px 18px 16px; border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle);
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+      overflow: hidden;
+    }
+    .sf-stat::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--sf-color, var(--sab-verde)); }
+    .sf-stat:hover { transform: translateY(-3px); border-color: var(--sf-color, var(--sab-verde)); background: rgba(255, 255, 255, 0.07); }
+    .sf-stat strong { display: block; font-size: 34px; font-weight: 800; line-height: 1.1; color: #fff; font-variant-numeric: tabular-nums; }
+    .sf-stat span { display: block; margin-top: 2px; font-size: 13px; color: var(--text-secondary); }
+    .sf-stats__nota { display: flex; align-items: center; gap: 8px; margin: 0 0 36px; font-size: 12px; color: #7f9a86; }
+    .sf-vivo { width: 8px; height: 8px; border-radius: 50%; background: var(--sab-verde); box-shadow: 0 0 0 0 rgba(105, 181, 68, .6); animation: sf-pulso 2s infinite; }
+    @keyframes sf-pulso { 70% { box-shadow: 0 0 0 9px rgba(105, 181, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(105, 181, 68, 0); } }
+
+    /* Rejilla de columnas */
+    .sf-grid { display: grid; grid-template-columns: 1.5fr 1fr 1.1fr 1fr 1.1fr; gap: 36px; padding-bottom: 36px; border-bottom: 1px solid var(--border-subtle); }
+    .sf-marca { display: flex; flex-direction: column; gap: 14px; }
+    .sf-marca__logo { display: flex; align-items: center; gap: 12px; color: #fff; font-size: 20px; font-weight: 800; letter-spacing: .01em; }
+    .sf-marca__logo::before { content: ""; width: 44px; height: 58px; flex: none; background: var(--escudo) center / contain no-repeat; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, .5)); }
+    .sf-marca p { margin: 0; max-width: 340px; }
+    .sf-marca__botones { display: flex; flex-wrap: wrap; gap: 8px; }
+    .sf-marca__botones .sf-btn { padding: 8px 14px; font-size: 13px; }
+    .sf-reloj { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; width: fit-content; border-radius: 12px; background: rgba(0, 0, 0, 0.28); border: 1px solid var(--border-subtle); font-size: 12px; }
+    .sf-reloj strong { font-family: var(--font-mono); font-size: 15px; color: var(--sab-amarillo); letter-spacing: .02em; }
+
+    .sf-col { min-width: 0; }
+    .sf-summary { list-style: none; display: flex; align-items: center; justify-content: space-between; margin: 0 0 14px; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #fff; cursor: default; }
+    .sf-summary::-webkit-details-marker { display: none; }
+    .sf-summary::after { content: ""; display: none; width: 8px; height: 8px; border-right: 2px solid var(--sab-lima); border-bottom: 2px solid var(--sab-lima); transform: rotate(45deg); transition: transform .2s ease; }
+    .sf-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+    .sf-col li a { position: relative; display: inline-block; padding: 3px 0; transition: color .15s ease, transform .15s ease; }
+    .sf-col li a::before { content: "›"; position: absolute; left: -12px; opacity: 0; color: var(--sab-lima); transition: opacity .15s ease, left .15s ease; }
+    .sf-col li a:hover { color: #fff; transform: translateX(10px); }
+    .sf-col li a:hover::before { opacity: 1; left: -12px; }
+    .sf-col li a[target="_blank"]::after { content: " ↗"; font-size: 11px; opacity: .6; }
+
+    /* Chips de capas y tecnologías */
+    .sf-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .sf-chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 6px 11px; border-radius: 999px; font: inherit; font-size: 12.5px; font-weight: 600; text-align: left;
+      color: var(--text-secondary); background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-subtle);
+      cursor: pointer; transition: all .16s ease;
+    }
+    .sf-chip i { width: 9px; height: 9px; border-radius: 50%; background: var(--sf-color, var(--sab-verde)); flex: none; opacity: .45; transition: opacity .16s ease, box-shadow .16s ease; }
+    .sf-chip:hover { color: #fff; border-color: var(--sab-verde-medio); transform: translateY(-1px); }
+    .sf-chip[aria-pressed="true"] { color: #fff; background: rgba(105, 181, 68, 0.2); border-color: var(--sab-verde); }
+    .sf-chip[aria-pressed="true"] i { opacity: 1; box-shadow: 0 0 8px var(--sf-color, var(--sab-verde)); }
+    .sf-chip--tec { cursor: pointer; }
+    .sf-ayuda { margin: 10px 0 0; font-size: 12px; color: #7f9a86; }
+    .sf-vacio { font-size: 12.5px; color: #7f9a86; }
+
+    /* Datos del territorio */
+    .sf-datos { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .sf-datos li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px dashed rgba(163, 187, 168, .2); font-size: 13px; }
+    .sf-datos li span:first-child { color: #7f9a86; }
+    .sf-datos li span:last-child { color: #fff; text-align: right; font-weight: 600; }
+    .sf-copiar { margin-top: 12px; padding: 8px 14px; font-size: 13px; }
+
+    /* Equipo */
+    .sf-equipo { padding: 30px 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; border-bottom: 1px solid var(--border-subtle); }
+    .sf-equipo__titulo { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #fff; }
+    .sf-equipo__titulo small { display: block; margin-top: 4px; font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; color: #7f9a86; }
+    .sf-avatar { width: 52px; height: 52px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 16px; font-weight: 800; color: #08210f; background: linear-gradient(135deg, var(--sab-lima), var(--sab-verde)); box-shadow: 0 6px 16px rgba(0, 0, 0, .35); }
+    .sf-card-contacto:nth-child(2) .sf-avatar { background: linear-gradient(135deg, var(--sab-amarillo), var(--sab-lima)); }
+    .sf-card-contacto:nth-child(3) .sf-avatar { background: linear-gradient(135deg, var(--sab-verde-medio), var(--sab-verde)); }
+
+    /* Contáctanos */
+    .sf-contacto { padding: 38px 0 40px; border-bottom: 1px solid var(--border-subtle); }
+    .sf-seccion-cab { margin-bottom: 22px; }
+    .sf-seccion-cab h3 { margin: 0; font-size: clamp(22px, 2.8vw, 30px); font-weight: 800; line-height: 1.2; color: #fff; }
+    .sf-seccion-cab p { margin: 6px 0 0; color: #a9c2a8; }
+    .sf-contactos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .sf-card-contacto {
+      display: flex; flex-direction: column; gap: 16px; padding: 22px; border-radius: 20px;
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+      border: 1px solid var(--border-subtle);
+      transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+    }
+    .sf-card-contacto:hover { transform: translateY(-5px); border-color: var(--sab-verde); box-shadow: 0 16px 34px rgba(0, 0, 0, 0.4); }
+    .sf-card-contacto__cab { display: flex; align-items: center; gap: 14px; }
+    .sf-card-contacto__cab strong { display: block; color: #fff; font-size: 17px; line-height: 1.25; }
+    .sf-card-contacto__cab span:not(.sf-avatar) { font-size: 12.5px; color: #7f9a86; }
+    .sf-tel { width: fit-content; font-family: var(--font-mono); font-size: 24px; font-weight: 700; letter-spacing: .02em; color: var(--sab-amarillo); transition: color .15s ease, transform .15s ease; }
+    .sf-tel:hover { color: #fff; transform: translateX(4px); }
+    .sf-card-contacto__acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+    .sf-mini {
+      display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 999px;
+      font: inherit; font-size: 12.5px; font-weight: 700; color: #fff; cursor: pointer;
+      background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.22);
+      transition: transform .16s ease, background .16s ease, border-color .16s ease, color .16s ease;
+    }
+    .sf-mini svg { width: 14px; height: 14px; flex: none; }
+    .sf-mini:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.16); border-color: #fff; }
+    .sf-mini--llamar { color: #08210f; background: var(--sab-lima); border-color: transparent; }
+    .sf-mini--llamar:hover { background: #e6ed4f; border-color: transparent; }
+    .sf-mini--wa { color: #fff; background: #1f9d55; border-color: transparent; }
+    .sf-mini--wa:hover { background: #25b866; border-color: transparent; }
+    .sf-mini:focus-visible { outline: 2px solid var(--sab-amarillo); outline-offset: 2px; }
+
+    /* Preguntas frecuentes (integradas al pie, mismo fondo) */
+    .site-footer .faq { background: transparent; border: 0; padding: 40px 0; border-bottom: 1px solid var(--border-subtle); }
+    .site-footer .faq__inner { max-width: none; margin: 0; display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 44px; align-items: start; }
+    .site-footer .faq__cabecera { position: sticky; top: 24px; }
+    .site-footer .faq__title { margin: 0 0 10px; font-size: clamp(22px, 2.8vw, 30px); font-weight: 800; line-height: 1.2; color: #fff; }
+    .site-footer .faq__intro { margin: 0 0 20px; font-size: 14px; line-height: 1.65; color: #a9c2a8; }
+    .site-footer .faq__list { gap: 12px; }
+    .site-footer .faq__item { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle); border-radius: 16px; transition: border-color .2s ease, background .2s ease, transform .2s ease; }
+    .site-footer .faq__item:hover { border-color: rgba(105, 181, 68, 0.6); transform: translateX(3px); }
+    .site-footer .faq__item[open] { background: rgba(105, 181, 68, 0.10); border-color: var(--sab-verde); }
+    .site-footer .faq__question { padding: 18px 20px; font-size: 15px; color: #fff; }
+    .site-footer .faq__question::before { background: var(--sab-lima); }
+    .site-footer .faq__chev { border-color: #a9c2a8; }
+    .site-footer .faq__item[open] .faq__chev { border-color: var(--sab-lima); }
+    .site-footer .faq__answer { padding: 0 20px 20px 35px; color: #cfe3c8; }
+    .site-footer .faq__answer a { color: var(--sab-lima); }
+    .site-footer .faq__contacto { width: fit-content; }
+
+    /* Preguntas frecuentes: buscador, categorías y "ver más" */
+    .site-footer .faq__cabecera { position: static; min-width: 0; }
+    .faq-buscar { position: relative; display: flex; align-items: center; margin: 0 0 12px; }
+    .faq-buscar svg { position: absolute; left: 14px; width: 18px; height: 18px; color: #7f9a86; pointer-events: none; }
+    .faq-buscar input {
+      width: 100%; height: 46px; padding: 0 44px; border-radius: 14px; font: inherit; font-size: 14px; color: #fff;
+      background: rgba(0, 0, 0, 0.32); border: 1px solid var(--border-subtle); outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .faq-buscar input::placeholder { color: #6f8f78; }
+    .faq-buscar input::-webkit-search-cancel-button { display: none; }
+    .faq-buscar input:focus { border-color: var(--sab-lima); box-shadow: 0 0 0 3px rgba(211, 217, 52, 0.18); }
+    .faq-limpiar { position: absolute; right: 8px; width: 30px; height: 30px; border: 0; border-radius: 50%; font-size: 18px; line-height: 1; color: #fff; background: rgba(255, 255, 255, 0.12); cursor: pointer; }
+    .faq-limpiar:hover { background: rgba(255, 255, 255, 0.22); }
+    .faq-rapidas { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 18px; font-size: 12px; color: #7f9a86; }
+    .faq-rapida { padding: 4px 10px; border-radius: 999px; font: inherit; font-size: 12px; color: #a9c2a8; background: transparent; border: 1px dashed rgba(163, 187, 168, 0.4); cursor: pointer; transition: color .15s ease, border-color .15s ease; }
+    .faq-rapida:hover { color: #fff; border-color: var(--sab-lima); }
+    .faq-cats { display: flex; flex-direction: column; gap: 4px; margin: 0 0 22px; }
+    .faq-cat {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; border-radius: 12px;
+      font: inherit; font-size: 14px; font-weight: 600; text-align: left; color: #cfe3c8; background: transparent;
+      border: 1px solid transparent; cursor: pointer; transition: background .15s ease, border-color .15s ease, color .15s ease;
+    }
+    .faq-cat i { width: 9px; height: 9px; flex: none; border-radius: 50%; background: var(--c, var(--sab-verde)); }
+    .faq-cat span { flex: 1; min-width: 0; }
+    .faq-cat b { min-width: 28px; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; text-align: center; color: #a9c2a8; background: rgba(255, 255, 255, 0.08); }
+    .faq-cat:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+    .faq-cat[aria-pressed="true"] { color: #fff; background: rgba(105, 181, 68, 0.16); border-color: var(--sab-verde); }
+    .faq-cat[aria-pressed="true"] b { color: #08210f; background: var(--sab-lima); }
+    .faq-cat:focus-visible, .faq-rapida:focus-visible, .faq-limpiar:focus-visible { outline: 2px solid var(--sab-amarillo); outline-offset: 2px; }
+    .faq-panel { min-width: 0; }
+    .faq-panel__cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
+    .faq-panel__cab h4 { margin: 0; font-size: 18px; font-weight: 800; color: #fff; }
+    .faq-panel__cab span { font-size: 12.5px; color: #7f9a86; }
+    .faq-mas { margin-top: 16px; }
+    .faq-vacio { padding: 32px 22px; border-radius: 16px; text-align: center; color: #a9c2a8; border: 1px dashed rgba(163, 187, 168, 0.35); }
+    .faq-vacio strong { display: block; margin-bottom: 6px; font-size: 16px; color: #fff; }
+    .faq-vacio .sf-btn { margin-top: 14px; }
+    .faq__etiqueta { flex: none; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #08210f; background: var(--c, var(--sab-verde)); }
+    .faq__question span.faq__texto { flex: 1; }
+    mark.faq-resalte { padding: 0 2px; border-radius: 3px; color: #fff; background: rgba(245, 195, 36, 0.38); }
+    @media (max-width: 1000px) {
+      .faq-cats { flex-direction: row; overflow-x: auto; gap: 8px; padding: 2px 0 8px; margin-bottom: 14px; scrollbar-width: thin; }
+      .faq-cat { width: auto; flex: none; white-space: nowrap; border-color: var(--border-subtle); }
+      .faq-cat span { flex: none; }
+
+      .site-footer .faq__contacto { display: none; }
+    }
+
+    /* Base del pie */
+    .sf-base { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; padding-top: 22px; font-size: 12.5px; color: #7f9a86; }
+    .sf-base p { margin: 0; }
+    .sf-base a:hover { color: #fff; }
+    .sf-base__der { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .sf-subir { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; font: inherit; font-size: 12.5px; font-weight: 700; color: #fff; background: rgba(255, 255, 255, 0.07); border: 1px solid var(--border-subtle); cursor: pointer; transition: all .18s ease; }
+    .sf-subir:hover { background: var(--sab-verde); border-color: var(--sab-verde); color: #08210f; transform: translateY(-2px); }
+    .sf-subir svg { width: 14px; height: 14px; }
+
+    /* Aviso breve al copiar */
+    .sf-toast { position: fixed; left: 50%; bottom: 26px; z-index: 3000; transform: translate(-50%, 20px); padding: 11px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 600; color: #08210f; background: var(--sab-lima); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease; }
+    .sf-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+    /* Aparición suave al hacer scroll */
+    .sf-reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+    .sf-reveal.is-in { opacity: 1; transform: none; }
+
+    @media (max-width: 1100px) {
+      .sf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sf-marca { grid-column: 1 / -1; }
+    }
+    @media (max-width: 1000px) {
+      .sf-contactos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .site-footer .faq__inner { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+      .site-footer .faq__cabecera { position: static; }
+    }
+    @media (max-width: 860px) {
+      .sf-inner { padding: 40px 16px 20px; }
+      .sf-cta { flex-direction: column; align-items: flex-start; padding: 22px 20px; }
+      .sf-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sf-stat strong { font-size: 28px; }
+    }
+    @media (max-width: 640px) {
+      .sf-contactos { grid-template-columns: minmax(0, 1fr); }
+      .sf-tel { font-size: 22px; }
+      .site-footer .faq { padding: 30px 0; }
+      .site-footer .faq__question { padding: 15px 16px; font-size: 14px; }
+      .site-footer .faq__answer { padding: 0 16px 18px 31px; }
+    }
+    @media (max-width: 760px) {
+      .sf-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+      .sf-marca { margin-bottom: 22px; }
+      .sf-col { border-top: 1px solid var(--border-subtle); padding: 14px 0; }
+      .sf-summary { margin: 0; padding: 4px 0; cursor: pointer; }
+      .sf-summary::after { display: block; }
+      .sf-col[open] .sf-summary { margin-bottom: 12px; }
+      .sf-col[open] .sf-summary::after { transform: rotate(-135deg); }
+      .sf-equipo, .sf-base { flex-direction: column; align-items: flex-start; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sf-reveal { opacity: 1; transform: none; transition: none; }
+      .sf-vivo { animation: none; }
+    }
   </style>
 </head>
 <body>
@@ -283,21 +543,13 @@
 
   <!-- NAVBAR SUPERIOR -->
   <nav class="top-navbar">
-    <a class="top-navbar__brand" href="index.html">
-      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="6" fill="#ffffff"/>
-        <path d="M16 4C10 4 6 7 6 13C6 21 16 28 16 28C16 28 26 21 26 13C26 7 22 4 16 4Z" fill="#0c6434"/>
-        <path d="M16 6C11.5 6 8.5 8.5 8.5 13.5C8.5 19.5 16 25.5 16 25.5C16 25.5 23.5 19.5 23.5 13.5C23.5 8.5 20.5 6 16 6Z" fill="#f5c324"/>
-        <path d="M16 9L18 13.5H23L19 16.5L20.5 21L16 18L11.5 21L13 16.5L9 13.5H14L16 9Z" fill="#0c6434"/>
-      </svg>
-      <span>Geovisor Sabaneta</span>
-    </a>
+    <div class="top-navbar__brand"><span>Geovisor Sabaneta</span></div>
     <div class="top-navbar__links">
-      <a href="index.html" id="btn-nav-inicio" aria-current="page">Inicio</a>
+      <a href="index.html#app" id="btn-nav-inicio" aria-current="page">Inicio</a>
       <a href="index.html#instituciones" id="btn-nav-instituciones">Instituciones</a>
-      <a href="comparador.html" id="btn-nav-comparador">Comparador &amp; Becas</a>
-      <a href="index.html#faq" id="btn-nav-faq">Preguntas frecuentes</a>
-      <a href="administracion.html" id="btn-nav-admin">Administración</a>
+      <a href="comparador.html">Comparador & Becas</a>
+      <a href="index.html#faq">Preguntas frecuentes</a>
+      <a href="administracion.html">Administración</a>
     </div>
   </nav>
 
@@ -384,32 +636,232 @@
     </div>
   </div>
 
-  <!-- PREGUNTAS FRECUENTES -->
-  <section class="faq" id="faq" aria-labelledby="faq-title">
-    <div class="faq__inner">
-      <span class="faq__eyebrow">Ayuda y trámites</span>
-      <h2 class="faq__title" id="faq-title">Preguntas frecuentes</h2>
-      <p class="faq__intro">Resolvemos las dudas más comunes sobre cupos, traslados, becas y beneficios para las instituciones educativas de Sabaneta.</p>
-      <div class="faq__list">
-        <details class="faq__item">
-          <summary class="faq__question"><span>¿Dónde puedo solicitar un cupo?</span><span class="faq__chev" aria-hidden="true"></span></summary>
-          <p class="faq__answer">Puedes realizar el trámite paso a paso ingresando directamente a la plataforma oficial en el siguiente enlace: <a href="https://micuenta.sabaneta.gov.co/" target="_blank" rel="noopener noreferrer">Mi Cuenta Sabaneta</a>, donde deberás iniciar sesión y seguir las instrucciones del sistema para la solicitud de cupos educativos.</p>
+  <!-- PIE DE PÁGINA -->
+  <footer class="site-footer" id="pie-pagina" aria-label="Información del Geovisor Sabaneta">
+    <div class="site-footer__franja" aria-hidden="true"></div>
+    <div class="sf-inner">
+
+      <!-- Llamada a la acción -->
+      <section class="sf-cta sf-reveal">
+        <div>
+          <span class="sf-eyebrow">Geovisor Sabaneta</span>
+          <h2>Encuentra la institución educativa ideal en Sabaneta</h2>
+          <p>Explora el mapa, consulta la ficha de cada colegio y universidad, compara opciones y conoce las becas disponibles.</p>
+        </div>
+        <div class="sf-cta__acciones">
+          <a class="sf-btn sf-btn--primario" href="index.html#app" data-sf-accion="mapa">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Abrir el mapa
+          </a>
+          <a class="sf-btn" href="comparador.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            Comparar instituciones
+          </a>
+        </div>
+      </section>
+
+      <!-- Cifras en vivo (se leen de las instituciones cargadas en el visor) -->
+      <ul class="sf-stats sf-reveal" aria-label="Cifras del geovisor">
+        <li class="sf-stat" style="--sf-color: var(--sab-verde)"><strong data-sf-cifra="total">–</strong><span>Instituciones en el visor</span></li>
+        <li class="sf-stat" style="--sf-color: #3b82f6"><strong data-sf-cifra="colegio-publico">–</strong><span>Colegios públicos</span></li>
+        <li class="sf-stat" style="--sf-color: #f97316"><strong data-sf-cifra="colegio-privado">–</strong><span>Colegios privados</span></li>
+        <li class="sf-stat" style="--sf-color: #a855f7"><strong data-sf-cifra="universidad">–</strong><span>Universidades</span></li>
+      </ul>
+      <p class="sf-stats__nota"><span class="sf-vivo" aria-hidden="true"></span><span id="sf-cifras-estado">Cifras tomadas en vivo de la base de datos del visor</span></p>
+
+      <!-- Columnas -->
+      <div class="sf-grid sf-reveal">
+        <div class="sf-marca">
+          <div class="sf-marca__logo">Geovisor Sabaneta</div>
+          <p>Visor geográfico público del municipio de Sabaneta, Antioquia: instituciones educativas, vías, viviendas y límite municipal en un solo mapa, con datos abiertos y siempre actualizados.</p>
+          <div class="sf-marca__botones">
+            <button type="button" class="sf-btn" id="sf-compartir">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+              Compartir el visor
+            </button>
+            <button type="button" class="sf-btn" id="sf-copiar-enlace">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copiar enlace
+            </button>
+          </div>
+          <div class="sf-reloj" title="Hora local de Sabaneta (Colombia)">
+            <span>Hora en Sabaneta</span><strong id="sf-hora">--:--</strong><span id="sf-fecha"></span>
+          </div>
+        </div>
+
+        <details class="sf-col" open>
+          <summary class="sf-summary">Explora</summary>
+          <ul>
+            <li><a href="index.html#app" data-sf-accion="mapa">Mapa e inicio</a></li>
+            <li><a href="index.html#instituciones" data-sf-accion="instituciones">Directorio de instituciones</a></li>
+            <li><a href="comparador.html">Comparador &amp; Becas</a></li>
+            <li><a href="#faq" data-sf-accion="faq">Preguntas frecuentes</a></li>
+            <li><a href="administracion.html">Administración</a></li>
+          </ul>
         </details>
-        <details class="faq__item">
-          <summary class="faq__question"><span>¿Dónde puedo solicitar mi traslado?</span><span class="faq__chev" aria-hidden="true"></span></summary>
-          <p class="faq__answer">El proceso se gestiona de manera virtual. Dirígete a la plataforma <a href="https://micuenta.sabaneta.gov.co/" target="_blank" rel="noopener noreferrer">Mi Cuenta Sabaneta</a>, accede con tus datos y sigue el paso a paso indicado para radicar la solicitud de traslado institucional.</p>
+
+        <details class="sf-col" open>
+          <summary class="sf-summary">Capas del mapa</summary>
+          <div class="sf-chips" id="sf-capas" role="group" aria-label="Activar o desactivar capas del mapa">
+            <span class="sf-vacio">Cargando capas…</span>
+          </div>
+          <p class="sf-ayuda">Toca una capa para mostrarla u ocultarla en el mapa.</p>
         </details>
-        <details class="faq__item">
-          <summary class="faq__question"><span>¿Dónde puedo saber información sobre becas?</span><span class="faq__chev" aria-hidden="true"></span></summary>
-          <p class="faq__answer">Para consultar la oferta, requisitos y convocatorias vigentes sobre becas, ingresa a nuestro apartado de <a href="comparador.html">Comparador & Becas</a> o acude a las instalaciones de la Alcaldía de Sabaneta.</p>
+
+        <details class="sf-col" open>
+          <summary class="sf-summary">Trámites y fuentes</summary>
+          <ul>
+            <li><a href="https://micuenta.sabaneta.gov.co/" target="_blank" rel="noopener noreferrer">Mi Cuenta Sabaneta</a></li>
+            <li><a href="https://sabaneta.gov.co/" target="_blank" rel="noopener noreferrer">Alcaldía de Sabaneta</a></li>
+            <li><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">Mapa base © OpenStreetMap</a></li>
+            <li><a href="https://geoportal.dane.gov.co/" target="_blank" rel="noopener noreferrer">DANE · Código DIVIPOLA</a></li>
+          </ul>
         </details>
-        <details class="faq__item">
-          <summary class="faq__question"><span>¿Hay algún beneficio o preferencia por ser persona con discapacidad o víctima del conflicto?</span><span class="faq__chev" aria-hidden="true"></span></summary>
-          <p class="faq__answer">Sí. El municipio cuenta con preferencias y enfoques diferenciales para personas en condición de discapacidad, con enfermedades o víctimas del conflicto armado. Durante el proceso digital o presencial del trámite, el formulario incluirá casillas y preguntas específicas para identificar tu condición y aplicar estos beneficios.</p>
+
+        <details class="sf-col" open>
+          <summary class="sf-summary">Datos del territorio</summary>
+          <ul class="sf-datos">
+            <li><span>Municipio</span><span>Sabaneta, Antioquia</span></li>
+            <li><span>Conocido como</span><span>Vallecito de Encanto</span></li>
+            <li><span>Código DIVIPOLA</span><span>05631</span></li>
+            <li><span>Referencia</span><span>WGS84 · EPSG:4326</span></li>
+            <li><span>Centro del mapa</span><span id="sf-centro">6.1515, -75.6165</span></li>
+          </ul>
+          <button type="button" class="sf-btn sf-copiar" id="sf-copiar-centro">Copiar coordenadas</button>
         </details>
       </div>
+
+      <!-- Contáctanos -->
+      <section class="sf-contacto sf-reveal" id="contacto" aria-labelledby="sf-contacto-titulo">
+        <div class="sf-seccion-cab">
+          <div>
+            <span class="sf-eyebrow">Escríbenos</span>
+            <h3 id="sf-contacto-titulo">Contáctanos</h3>
+            <p>Somos el equipo detrás del Geovisor Sabaneta. Llámanos o escríbenos por WhatsApp.</p>
+          </div>
+        </div>
+        <div class="sf-contactos">
+          <article class="sf-card-contacto">
+            <div class="sf-card-contacto__cab">
+              <span class="sf-avatar" aria-hidden="true">SZ</span>
+              <div><strong>Sebastián Zuleta</strong><span>Equipo del proyecto</span></div>
+            </div>
+            <a class="sf-tel" href="tel:+573046621223" aria-label="Llamar a Sebastián Zuleta">304 662 1223</a>
+            <div class="sf-card-contacto__acciones">
+              <a class="sf-mini sf-mini--llamar" href="tel:+573046621223">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
+                Llamar
+              </a>
+              <a class="sf-mini sf-mini--wa" href="https://wa.me/573046621223?text=Hola%2C%20te%20escribo%20desde%20el%20Geovisor%20Sabaneta." target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
+                WhatsApp
+              </a>
+              <button type="button" class="sf-mini" data-sf-copiar="3046621223" data-sf-copiado="Número de Sebastián copiado">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copiar
+              </button>
+            </div>
+          </article>
+          <article class="sf-card-contacto">
+            <div class="sf-card-contacto__cab">
+              <span class="sf-avatar" aria-hidden="true">AS</span>
+              <div><strong>Ana Sofía Sáenz</strong><span>Equipo del proyecto</span></div>
+            </div>
+            <a class="sf-tel" href="tel:+573052283997" aria-label="Llamar a Ana Sofía Sáenz">305 228 3997</a>
+            <div class="sf-card-contacto__acciones">
+              <a class="sf-mini sf-mini--llamar" href="tel:+573052283997">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
+                Llamar
+              </a>
+              <a class="sf-mini sf-mini--wa" href="https://wa.me/573052283997?text=Hola%2C%20te%20escribo%20desde%20el%20Geovisor%20Sabaneta." target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
+                WhatsApp
+              </a>
+              <button type="button" class="sf-mini" data-sf-copiar="3052283997" data-sf-copiado="Número de Ana copiado">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copiar
+              </button>
+            </div>
+          </article>
+          <article class="sf-card-contacto">
+            <div class="sf-card-contacto__cab">
+              <span class="sf-avatar" aria-hidden="true">JF</span>
+              <div><strong>Jacobo Flórez</strong><span>Equipo del proyecto</span></div>
+            </div>
+            <a class="sf-tel" href="tel:+573194168742" aria-label="Llamar a Jacobo Flórez">319 416 8742</a>
+            <div class="sf-card-contacto__acciones">
+              <a class="sf-mini sf-mini--llamar" href="tel:+573194168742">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
+                Llamar
+              </a>
+              <a class="sf-mini sf-mini--wa" href="https://wa.me/573194168742?text=Hola%2C%20te%20escribo%20desde%20el%20Geovisor%20Sabaneta." target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
+                WhatsApp
+              </a>
+              <button type="button" class="sf-mini" data-sf-copiar="3194168742" data-sf-copiado="Número de Jacobo copiado">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copiar
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Preguntas frecuentes -->
+      <section class="faq sf-reveal" id="faq" aria-labelledby="faq-title">
+        <div class="faq__inner">
+          <div class="faq__cabecera">
+            <span class="sf-eyebrow">Centro de ayuda</span>
+            <h3 class="faq__title" id="faq-title">Preguntas frecuentes</h3>
+            <p class="faq__intro"><strong id="faq-total">0</strong> respuestas sobre cómo usar el visor, qué puedes buscar y cómo funciona cada herramienta.</p>
+            <div class="faq-buscar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input type="search" id="faq-buscar" placeholder="Busca tu duda: ubicación, becas, coordenadas…" autocomplete="off" aria-label="Buscar en las preguntas frecuentes" />
+              <button type="button" class="faq-limpiar" id="faq-limpiar" aria-label="Borrar búsqueda" hidden>&times;</button>
+            </div>
+            <div class="faq-rapidas" id="faq-rapidas"><span>Prueba con:</span></div>
+            <div class="faq-cats" id="faq-cats" role="group" aria-label="Categorías de preguntas"></div>
+            <a class="sf-btn sf-btn--primario faq__contacto" href="#contacto" data-sf-accion="contacto">¿Otra duda? Contáctanos</a>
+          </div>
+          <div class="faq-panel">
+            <div class="faq-panel__cab">
+              <h4 id="faq-cat-titulo">Más consultadas</h4>
+              <span id="faq-resumen"></span>
+            </div>
+            <div class="faq__list" id="faq-lista" aria-live="polite"></div>
+            <button type="button" class="sf-btn faq-mas" id="faq-mas" hidden></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tecnologías -->
+      <div class="sf-equipo sf-reveal">
+        <div class="sf-equipo__titulo">Construido con<small>Software libre y servicios abiertos</small></div>
+        <div class="sf-chips">
+          <a class="sf-chip sf-chip--tec" href="https://leafletjs.com/" target="_blank" rel="noopener noreferrer" style="--sf-color:#69b544"><i></i>Leaflet</a>
+          <a class="sf-chip sf-chip--tec" href="https://supabase.com/" target="_blank" rel="noopener noreferrer" style="--sf-color:#3ecf8e"><i></i>Supabase</a>
+          <a class="sf-chip sf-chip--tec" href="https://postgis.net/" target="_blank" rel="noopener noreferrer" style="--sf-color:#4a90e2"><i></i>PostGIS</a>
+          <a class="sf-chip sf-chip--tec" href="https://gdal.org/" target="_blank" rel="noopener noreferrer" style="--sf-color:#f5c324"><i></i>GDAL</a>
+          <a class="sf-chip sf-chip--tec" href="https://proj4js.org/" target="_blank" rel="noopener noreferrer" style="--sf-color:#d3d934"><i></i>proj4js</a>
+          <a class="sf-chip sf-chip--tec" href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer" style="--sf-color:#8fc374"><i></i>OpenStreetMap</a>
+          <a class="sf-chip sf-chip--tec" href="https://vercel.com/" target="_blank" rel="noopener noreferrer" style="--sf-color:#ffffff"><i></i>Vercel</a>
+        </div>
+      </div>
+
+      <!-- Base -->
+      <div class="sf-base">
+        <p>© <span id="sf-anio">2026</span> Geovisor Sabaneta · Proyecto de Sistemas de Información Geográfica · Datos abiertos del municipio de Sabaneta.</p>
+        <div class="sf-base__der">
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">Mapa base © colaboradores de OpenStreetMap</a>
+          <button type="button" class="sf-subir" id="sf-subir">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
+            Volver arriba
+          </button>
+        </div>
+      </div>
     </div>
-  </section>
+    <div class="sf-toast" id="sf-toast" role="status" aria-live="polite"></div>
+  </footer>
 
   <!-- MODAL INDEPENDIENTE PARA CALIFICACIÓN Y OPINIÓN -->
   <dialog id="modal-calificacion" class="calificar-modal-backdrop" aria-labelledby="calificacion-titulo">
@@ -469,6 +921,94 @@
 
   <!-- CONTROLADOR PRINCIPAL Y DIRECCIONAMIENTO A GOOGLE MAPS -->
   <script>
+
+    // ================================================================
+    // AVISOS DE LA PÁGINA (reemplazan los alert() del navegador)
+    // avisoVisor({ tipo: 'ok' | 'error' | 'info', titulo, texto, ms })
+    // ================================================================
+    (function () {
+      var ICONOS = {
+        ok: '<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="av-c" cx="26" cy="26" r="23"/><path class="av-m" d="M15 27l8 8 15-17"/></svg>',
+        error: '<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="av-c" cx="26" cy="26" r="23"/><path class="av-m" d="M18 18l16 16M34 18L18 34"/></svg>',
+        info: '<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="av-c" cx="26" cy="26" r="23"/><path class="av-m" d="M26 23v13"/><circle class="av-p" cx="26" cy="16.5" r="2.2"/></svg>'
+      };
+      var actual = null, reloj = null;
+
+      function estilos() {
+        if (document.getElementById('aviso-visor-css')) return;
+        var st = document.createElement('style');
+        st.id = 'aviso-visor-css';
+        st.textContent =
+          '.aviso-visor{position:fixed;inset:0;width:100%;height:100%;margin:0;padding:16px;border:0;box-sizing:border-box;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(3,12,7,.58);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);color:#eef5ea;font-family:inherit;animation:av-fondo .2s ease-out}' +
+          '.aviso-visor:not(:popover-open):where([popover]){display:none}' +
+          '.aviso-visor__card{position:relative;width:min(360px,100%);padding:28px 24px 22px;border-radius:18px;text-align:center;overflow:hidden;background:linear-gradient(160deg,#143222,#0b1b12);border:1px solid rgba(105,181,68,.45);box-shadow:0 24px 60px rgba(0,0,0,.55);animation:av-pop .28s cubic-bezier(.2,1.2,.4,1)}' +
+          '.aviso-visor__icono{width:62px;height:62px;margin:0 auto 14px}' +
+          '.aviso-visor__icono svg{width:100%;height:100%;fill:none;stroke-linecap:round;stroke-linejoin:round}' +
+          '.aviso-visor .av-c{stroke:var(--av,#69b544);stroke-width:3;fill:color-mix(in srgb,var(--av,#69b544) 16%,transparent);stroke-dasharray:145;stroke-dashoffset:145;animation:av-trazo .55s .05s ease-out forwards}' +
+          '.aviso-visor .av-m{stroke:var(--av,#69b544);stroke-width:4;stroke-dasharray:50;stroke-dashoffset:50;animation:av-trazo .35s .4s ease-out forwards}' +
+          '.aviso-visor .av-p{fill:var(--av,#69b544);stroke:none}' +
+          '.aviso-visor--ok{--av:#69b544}.aviso-visor--error{--av:#ef6b6b}.aviso-visor--info{--av:#f5c324}' +
+          '.aviso-visor h3{margin:0 0 6px;font-size:18px;font-weight:800;color:#fff;line-height:1.25}' +
+          '.aviso-visor p{margin:0 0 18px;font-size:13.5px;line-height:1.55;color:#a3bba8}' +
+          '.aviso-visor button{min-width:130px;padding:10px 22px;border:0;border-radius:999px;background:var(--av,#69b544);color:#07130c;font:inherit;font-size:13.5px;font-weight:800;cursor:pointer;transition:transform .12s,filter .12s}' +
+          '.aviso-visor button:hover{filter:brightness(1.1);transform:translateY(-1px)}' +
+          '.aviso-visor button:focus-visible{outline:2px solid #fff;outline-offset:2px}' +
+          '.aviso-visor__barra{position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--av,#69b544);transform-origin:left;animation:av-barra linear forwards}' +
+          '.aviso-visor.is-saliendo{animation:av-fuera .18s ease-in forwards}' +
+          '@keyframes av-fondo{from{opacity:0}to{opacity:1}}@keyframes av-fuera{to{opacity:0}}' +
+          '@keyframes av-pop{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:none}}' +
+          '@keyframes av-trazo{to{stroke-dashoffset:0}}@keyframes av-barra{from{transform:scaleX(1)}to{transform:scaleX(0)}}' +
+          '@media (prefers-reduced-motion:reduce){.aviso-visor,.aviso-visor *{animation-duration:.01ms!important;animation-delay:0s!important}}';
+        document.head.appendChild(st);
+      }
+
+      function cerrar() {
+        if (!actual) return;
+        var el = actual; actual = null;
+        clearTimeout(reloj);
+        document.removeEventListener('keydown', alTecla, true);
+        el.classList.add('is-saliendo');
+        setTimeout(function () {
+          try { if (el.hidePopover && el.matches(':popover-open')) el.hidePopover(); } catch (e) { /* nada */ }
+          if (el.parentNode) el.parentNode.removeChild(el);
+        }, 170);
+      }
+      function alTecla(e) {
+        if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); cerrar(); }
+      }
+
+      window.avisoVisor = function (o) {
+        o = o || {};
+        var tipo = ICONOS[o.tipo] ? o.tipo : 'ok';
+        var ms = typeof o.ms === 'number' ? o.ms : (tipo === 'ok' ? 5000 : 0);
+        estilos();
+        if (actual) { var viejo = actual; actual = null; clearTimeout(reloj); if (viejo.parentNode) viejo.parentNode.removeChild(viejo); }
+
+        var el = document.createElement('div');
+        el.className = 'aviso-visor aviso-visor--' + tipo;
+        el.setAttribute('role', tipo === 'error' ? 'alertdialog' : 'status');
+        el.setAttribute('aria-live', tipo === 'error' ? 'assertive' : 'polite');
+        el.innerHTML =
+          '<div class="aviso-visor__card">' +
+            '<div class="aviso-visor__icono">' + ICONOS[tipo] + '</div>' +
+            '<h3></h3><p></p>' +
+            '<button type="button">Entendido</button>' +
+            (ms ? '<i class="aviso-visor__barra" style="animation-duration:' + ms + 'ms"></i>' : '') +
+          '</div>';
+        el.querySelector('h3').textContent = o.titulo || (tipo === 'ok' ? '¡Listo!' : tipo === 'error' ? 'Algo salió mal' : 'Aviso');
+        var pTexto = el.querySelector('p');
+        if (o.texto) pTexto.textContent = o.texto; else pTexto.remove();
+        el.addEventListener('click', function (e) { if (e.target === el || e.target.tagName === 'BUTTON') cerrar(); });
+
+        document.body.appendChild(el);
+        // Popover (capa superior del navegador): queda por encima incluso de los cuadros <dialog> abiertos.
+        try { if (el.showPopover) { el.setAttribute('popover', 'manual'); el.showPopover(); } } catch (e) { el.removeAttribute('popover'); /* basta con el z-index */ }
+        actual = el;
+        document.addEventListener('keydown', alTecla, true);
+        setTimeout(function () { var b = el.querySelector('button'); if (b) b.focus(); }, 30);
+        if (ms) reloj = setTimeout(cerrar, ms);
+      };
+    })();
     (function () {
       function ocultarLanding() {
         var landing = document.getElementById('landing-screen');
@@ -481,20 +1021,14 @@
         var hash = window.location.hash;
         var ref = document.referrer || '';
 
-        // Ocultar landing si viene con ancla o desde otra página del proyecto
         if (hash || ref.indexOf('comparador.html') !== -1 || ref.indexOf('administracion.html') !== -1) {
           ocultarLanding();
         }
 
-        // Abrir modal de instituciones si el hash es #instituciones
         if (hash === '#instituciones') {
           ocultarLanding();
           var modal = document.getElementById('informe-modal');
           if (modal) modal.classList.add('is-active');
-          window.scrollTo(0, 0);
-        } else if (!hash || hash === '#app') {
-          // Si se hace clic en Inicio o no hay hash, posicionar la pantalla arriba del todo
-          window.scrollTo(0, 0);
         }
       }
 
@@ -509,7 +1043,6 @@
             ocultarLanding();
             var modal = document.getElementById('informe-modal');
             if (modal) modal.classList.add('is-active');
-            window.scrollTo(0, 0);
           });
         }
 
@@ -519,7 +1052,7 @@
             ocultarLanding();
             var modal = document.getElementById('informe-modal');
             if (modal) modal.classList.remove('is-active');
-            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           });
         }
 
@@ -650,6 +1183,12 @@
     // ================================================================
     // «CÓMO LLEGAR»: abre Google Maps de inmediato, sin avisos ni esperas
     // ================================================================
+    // El punto de partida de la ruta tiene que ser fiable: un computador casi nunca sabe dónde está
+    // con exactitud (usa Wi-Fi o IP y puede fallar kilómetros) y Google Maps tampoco. Por eso siempre
+    // se le envía un origen explícito, que sale de:
+    //  1) el pin de «Mi ubicación», si la persona lo ajustó a mano o ya es preciso;
+    //  2) la ubicación medida automáticamente unos segundos;
+    //  3) solo si el dispositivo no entrega ninguna ubicación utilizable, la persona toca en el mapa su punto.
     function urlRuta(lat, lng, origen) {
       return 'https://www.google.com/maps/dir/?api=1&origin=' + origen.lat.toFixed(6) + ',' + origen.lon.toFixed(6) +
         '&destination=' + lat + ',' + lng + '&travelmode=driving';
@@ -666,7 +1205,7 @@
       document.head.appendChild(st);
     }
 
-    // Abre Google Maps; si el navegador bloquea la pestaña, ofrece un botón.
+    // Abre Google Maps; si el navegador bloquea la pestaña (pasó demasiado tiempo desde el clic), ofrece un botón.
     function abrirRuta(lat, lng, origen) {
       var url = urlRuta(lat, lng, origen);
       var ventana = window.open(url, '_blank');
@@ -682,12 +1221,12 @@
       setTimeout(function () { barra.remove(); }, 20000);
     }
 
-    // La persona toca el mapa para indicar dónde está
+    // La persona toca el mapa para indicar dónde está; esa posición queda como su pin y sale la ruta desde allí.
     function elegirPuntoEnMapa(lat, lng, lectura) {
       var m = (typeof map !== 'undefined') ? map : null;
       if (!m) return;
       inyectarEstilosRuta();
-      if (typeof cerrarModalInstitucion === 'function') cerrarModalInstitucion();
+      if (typeof cerrarModalInstitucion === 'function') cerrarModalInstitucion();   // se despeja el mapa
 
       var motivo = lectura
         ? 'Tu dispositivo no entregó una ubicación utilizable (± ' + Math.round(lectura.precision) + ' m).'
@@ -710,7 +1249,7 @@
         limpiar();
         var origen = { lat: ev.latlng.lat, lon: ev.latlng.lng };
         if (window.MiUbicacion && window.MiUbicacion.fijar) window.MiUbicacion.fijar(origen.lat, origen.lon);
-        abrirRuta(lat, lng, origen);
+        abrirRuta(lat, lng, origen);   // el clic en el mapa permite abrir la pestaña
       }
       function alTecla(ev) { if (ev.key === 'Escape') limpiar(); }
 
@@ -723,12 +1262,13 @@
       var nLat = parseFloat(lat);
       var nLng = parseFloat(lng);
       if (isNaN(nLat) || isNaN(nLng) || nLat === 0 || nLng === 0) {
-        alert('Esta institución no tiene coordenadas geográficas registradas.');
+        window.avisoVisor({ tipo: 'info', titulo: 'Sin ubicación registrada', texto: 'Esta institución no tiene coordenadas geográficas registradas.', ms: 0 });
         return;
       }
 
       var ubic = window.MiUbicacion;
       var pin = ubic && ubic.actual ? ubic.actual() : null;
+      // Si ya hay un pin (ajustado a mano, preciso o medido hace menos de 5 minutos) se usa tal cual.
       var reciente = pin && pin.t && (Date.now() - pin.t) < 5 * 60 * 1000;
       if (pin && (pin.manual || pin.precision <= 100 || reciente)) {
         abrirRuta(nLat, nLng, pin);
@@ -739,9 +1279,11 @@
         return;
       }
 
+      // Ubicación automática: se mide unos segundos (aparece «Calculando tu ubicación…» sobre el mapa,
+      // sin abrir ninguna pestaña vacía) y la ruta sale desde esa posición. El pin queda en el mapa.
       ubic.medir({ tiempo: 8000, objetivo: 30, dibujar: true }).then(function (lectura) {
         if (lectura && lectura.precision <= 3000) abrirRuta(nLat, nLng, lectura);
-        else elegirPuntoEnMapa(nLat, nLng, lectura);
+        else elegirPuntoEnMapa(nLat, nLng, lectura);   // último recurso: no hubo ubicación utilizable
       });
     }
 
@@ -749,6 +1291,8 @@
       abrirGoogleMaps(destLat, destLng);
     };
 
+    // Intercepta el botón antes que cualquier otro script del proyecto
+    // (así no aparece el aviso «servidor de rutas congestionado»).
     window.addEventListener('click', function (e) {
       var el = e.target.closest && e.target.closest('button, a, [onclick]');
       if (!el) return;
@@ -763,7 +1307,7 @@
         var m = onclick.match(/trazarRutaHacia\(\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)/);
         if (m) { lat = m[1]; lng = m[2]; }
       }
-      if (lat === undefined || lng === undefined) return;
+      if (lat === undefined || lng === undefined) return;   // sin coordenadas: se deja el comportamiento original
 
       e.preventDefault();
       e.stopPropagation();
@@ -771,6 +1315,7 @@
       abrirGoogleMaps(lat, lng);
     }, true);
 
+    // Por si algún otro script pregunta «¿abrir en Google Maps?», se responde que sí.
     (function () {
       var confirmOriginal = window.confirm;
       window.confirm = function (mensaje) {
@@ -878,14 +1423,15 @@
         mostrarModal();
       };
 
+      // Muestra el cuadro por encima de todo lo demás (fichas, ventanas y mapas ampliados).
       function mostrarModal() {
         if (!modal) return;
-        document.body.appendChild(modal);
+        document.body.appendChild(modal);   // último elemento del <body>
         modal.style.setProperty('z-index', '2147483647', 'important');
         modal.classList.add('is-active');
         try {
           if (typeof modal.showModal === 'function' && !modal.open) modal.showModal();
-        } catch (err) { /* nada */ }
+        } catch (err) { /* navegador sin <dialog>: basta con el z-index */ }
         setTimeout(function () { if (txtOpinion) txtOpinion.focus(); }, 50);
       }
 
@@ -899,6 +1445,7 @@
 
       if (modal) modal.addEventListener('close', function () { modal.classList.remove('is-active'); });
 
+      // Escape cierra solo este cuadro (no también la ficha que queda detrás).
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && modal && modal.classList.contains('is-active')) {
           e.preventDefault();
@@ -924,7 +1471,7 @@
           var opinionText = txtOpinion ? txtOpinion.value.trim() : '';
 
           if (!instSeleccionadaNombre) {
-            alert('No se pudo identificar la institución.');
+            window.avisoVisor({ tipo: 'error', titulo: 'No se pudo identificar la institución', texto: 'Cierra esta ventana e inténtalo de nuevo desde la ficha de la institución.' });
             return;
           }
 
@@ -934,7 +1481,7 @@
           var client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
 
           if (!client) {
-            alert('Error: Conexión a la base de datos no disponible.');
+            window.avisoVisor({ tipo: 'error', titulo: 'Sin conexión con la base de datos', texto: 'Revisa tu conexión a internet e inténtalo de nuevo en unos segundos.' });
             btnEnviar.disabled = false;
             btnEnviar.textContent = 'Enviar calificación y reseña';
             return;
@@ -951,13 +1498,15 @@
             var { error } = await client.from('opiniones_instituciones').insert([payload]);
 
             if (error) {
-              alert('Error al registrar la reseña: ' + error.message);
+              window.avisoVisor({ tipo: 'error', titulo: 'No se pudo guardar tu opinión', texto: error.message || 'Inténtalo de nuevo en unos segundos.' });
             } else {
-              alert('¡Gracias! Tu opinión ha sido enviada correctamente.');
               cerrarModal();
+              window.avisoVisor({ tipo: 'ok', titulo: '¡Gracias por tu opinión!', texto: 'Tu calificación quedó registrada y ya cuenta para el ranking de las instituciones.' });
+              // La base de datos recalcula el promedio de la institución; se vuelve a leer para que la ficha lo muestre.
+              setTimeout(function () { if (typeof window.refrescarInstituciones === 'function') window.refrescarInstituciones('opinion'); }, 900);
             }
           } catch (err) {
-            alert('Ocurrió un error al procesar el envío.');
+            window.avisoVisor({ tipo: 'error', titulo: 'Ocurrió un error', texto: 'No se pudo procesar el envío de tu opinión. Inténtalo de nuevo.' });
           } finally {
             btnEnviar.disabled = false;
             btnEnviar.textContent = 'Enviar calificación y reseña';
@@ -965,6 +1514,8 @@
         });
       }
 
+      // La ficha de cada institución (instituciones.js) llama a abrirFormularioOpinion(id):
+      // se redirige al cuadro de calificación y opinión de esta página, que siempre queda por encima.
       window.abrirFormularioOpinion = function (localId) {
         var entrada = (typeof institucionesIndex !== 'undefined') ? institucionesIndex[localId] : null;
         var props = entrada ? entrada.props : null;
@@ -983,5 +1534,496 @@
       });
     })();
   </script>
+  <!-- PIE DE PÁGINA: cifras en vivo, capas, compartir, reloj y animaciones -->
+  <script>
+    (function () {
+      'use strict';
+      var reducir = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var $ = function (id) { return document.getElementById(id); };
+
+      // ---- Aviso breve ----
+      var toastTimer;
+      function aviso(texto) {
+        var t = $('sf-toast');
+        if (!t) return;
+        t.textContent = texto;
+        t.classList.add('is-on');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { t.classList.remove('is-on'); }, 2200);
+      }
+      function copiar(texto, mensaje) {
+        function ok() { aviso(mensaje); }
+        function respaldo() {
+          var a = document.createElement('textarea');
+          a.value = texto; a.setAttribute('readonly', ''); a.style.position = 'fixed'; a.style.opacity = '0';
+          document.body.appendChild(a); a.select();
+          try { document.execCommand('copy'); ok(); } catch (e) { aviso('No se pudo copiar'); }
+          document.body.removeChild(a);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok, respaldo);
+        else respaldo();
+      }
+      function urlVisor() { return location.origin + location.pathname.replace(/[^\/]*$/, '') + 'index.html'; }
+
+      // ---- Enlaces del pie que reutilizan la navegación del visor ----
+      document.querySelectorAll('[data-sf-accion]').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          var accion = a.getAttribute('data-sf-accion');
+          var landing = $('landing-screen');
+          if (landing) landing.style.display = 'none';
+          e.preventDefault();
+          if (accion === 'mapa') {
+            var modal = $('informe-modal');
+            if (modal) modal.classList.remove('is-active');
+            var app = $('app');
+            if (app) app.scrollIntoView({ behavior: reducir ? 'auto' : 'smooth', block: 'start' });
+          } else if (accion === 'instituciones') {
+            var nav = $('btn-nav-instituciones');
+            if (nav) nav.click();
+          } else if (accion === 'faq' || accion === 'contacto') {
+            var dest = $(accion);
+            if (dest) dest.scrollIntoView({ behavior: reducir ? 'auto' : 'smooth', block: 'start' });
+          }
+        });
+      });
+
+      // ---- Compartir / copiar enlace ----
+      var bComp = $('sf-compartir');
+      if (bComp) bComp.addEventListener('click', function () {
+        var datos = { title: 'Geovisor Sabaneta', text: 'Explora las instituciones educativas de Sabaneta en el mapa.', url: urlVisor() };
+        if (navigator.share) navigator.share(datos).catch(function () {});
+        else copiar(datos.url, 'Enlace del visor copiado');
+      });
+      var bEnl = $('sf-copiar-enlace');
+      if (bEnl) bEnl.addEventListener('click', function () { copiar(urlVisor(), 'Enlace del visor copiado'); });
+      var bCen = $('sf-copiar-centro');
+      if (bCen) bCen.addEventListener('click', function () {
+        var c = $('sf-centro');
+        copiar(c ? c.textContent : '6.1515, -75.6165', 'Coordenadas copiadas');
+      });
+
+      // ---- Copiar número de contacto ----
+      document.querySelectorAll('[data-sf-copiar]').forEach(function (b) {
+        b.addEventListener('click', function () { copiar(b.getAttribute('data-sf-copiar'), b.getAttribute('data-sf-copiado') || 'Copiado'); });
+      });
+
+      // ---- Volver arriba ----
+      var bSub = $('sf-subir');
+      if (bSub) bSub.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: reducir ? 'auto' : 'smooth' }); });
+
+      // ---- Año y reloj de Sabaneta ----
+      var anio = $('sf-anio'); if (anio) anio.textContent = new Date().getFullYear();
+      function reloj() {
+        var h = $('sf-hora'), f = $('sf-fecha');
+        if (!h) return;
+        try {
+          var ahora = new Date();
+          h.textContent = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', hour: '2-digit', minute: '2-digit', hour12: false }).format(ahora);
+          if (f) f.textContent = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', weekday: 'short', day: 'numeric', month: 'short' }).format(ahora);
+        } catch (e) { h.textContent = '--:--'; }
+      }
+      reloj(); setInterval(reloj, 15000);
+
+      // ---- Acordeón en móvil: columnas abiertas en escritorio, cerradas en celular ----
+      var mq = window.matchMedia('(max-width: 760px)');
+      var cols = document.querySelectorAll('.sf-col');
+      function ajustarColumnas() { cols.forEach(function (d) { if (!mq.matches) d.open = true; else if (!d.dataset.tocada) d.open = false; }); }
+      cols.forEach(function (d) {
+        var s = d.querySelector('summary');
+        if (!s) return;
+        s.classList.add('sf-summary-ok');
+        s.addEventListener('click', function (e) { if (!mq.matches) { e.preventDefault(); return; } d.dataset.tocada = '1'; });
+      });
+      if (mq.addEventListener) mq.addEventListener('change', ajustarColumnas); else if (mq.addListener) mq.addListener(ajustarColumnas);
+      ajustarColumnas();
+
+      // ---- Cifras en vivo, animadas ----
+      var actuales = {};
+      function animar(el, hasta) {
+        var desde = actuales[el.dataset.sfCifra];
+        desde = typeof desde === 'number' ? desde : 0;
+        actuales[el.dataset.sfCifra] = hasta;
+        if (reducir || desde === hasta) { el.textContent = hasta; return; }
+        var t0 = null, dur = 900;
+        function paso(t) {
+          if (t0 === null) t0 = t;
+          var p = Math.min((t - t0) / dur, 1);
+          el.textContent = Math.round(desde + (hasta - desde) * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(paso);
+        }
+        requestAnimationFrame(paso);
+      }
+      function contar() {
+        var idx;
+        try { idx = (typeof institucionesIndex !== 'undefined') ? institucionesIndex : null; } catch (e) { idx = null; }
+        if (!idx) return;
+        var ids = Object.keys(idx);
+        if (!ids.length) return;
+        var c = { total: 0, 'colegio-publico': 0, 'colegio-privado': 0, universidad: 0 };
+        ids.forEach(function (k) {
+          var cat = idx[k] && idx[k].categoria && idx[k].categoria.key;
+          c.total++;
+          if (cat === 'colegio-publico') c['colegio-publico']++;
+          else if (cat === 'colegio-privado') c['colegio-privado']++;
+          else if (cat && cat.indexOf('universidad') === 0) c.universidad++;
+        });
+        document.querySelectorAll('[data-sf-cifra]').forEach(function (el) {
+          var v = c[el.dataset.sfCifra];
+          if (typeof v === 'number' && actuales[el.dataset.sfCifra] !== v) animar(el, v);
+        });
+      }
+      contar(); setInterval(contar, 4000);
+
+      // ---- Capas del mapa como botones (usan las casillas del panel lateral) ----
+      var firmaCapas = '';
+      function construirCapas() {
+        var cont = $('sf-capas');
+        if (!cont) return;
+        var cajas = document.querySelectorAll('aside.sidebar .category-toggle input[type="checkbox"]');
+        if (!cajas.length) return;
+        var firma = Array.prototype.map.call(cajas, function (c) {
+          var l = c.closest('.category-toggle'); return (l && l.textContent.replace(/\s+/g, ' ').trim());
+        }).join('|');
+        if (firma === firmaCapas) { sincronizarCapas(); return; }
+        firmaCapas = firma;
+        cont.innerHTML = '';
+        cajas.forEach(function (caja) {
+          var lab = caja.closest('.category-toggle');
+          var nombre = lab && lab.querySelector('.category-toggle__label');
+          var punto = lab && lab.querySelector('.category-swatch');
+          if (!nombre) return;
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'sf-chip';
+          var color = punto ? (punto.style.background || punto.style.backgroundColor) : '';
+          if (color) b.style.setProperty('--sf-color', color);
+          b.innerHTML = '<i></i>';
+          b.appendChild(document.createTextNode(nombre.textContent.trim()));
+          b.setAttribute('aria-pressed', String(caja.checked));
+          b._caja = caja;
+          b.addEventListener('click', function () {
+            caja.click();
+            b.setAttribute('aria-pressed', String(caja.checked));
+            var app = $('app');
+            if (app && app.getBoundingClientRect().top < -80) app.scrollIntoView({ behavior: reducir ? 'auto' : 'smooth', block: 'start' });
+          });
+          cont.appendChild(b);
+        });
+      }
+      function sincronizarCapas() {
+        document.querySelectorAll('#sf-capas .sf-chip').forEach(function (b) {
+          if (b._caja) b.setAttribute('aria-pressed', String(b._caja.checked));
+        });
+      }
+      construirCapas(); setInterval(construirCapas, 2000);
+      document.addEventListener('change', sincronizarCapas);
+
+      // ---- Aparición suave al desplazarse ----
+      var revelar = document.querySelectorAll('.sf-reveal');
+      if ('IntersectionObserver' in window && !reducir) {
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } });
+        }, { threshold: 0.12 });
+        revelar.forEach(function (n) { io.observe(n); });
+      } else {
+        revelar.forEach(function (n) { n.classList.add('is-in'); });
+      }
+    })();
+  </script>
+
+  <!-- PREGUNTAS FRECUENTES: buscador, categorías, "ver más" y acordeón -->
+  <script>
+    (function () {
+      'use strict';
+      var $ = function (id) { return document.getElementById(id); };
+      var lista = $('faq-lista');
+      if (!lista) return;
+      var reducir = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var CATS = [
+        { k: 'pop', n: 'Más consultadas', c: '#f5c324' },
+        { k: 'pri', n: 'Primeros pasos', c: '#69b544' },
+        { k: 'map', n: 'Usar el mapa', c: '#3b82f6' },
+        { k: 'cap', n: 'Capas del mapa', c: '#8fc374' },
+        { k: 'bus', n: 'Buscar instituciones', c: '#f97316' },
+        { k: 'fic', n: 'Fichas y directorio', c: '#a855f7' },
+        { k: 'ubi', n: 'Ubicación y coordenadas', c: '#2dd4bf' },
+        { k: 'com', n: 'Comparador y becas', c: '#d3d934' },
+        { k: 'tra', n: 'Trámites del colegio', c: '#f43f5e' },
+        { k: 'ayu', n: 'Ayuda y soporte', c: '#94a3b8' },
+        { k: 'all', n: 'Todas las preguntas', c: '#ffffff' }
+      ];
+      var MC = '<a href="https://micuenta.sabaneta.gov.co/" target="_blank" rel="noopener noreferrer">Mi Cuenta Sabaneta</a>';
+      // [categoría, pregunta, respuesta (HTML), 1 = aparece en «Más consultadas»]
+      var FAQ = [
+        // ---------- Primeros pasos
+        ['pri', '¿Qué es el Geovisor Sabaneta?', 'Es un visor geográfico web y público del municipio de Sabaneta (Antioquia). Reúne en un solo mapa los colegios y universidades, el límite municipal, las vías y las viviendas priorizadas, para que consultes la oferta educativa y te ubiques fácilmente.', 1],
+        ['pri', '¿Tiene algún costo o necesito crear una cuenta?', 'No. La consulta es gratuita y no necesitas registrarte. Solo el apartado de <strong>Administración</strong> pide iniciar sesión, y es exclusivo del personal autorizado.', 1],
+        ['pri', '¿Funciona en el celular y en la tablet?', 'Sí. La página se adapta a pantallas pequeñas: el mapa se mueve con el dedo, se acerca con el gesto de pellizco y el panel lateral se puede ocultar con el botón «Ocultar panel» para ver más mapa.'],
+        ['pri', '¿Qué navegador o conexión necesito?', 'Cualquier navegador actual (Chrome, Edge, Firefox o Safari) y conexión a internet, porque el mapa y los datos se cargan en línea.'],
+        ['pri', '¿Qué encuentro en cada opción del menú superior?', '<strong>Inicio:</strong> el mapa. <strong>Instituciones:</strong> el directorio en tabla con descargas. <strong>Comparador &amp; Becas:</strong> compara instituciones y consulta becas. <strong>Preguntas frecuentes:</strong> esta sección. <strong>Administración:</strong> solo para personal autorizado.'],
+        ['pri', '¿De dónde salen los datos?', 'Las instituciones y las capas geográficas están en la base de datos del proyecto (Supabase con PostGIS). El mapa de fondo es de OpenStreetMap y el límite municipal usa el código DIVIPOLA 05631 del DANE.'],
+        ['pri', '¿Qué tan actualizada está la información?', 'Cuando la administración crea, edita o elimina una institución, el mapa se actualiza solo, sin recargar la página. Aun así, datos como cupos o contacto pueden cambiar: confírmalos siempre con la institución.', 1],
+        ['pri', '¿Por qué lo llaman «Vallecito de Encanto»?', 'Es el nombre con el que se conoce popularmente a Sabaneta, y por eso aparece en el rótulo del mapa.'],
+
+        // ---------- Usar el mapa
+        ['map', '¿Cómo me desplazo y hago zoom?', 'Arrastra el mapa para moverte. Para acercar o alejar usa los botones <strong>+</strong> y <strong>−</strong>, la rueda del mouse o doble clic; en el celular, el gesto de pellizco.', 1],
+        ['map', '¿Para qué sirve el panel izquierdo?', 'Reúne el buscador de instituciones, los filtros y la lista de «Capas del mapa». Al final muestra el crédito del proyecto.'],
+        ['map', '¿Cómo oculto o muestro el panel?', 'Con el botón «Ocultar panel», abajo a la izquierda del mapa. Al ocultarlo, el mapa ocupa toda la pantalla y el mismo botón lo vuelve a mostrar.'],
+        ['map', '¿Cómo cambio el mapa de fondo?', 'Con el botón de capas de la esquina superior derecha del mapa eliges el mapa base disponible.'],
+        ['map', '¿Qué indica la barra de escala?', 'La barra de la esquina inferior izquierda (por ejemplo, «200 m») muestra la distancia real que representa en el mapa y cambia cuando haces zoom.'],
+        ['map', 'No veo nada en el mapa o los puntos no cargan, ¿qué hago?', 'Revisa tu conexión, comprueba que las capas estén activas en «Capas del mapa», haz zoom sobre Sabaneta y recarga la página. Si sigue igual, prueba con otro navegador o escríbenos desde <a href="#contacto">Contáctanos</a>.'],
+        ['map', 'El mapa va lento, ¿cómo lo mejoro?', 'Desactiva las capas más pesadas, como <strong>Vías de Sabaneta</strong> y <strong>Viviendas priorizadas</strong>, y deja activas solo las que necesitas. Con poca señal en el celular puede tardar un poco más.'],
+
+        // ---------- Capas del mapa
+        ['cap', '¿Qué capas tiene el visor?', 'Colegios públicos, Colegios privados, Universidades privadas, Límite municipal de Sabaneta, Viviendas priorizadas, Zonas de influencia (GDAL) y Vías de Sabaneta.', 1],
+        ['cap', '¿Cuáles capas se muestran al abrir el visor?', 'Colegios públicos, colegios privados, universidades privadas y el límite municipal. Las demás las activas tú con su casilla.'],
+        ['cap', '¿Cómo muestro u oculto una capa?', 'Marca o desmarca su casilla en «Capas del mapa». También puedes usar los botones de «Capas del mapa» del pie de página: aplican el cambio y te llevan al mapa.'],
+        ['cap', '¿Qué significan los colores de los puntos?', '<strong>Azul:</strong> colegios públicos. <strong>Naranja:</strong> colegios privados. <strong>Morado:</strong> universidades privadas. Cada color coincide con el punto junto al nombre de la capa en el panel.'],
+        ['cap', '¿Qué es el número junto a cada capa?', 'Es la cantidad de elementos que tiene esa capa: instituciones, viviendas o tramos de vía.'],
+        ['cap', '¿Qué son las viviendas priorizadas?', 'Son viviendas clasificadas por nivel de prioridad —Alta, Media, Baja o Sin prioridad— según su relación con el acceso a colegios. Los chips de color bajo la capa indican cuántas hay de cada nivel.'],
+        ['cap', '¿Qué son las zonas de influencia?', 'Son áreas alrededor de las instituciones, calculadas con GDAL, que ayudan a ver qué zonas quedan cerca de cada una.'],
+        ['cap', '¿Qué muestra la capa Vías de Sabaneta?', 'La red vial del municipio, útil para ubicar calles y planear cómo llegar. Es una capa grande y puede tardar un poco en dibujarse.'],
+        ['cap', '¿Qué es el límite municipal y por qué sale un popup al tocarlo?', 'Es el contorno de Sabaneta (código DIVIPOLA 05631). Al hacer clic en un área libre dentro de él se muestra su nombre y código; las instituciones siguen respondiendo al clic con su propia ficha.'],
+
+        // ---------- Buscar instituciones
+        ['bus', '¿Cómo busco una institución?', 'Usa el cuadro «Buscar institución» del panel izquierdo y escribe el nombre o parte de la dirección. Al elegir un resultado, el mapa te lleva hasta la institución y abre su ficha.', 1],
+        ['bus', '¿Puedo buscar por dirección?', 'Sí. El buscador entiende nombres y direcciones, por ejemplo «San Martín» o «Cra 45».'],
+        ['bus', '¿Qué filtros puedo usar?', '<strong>Tipo</strong> (colegio o universidad), <strong>sector</strong> (público o privado) y <strong>estrato</strong>. Puedes combinarlos con el texto de búsqueda.'],
+        ['bus', '¿Los filtros afectan los puntos del mapa?', 'Sí. Al filtrar, el mapa muestra solo las instituciones que cumplen los criterios y oculta las demás.'],
+        ['bus', '¿Cómo quito los filtros?', 'Pulsa el botón «Limpiar» junto a los filtros y volverás a ver todas las instituciones.'],
+        ['bus', '¿Qué puedo buscar en el visor?', 'Colegios y universidades, públicos o privados, por nombre, dirección o estrato. En cada ficha consultas cupos, docentes, estudiantes y contacto. También puedes ubicar vías, viviendas priorizadas y el límite municipal.', 1],
+        ['bus', '¿Cómo encuentro instituciones de un estrato específico?', 'Elige el estrato en el filtro «Estrato» del panel izquierdo; el mapa y la lista se ajustan al instante.'],
+        ['bus', 'No encuentro mi institución, ¿qué hago?', 'Puede que aún no esté registrada o que su nombre esté escrito distinto. Prueba con una parte del nombre o con la dirección; si no aparece, escríbenos desde <a href="#contacto">Contáctanos</a> para que la revisemos.'],
+
+        // ---------- Fichas y directorio
+        ['fic', '¿Qué información tiene la ficha de una institución?', 'Nombre, categoría, sector, estrato, dirección, número de estudiantes, cupos, docentes y datos de contacto, además de fotos cuando la institución las tiene.'],
+        ['fic', '¿Cómo abro la ficha completa?', 'Haz clic en el punto de la institución y, en el cuadro que aparece, pulsa «Ver detalles completos →».'],
+        ['fic', '¿Qué es el Directorio de Instituciones?', 'Es la opción «Instituciones» del menú: una tabla con todos los colegios y universidades, con tipo, sector, estrato, dirección, estudiantes, cupos, docentes y contacto.'],
+        ['fic', '¿Cómo descargo el directorio?', 'En la ventana del Directorio usa los botones «Exportar PDF» o «Exportar Excel (.xlsx)».', 1],
+        ['fic', '¿Qué hace el botón «Cómo llegar»?', 'Abre Google Maps con la ruta desde tu ubicación hasta la institución. El navegador te pedirá permiso para usar tu ubicación; si no hay una lectura confiable, podrás elegir tu punto de salida en el mapa.'],
+        ['fic', '¿Cómo dejo una calificación u opinión?', 'En la ficha pulsa el botón para calificar: eliges de 1 a 5 estrellas y puedes escribir un comentario. No necesitas iniciar sesión.'],
+        ['fic', '¿Quién ve mi opinión?', 'Tu comentario llega solo a la administración del visor. Lo que sí se ve públicamente es el promedio de estrellas de la institución (en su ficha y en el comparador), sin tu nombre ni tu texto.'],
+        ['fic', '¿Cómo se calcula la calificación de una institución?', 'Es el promedio de las estrellas (1 a 5) que las personas han dejado en su ficha. Se actualiza sola cuando llega una opinión nueva o cuando la administración elimina una.'],
+        ['fic', '¿Qué significan estrato, cupos y docentes?', '<strong>Estrato:</strong> nivel socioeconómico (1 a 6) registrado para la institución. <strong>Cupos:</strong> lugares disponibles según el último dato cargado. <strong>Docentes y estudiantes:</strong> cantidades registradas. Confirma los valores con la institución antes de decidir.'],
+
+        // ---------- Ubicación y coordenadas
+        ['ubi', '¿Cómo veo dónde estoy en el mapa?', 'Pulsa el botón de ubicación (icono de mira, arriba a la izquierda del mapa) y permite el acceso a tu ubicación en el navegador. Verás un pin amarillo y el visor afinará la lectura durante unos segundos.', 1],
+        ['ubi', '¿Por qué mi ubicación sale corrida?', 'En computadores sin GPS el navegador calcula la posición con la red Wi‑Fi o la IP y puede errar cientos de metros. En un celular con GPS suele ser mucho más exacta.', 1],
+        ['ubi', '¿Puedo corregir mi ubicación?', 'Sí. Arrastra el pin amarillo hasta tu punto real; quedará marcado como «ajustado a mano» y se usará para calcular rutas.'],
+        ['ubi', '¿Cómo copio mis coordenadas?', 'Haz clic en el pin y pulsa «Copiar coordenadas»: se copian latitud y longitud listas para pegar.'],
+        ['ubi', '¿Se guarda o se comparte mi ubicación?', 'El visor no la guarda en su base de datos; se usa solo en tu navegador. Si pides «Cómo llegar», se envía a Google Maps para trazar la ruta.'],
+        ['ubi', 'El navegador no me pide permiso de ubicación', 'Revisa que el sitio tenga el permiso de ubicación activado (candado junto a la dirección) y que el GPS del dispositivo esté encendido. Luego vuelve a pulsar el botón.'],
+        ['ubi', '¿Cómo capturo las coordenadas de cualquier punto?', 'Activa la herramienta de coordenadas de la barra del mapa y haz clic: cada punto queda numerado con sus coordenadas, que puedes copiar o descargar en CSV.'],
+        ['ubi', '¿En qué sistemas de coordenadas puedo verlas?', 'WGS84, MAGNA-SIRGAS, Origen Nacional, UTM y otros, que eliges en el selector de la herramienta.'],
+        ['ubi', '¿Qué sistema de referencia usa el visor?', 'El mapa y los datos trabajan en WGS84 (EPSG:4326); las demás proyecciones se calculan a partir de ese sistema.'],
+        ['ubi', '¿Qué es un código EPSG?', 'Es un número que identifica un sistema de referencia de coordenadas. Por ejemplo, 4326 es WGS84, el que usan los GPS y la mayoría de los mapas web.'],
+        ['ubi', '¿Cómo mido distancias y áreas?', 'Con las herramientas de medición de la barra del mapa: haz clic para dibujar la línea o el polígono y verás longitud, área y perímetro. <strong>Esc</strong> cancela, <strong>Enter</strong> termina y <strong>Retroceso</strong> borra el último punto.'],
+
+        // ---------- Comparador y becas
+        ['com', '¿Qué es el Comparador & Becas?', 'Es una página donde eliges varias instituciones y las comparas lado a lado, además de consultar becas y convenios. Entra desde el menú: <a href="comparador.html">Comparador &amp; Becas</a>.', 1],
+        ['com', '¿Cuántas instituciones puedo comparar y qué se compara?', 'Hasta 6 a la vez. Se comparan la calificación de los usuarios, el estrato, los cupos, los docentes y los estudiantes con diagramas de barras, y se muestran sus becas.'],
+        ['com', '¿Qué son «Top 3 Colegios» y «Top 3 Universidades»?', 'Son atajos que eligen por ti las 3 instituciones mejor calificadas de cada tipo, según las estrellas que dejan las personas en el mapa. Colegios y universidades tienen cada uno su propio Top 3.', 1],
+        ['com', '¿Por qué una institución con 5 estrellas puede quedar detrás de otra con 4,5?', 'Porque el Top 3 pondera la cantidad de opiniones: una institución con una sola opinión de 5★ no supera a otra con muchas opiniones de 4,5★. Así el ranking es más justo y difícil de manipular.'],
+        ['com', '¿Cómo agrego instituciones a la comparación?', 'Elígelas en la lista de la página; puedes filtrar por tipo y sector para encontrarlas más rápido.'],
+        ['com', '¿Puedo compartir una comparación?', 'Sí. El enlace de la página incluye las instituciones elegidas: al copiarlo y enviarlo, la otra persona ve la misma comparación.'],
+        ['com', '¿Qué tipos de becas aparecen?', 'Académicas, socioeconómicas, deportivas, culturales, créditos educativos, descuentos y otras.'],
+        ['com', '¿Cómo sé si una beca sigue abierta?', 'Activa «Ocultar cerradas» para ver solo las que siguen abiertas.'],
+        ['com', '¿Dónde solicito una beca?', 'El visor te informa quién la ofrece y sus requisitos, pero no gestiona solicitudes: debes tramitarla con la institución o la entidad que la otorga.'],
+        ['com', '¿La información de becas es oficial?', 'Es información de referencia. Antes de aplicar, confirma requisitos y fechas con la entidad o con la Alcaldía de Sabaneta.'],
+
+        // ---------- Trámites
+        ['tra', '¿Dónde puedo solicitar un cupo?', 'Puedes realizar el trámite paso a paso ingresando directamente a la plataforma oficial en el siguiente enlace: ' + MC + ', donde deberás iniciar sesión y seguir las instrucciones del sistema para la solicitud de cupos educativos.', 1],
+        ['tra', '¿Dónde puedo solicitar mi traslado?', 'El proceso se gestiona de manera virtual. Dirígete a la plataforma ' + MC + ', accede con tus datos y sigue el paso a paso indicado para radicar la solicitud de traslado institucional.'],
+        ['tra', '¿Dónde puedo saber información sobre becas?', 'Para consultar la oferta, requisitos y convocatorias vigentes sobre becas, ingresa a nuestro apartado de <a href="comparador.html">Comparador &amp; Becas</a> o acude a las instalaciones de la Alcaldía de Sabaneta.'],
+        ['tra', '¿Hay algún beneficio o preferencia por ser persona con discapacidad o víctima del conflicto?', 'Sí. El municipio cuenta con preferencias y enfoques diferenciales para personas en condición de discapacidad, con enfermedades o víctimas del conflicto armado. Durante el proceso digital o presencial del trámite, el formulario incluirá casillas y preguntas específicas para identificar tu condición y aplicar estos beneficios.'],
+        ['tra', '¿El visor reemplaza los trámites oficiales?', 'No. El visor sirve para consultar y comparar; los trámites de cupos y traslados se hacen en ' + MC + ' o directamente en la Alcaldía.'],
+        ['tra', '¿Dónde encuentro información de la Alcaldía?', 'En el sitio oficial <a href="https://sabaneta.gov.co/" target="_blank" rel="noopener noreferrer">sabaneta.gov.co</a> o acudiendo a sus instalaciones.'],
+
+        // ---------- Ayuda y soporte
+        ['ayu', '¿Qué es la sección Administración?', 'Es un panel para personal autorizado, donde se crean, editan y eliminan instituciones y se revisan las opiniones. Requiere iniciar sesión.'],
+        ['ayu', '¿Puedo editar yo los datos de una institución?', 'No desde el visor público. Si ves un dato incorrecto, repórtalo desde <a href="#contacto">Contáctanos</a> y la administración lo corrige.'],
+        ['ayu', '¿Cómo reporto un error o hago una sugerencia?', 'Llama o escribe por WhatsApp a cualquiera del equipo desde la sección <a href="#contacto">Contáctanos</a>.'],
+        ['ayu', '¿Cómo comparto el visor?', 'Con los botones «Compartir el visor» y «Copiar enlace» del pie de página.'],
+        ['ayu', '¿Puedo descargar los datos?', 'Sí: el directorio en PDF o Excel y las coordenadas capturadas en CSV.'],
+        ['ayu', '¿Funciona sin internet?', 'No. Necesita conexión para cargar el mapa y los datos.'],
+        ['ayu', '¿Quién desarrolló el visor?', 'El equipo del proyecto: Jacobo Flórez, Sebastián Zuleta y Ana Sofía Sáenz, como proyecto de Sistemas de Información Geográfica.'],
+        ['ayu', '¿Qué tecnologías usa?', 'Leaflet para el mapa, Supabase con PostGIS para los datos, GDAL y proj4js para el manejo de capas y coordenadas, y Vercel para publicarlo.'],
+        ['ayu', '¿El mapa de fondo tiene derechos de autor?', 'El mapa base es © colaboradores de OpenStreetMap y se distribuye con licencia abierta ODbL.']
+      ];
+      var PAGINA = 8;
+      var estado = { cat: 'pop', q: '', visibles: PAGINA };
+
+      function norm(t) { return String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+      function textoPlano(html) { var d = document.createElement('div'); d.innerHTML = html; return d.textContent || ''; }
+      var colorDe = {}, nombreDe = {};
+      CATS.forEach(function (c) { colorDe[c.k] = c.c; nombreDe[c.k] = c.n; });
+      var items = FAQ.map(function (f, i) {
+        var plano = textoPlano(f[2]);
+        return { id: i, cat: f[0], q: f[1], a: f[2], pop: !!f[3], buscable: norm(f[1] + ' ' + plano) };
+      });
+
+      function delCategoria(k) {
+        if (k === 'all') return items;
+        if (k === 'pop') return items.filter(function (x) { return x.pop; });
+        return items.filter(function (x) { return x.cat === k; });
+      }
+      function terminos() { return norm(estado.q).split(/\s+/).filter(Boolean); }
+      function resultados() {
+        if (!estado.q.trim()) return delCategoria(estado.cat);
+        var t = terminos();
+        return items.filter(function (x) { return t.every(function (w) { return x.buscable.indexOf(w) !== -1; }); });
+      }
+
+      // Resalta (sin romper enlaces ni etiquetas) las palabras buscadas
+      function resaltar(nodo, ts) {
+        if (!ts.length) return;
+        var walker = document.createTreeWalker(nodo, NodeFilter.SHOW_TEXT, null);
+        var textos = [], n;
+        while ((n = walker.nextNode())) textos.push(n);
+        textos.forEach(function (tn) {
+          var original = tn.nodeValue, base = norm(original), marcas = [];
+          ts.forEach(function (w) {
+            var p = 0, i;
+            while ((i = base.indexOf(w, p)) !== -1) { marcas.push([i, i + w.length]); p = i + w.length; }
+          });
+          if (!marcas.length) return;
+          marcas.sort(function (a, b) { return a[0] - b[0]; });
+          var fus = [marcas[0]];
+          marcas.slice(1).forEach(function (m) { var u = fus[fus.length - 1]; if (m[0] <= u[1]) u[1] = Math.max(u[1], m[1]); else fus.push(m); });
+          var frag = document.createDocumentFragment(), pos = 0;
+          fus.forEach(function (m) {
+            if (m[0] > pos) frag.appendChild(document.createTextNode(original.slice(pos, m[0])));
+            var mk = document.createElement('mark'); mk.className = 'faq-resalte'; mk.textContent = original.slice(m[0], m[1]); frag.appendChild(mk);
+            pos = m[1];
+          });
+          if (pos < original.length) frag.appendChild(document.createTextNode(original.slice(pos)));
+          tn.parentNode.replaceChild(frag, tn);
+        });
+      }
+
+      function crearItem(x, ts, buscando) {
+        var d = document.createElement('details');
+        d.className = 'faq__item';
+        var s = document.createElement('summary');
+        s.className = 'faq__question';
+        var t = document.createElement('span'); t.className = 'faq__texto'; t.textContent = x.q;
+        s.appendChild(t);
+        if (buscando || estado.cat === 'all' || estado.cat === 'pop') {
+          var e = document.createElement('em'); e.className = 'faq__etiqueta'; e.style.setProperty('--c', colorDe[x.cat]); e.style.fontStyle = 'normal';
+          e.textContent = nombreDe[x.cat];
+          s.appendChild(e);
+        }
+        var ch = document.createElement('span'); ch.className = 'faq__chev'; ch.setAttribute('aria-hidden', 'true'); s.appendChild(ch);
+        var p = document.createElement('p'); p.className = 'faq__answer'; p.innerHTML = x.a;
+        d.appendChild(s); d.appendChild(p);
+        if (ts.length) { resaltar(t, ts); resaltar(p, ts); }
+        return d;
+      }
+
+      function pintar() {
+        var buscando = !!estado.q.trim();
+        var ts = buscando ? terminos() : [];
+        var res = resultados();
+        var mostrar = res.slice(0, estado.visibles);
+        lista.innerHTML = '';
+
+        $('faq-cat-titulo').textContent = buscando ? 'Resultados de la búsqueda' : nombreDe[estado.cat];
+        $('faq-resumen').textContent = res.length
+          ? 'Mostrando ' + mostrar.length + ' de ' + res.length + (res.length === 1 ? ' pregunta' : ' preguntas')
+          : '';
+
+        if (!res.length) {
+          var v = document.createElement('div'); v.className = 'faq-vacio';
+          v.innerHTML = '<strong>No encontramos preguntas con esa búsqueda</strong>Prueba con otra palabra (por ejemplo «ubicación», «becas» o «filtros») o escríbenos y te ayudamos.<br>' +
+            '<button type="button" class="sf-btn" data-faq-borrar>Borrar búsqueda</button> <a class="sf-btn sf-btn--primario" href="#contacto" data-faq-contacto>Contáctanos</a>';
+          lista.appendChild(v);
+        } else {
+          mostrar.forEach(function (x) { lista.appendChild(crearItem(x, ts, buscando)); });
+          // Con pocos resultados de búsqueda se abren solos para ahorrar clics
+          if (buscando && mostrar.length <= 2) Array.prototype.forEach.call(lista.querySelectorAll('details'), function (d) { d.open = true; });
+        }
+
+        // Acordeón: una abierta a la vez
+        var ds = lista.querySelectorAll('details');
+        Array.prototype.forEach.call(ds, function (d) {
+          d.addEventListener('toggle', function () {
+            if (d.open) Array.prototype.forEach.call(ds, function (o) { if (o !== d) o.open = false; });
+          });
+        });
+
+        // Botón «Ver más» / «Mostrar menos»
+        var mas = $('faq-mas');
+        if (res.length > PAGINA) {
+          mas.hidden = false;
+          var faltan = res.length - mostrar.length, sig = Math.min(PAGINA, faltan);
+          mas.textContent = faltan > 0
+            ? 'Ver ' + sig + (sig === 1 ? ' pregunta más' : ' preguntas más') + (faltan > sig ? ' (' + faltan + ' restantes)' : '')
+            : 'Mostrar menos';
+        } else { mas.hidden = true; }
+
+        // Botones de categoría (con contador) y botón de limpiar
+        Array.prototype.forEach.call($('faq-cats').children, function (b) {
+          b.setAttribute('aria-pressed', String(!buscando && b.dataset.cat === estado.cat));
+        });
+        $('faq-limpiar').hidden = !estado.q;
+      }
+
+      // ---- Construcción inicial
+      $('faq-total').textContent = items.length;
+      var cont = $('faq-cats');
+      CATS.forEach(function (c) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'faq-cat'; b.dataset.cat = c.k; b.style.setProperty('--c', c.c);
+        b.innerHTML = '<i></i><span></span><b></b>';
+        b.querySelector('span').textContent = c.n;
+        b.querySelector('b').textContent = delCategoria(c.k).length;
+        b.addEventListener('click', function () {
+          estado.cat = c.k; estado.q = ''; estado.visibles = PAGINA; $('faq-buscar').value = ''; pintar();
+        });
+        cont.appendChild(b);
+      });
+      var rap = $('faq-rapidas');
+      ['ubicación', 'becas', 'coordenadas', 'cupos', 'estrato', 'PDF', 'filtros', 'celular'].forEach(function (w) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'faq-rapida'; b.textContent = w;
+        b.addEventListener('click', function () { $('faq-buscar').value = w; estado.q = w; estado.visibles = PAGINA; pintar(); });
+        rap.appendChild(b);
+      });
+
+      var tmr;
+      $('faq-buscar').addEventListener('input', function (e) {
+        var v = e.target.value;
+        clearTimeout(tmr);
+        tmr = setTimeout(function () { estado.q = v; estado.visibles = PAGINA; pintar(); }, 120);
+      });
+      $('faq-buscar').addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { e.target.value = ''; estado.q = ''; estado.visibles = PAGINA; pintar(); }
+      });
+      $('faq-limpiar').addEventListener('click', function () {
+        $('faq-buscar').value = ''; estado.q = ''; estado.visibles = PAGINA; pintar(); $('faq-buscar').focus();
+      });
+      $('faq-mas').addEventListener('click', function () {
+        var total = resultados().length;
+        estado.visibles = estado.visibles < total ? estado.visibles + PAGINA : PAGINA;
+        pintar();
+      });
+
+      // Enlaces dentro de las respuestas y del mensaje vacío
+      lista.addEventListener('click', function (e) {
+        var a = e.target.closest ? e.target.closest('a[href="#contacto"]') : null;
+        if (a) {
+          e.preventDefault();
+          var c = $('contacto');
+          if (c) c.scrollIntoView({ behavior: reducir ? 'auto' : 'smooth', block: 'start' });
+          return;
+        }
+        if (e.target.closest && e.target.closest('[data-faq-borrar]')) {
+          $('faq-buscar').value = ''; estado.q = ''; estado.visibles = PAGINA; pintar();
+        }
+      });
+
+      pintar();
+    })();
+  </script>
+
 </body>
 </html>

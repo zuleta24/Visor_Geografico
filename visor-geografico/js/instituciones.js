@@ -69,12 +69,14 @@ function generarEstrellasHtml(calificacion, numOpiniones, localId) {
   const textoOpiniones = numOpiniones === 1 ? '1 opinión' : `${numOpiniones} opiniones`;
 
   return `
-    <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px; margin-bottom: 15px;">
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 5px; margin-bottom: 15px;">
       <span style="color:#fff; font-size: 24px; font-weight: 500; line-height: 1;">${nota}</span>
       <div style="display: flex; gap: 1px; align-items: center; padding-bottom: 2px;">
         ${estrellasHtml}
       </div>
       <span style="color:#9aa0a6; font-size: 13px; cursor: pointer; text-decoration: none;" onclick="abrirFormularioOpinion('${localId}')">${textoOpiniones}</span>
+      <span style="color:#475569;">•</span>
+      <a href="javascript:void(0)" onclick="abrirFormularioOpinion('${localId}')" style="color:#29e2b8; font-size:13px; text-decoration:none; font-weight:500;">Escribir una opinión</a>
     </div>
   `;
 }
@@ -248,7 +250,7 @@ function renderCategoryList() {
       li.innerHTML = `
         <label class="category-toggle">
           <input type="checkbox" data-category="${cat.key}" checked />
-          <span class="category-swatch" style="background:${cat.color}"></span>
+          <span class="category-swatch category-swatch--pin" style="background:${cat.color}"></span>
           <span class="category-toggle__label">${cat.label}</span>
           <span class="category-count" id="count-${cat.key}">0</span>
         </label>
@@ -516,7 +518,61 @@ async function fetchFeatures(tableName) {
 // ==========================================
 // 7. GESTIÓN DE MAPAS (LEAFLET)
 // ==========================================
+// ------------------------------------------------------------------
+// Pines de ubicación de las instituciones
+//   color  -> clasificación (colegio público / privado, universidad privada)
+//   símbolo -> tipo (casa de colegio o birrete de universidad)
+// ------------------------------------------------------------------
+const PIN_FORMA = 'M16 1C8.3 1 2 7.2 2 14.8 2 25.5 16 41 16 41s14-15.5 14-26.2C30 7.2 23.7 1 16 1z';
+const PIN_GLIFOS = {
+  colegio: 'M12 3l9 6v1H3V9l9-6zM5 11h14v9H5v-9zm5.5 3v6h3v-6h-3z',
+  universidad: 'M12 4L1.5 9.5 12 15l10.5-5.5L12 4zM6 12.6v3.9c0 1.3 2.7 2.9 6 2.9s6-1.6 6-2.9v-3.9L12 16.4 6 12.6zM21 10.5h1.5V16H21z'
+};
+
+function crearIconoPin(cat) {
+  const glifo = PIN_GLIFOS[cat.tipo] || PIN_GLIFOS.colegio;
+  const html =
+    '<svg viewBox="0 0 32 42" width="32" height="42" aria-hidden="true" focusable="false">' +
+      `<path d="${PIN_FORMA}" fill="${cat.color}" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>` +
+      '<circle cx="16" cy="15" r="8.4" fill="#ffffff"/>' +
+      `<g transform="translate(10 9) scale(0.5)"><path d="${glifo}" fill="${cat.color}" fill-rule="evenodd"/></g>` +
+    '</svg>';
+  return L.divIcon({
+    className: 'inst-pin',
+    html,
+    iconSize: [32, 42],
+    iconAnchor: [16, 40],
+    popupAnchor: [0, -36],
+    tooltipAnchor: [0, -36]
+  });
+}
+
+(function inyectarEstilosPin() {
+  if (typeof document === 'undefined' || document.getElementById('inst-pin-css')) return;
+  const mascara = "url(\"data:image/svg+xml," + encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 42'><path fill-rule='evenodd' d='" + PIN_FORMA +
+    "M16 8.6a6.4 6.4 0 1 1 0 12.8 6.4 6.4 0 0 1 0-12.8z'/></svg>") + "\")";
+  const st = document.createElement('style');
+  st.id = 'inst-pin-css';
+  st.textContent = `
+    .leaflet-marker-icon.inst-pin { background: none; border: 0; }
+    .inst-pin svg { display: block; overflow: visible; transform-origin: 50% 100%;
+      filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.5)); transition: transform .16s ease, filter .16s ease; }
+    .inst-pin:hover svg, .inst-pin:focus-visible svg { transform: scale(1.18) translateY(-2px); filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.55)); }
+    .inst-pin:focus { outline: none; }
+    .category-swatch--pin { width: 14px; height: 18px; border: 0; border-radius: 0;
+      -webkit-mask: ${mascara} center / contain no-repeat; mask: ${mascara} center / contain no-repeat; }
+  `;
+  document.head.appendChild(st);
+})();
+
 function crearCapaInstitucion(featuresCategoria, cat, mapaLocal, grupoInstituciones) {
+  // Panel propio, por encima del límite municipal y de las demás capas vectoriales:
+  // así los puntos siempre reciben el clic primero y se abre la ficha de la institución.
+  if (!mapaLocal.getPane('instituciones')) {
+    mapaLocal.createPane('instituciones').style.zIndex = 650;
+  }
+
   const layer = L.geoJSON(
     {
       type: 'FeatureCollection',
@@ -531,12 +587,13 @@ function crearCapaInstitucion(featuresCategoria, cat, mapaLocal, grupoInstitucio
           categoria: cat
         };
 
-        return L.circleMarker(latlng, {
-          radius: 7,
-          color: '#0b1220',
-          weight: 1,
-          fillColor: cat.color,
-          fillOpacity: 0.9
+        // Pin de ubicación con el color de su clasificación (y un símbolo según el tipo).
+        return L.marker(latlng, {
+          pane: 'instituciones',
+          icon: crearIconoPin(cat),
+          title: feature.properties.nombre || cat.label,
+          alt: feature.properties.nombre || cat.label,
+          riseOnHover: true
         }).bindPopup(
           construirHtmlPopup(feature.properties, cat, id)
         );
@@ -581,7 +638,13 @@ async function initLimiteMunicipal(mapaLocal) {
     geometry,
   };
 
-  limiteSabanetaLayer = L.geoJSON(feature, { style: ESTILO_LIMITE_SABANETA })
+  // El límite va en su propia capa, por debajo de las instituciones: así el polígono
+  // no tapa los puntos y se puede hacer clic en cada institución aunque el límite esté activo.
+  if (!mapaLocal.getPane('limite')) {
+    mapaLocal.createPane('limite').style.zIndex = 350;
+  }
+
+  limiteSabanetaLayer = L.geoJSON(feature, { style: ESTILO_LIMITE_SABANETA, pane: 'limite' })
     .bindPopup(`<strong>${data[0].nombre}</strong><br/>DIVIPOLA: ${data[0].divipola}`);
 
   limiteSabanetaLayer.addTo(mapaLocal);

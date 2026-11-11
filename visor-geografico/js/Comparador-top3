@@ -1,0 +1,370 @@
+/**
+ * comparador-top3.js
+ * ------------------------------------------------------------------
+ * «Top 3» del comparador, basado en la calificación que la gente deja
+ * en el mapa (estrellas de 1 a 5).
+ *
+ *   • Muestra, siempre visible encima de la comparación, el panel
+ *     «Ranking por calificación» (igual que en Administración):
+ *       🏫 Top 3 Colegios          🎓 Top 3 Universidades
+ *     Cada tipo tiene su propio ranking, porque sirven a públicos distintos.
+ *   • Cada columna tiene el botón «Comparar este Top 3», que marca esas
+ *     instituciones en la lista y las pone a comparar.
+ *   • Oculta el botón antiguo «Elegir Top 3».
+ *   • Muestra la calificación (★ promedio y número de opiniones) en la lista
+ *     de instituciones y agrega el apartado «Calificación de los usuarios»
+ *     a la comparación.
+ *   • Se actualiza solo cuando llega o se borra una opinión (Realtime y
+ *     respaldo cada 30 s).
+ *
+ * De dónde salen los datos:
+ *   instituciones_educativas.calificacion  (promedio)
+ *   instituciones_educativas.num_opiniones (cantidad)
+ *   Estas dos columnas las mantiene al día la base de datos con el trigger
+ *   de calificaciones.sql cada vez que se crea o elimina una opinión en
+ *   opiniones_instituciones (la misma tabla que revisa el administrador).
+ *
+ * Cómo se ordena: no gana solo quien tiene el promedio más alto. Se usa un
+ * promedio ponderado: una institución con 1 sola opinión de 5★ no supera a
+ * otra con 20 opiniones de 4,8★. Con pocas opiniones, el promedio se acerca
+ * al promedio general de su tipo.
+ *
+ * Uso: guardar este archivo como js/comparador-top3.js y agregar en
+ * comparador.html, DESPUÉS del script que dibuja el comparador:
+ *   <script src="js/comparador-top3.js"></script>
+ * No modifica ningún otro archivo. Solo necesita el contenedor #cp-resultado
+ * (el resto —#cp-lista, #cp-btn-limpiar— lo usa si existe).
+ * Si algo falla, el propio panel lo dice en pantalla.
+ * ------------------------------------------------------------------
+ */
+(function () {
+  'use strict';
+
+  const TABLA = window.TABLA_INSTITUCIONES || 'instituciones_educativas';
+  const PESO_PRIOR = 3;          // «opiniones imaginarias» que acercan el promedio al general
+  const TAMANO_TOP = 3;
+  const REFRESCO_MS = 30000;
+  const MEDALLAS = ['🥇', '🥈', '🥉'];
+
+  const $ = (id) => document.getElementById(id);
+  const lista = $('cp-lista');        // puede no existir: entonces solo se muestra el panel
+  const resultado = $('cp-resultado');
+  if (!resultado || !resultado.parentNode) {
+    console.warn('[comparador-top3] No se encontró #cp-resultado; el módulo no se activó.');
+    return;
+  }
+
+  // ----------------------------------------------------------------
+  // Utilidades
+  // ----------------------------------------------------------------
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const nota = (n) => Number(n).toFixed(1).replace('.', ',');
+  const plural = (n, uno, varios) => n + ' ' + (n === 1 ? uno : varios);
+  const esUniversidad = (tipo) => /^univ/i.test(String(tipo || ''));
+  const tipoDe = (d) => (esUniversidad(d.tipo) ? 'universidad' : 'colegio');
+  const norm = (t) => String(t == null ? '' : t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const nombreCorto = (t) => (t.length > 30 ? t.slice(0, 29).trimEnd() + '…' : t);
+
+  // ----------------------------------------------------------------
+  // Datos
+  // ----------------------------------------------------------------
+  const datos = new Map();     // id (texto) -> { id, nombre, tipo, calificacion, n }
+  const porNombre = new Map(); // nombre normalizado -> dato (por si la lista no trae el id en el checkbox)
+  let cargado = false;
+  let errorCarga = '';
+
+  function hayCliente() {
+    return typeof supabaseClient !== 'undefined' && supabaseClient && typeof supabaseClient.from === 'function';
+  }
+
+  async function cargarCalificaciones() {
+    if (!hayCliente()) { errorCarga = 'No se encontró el cliente de Supabase.'; return; }
+    try {
+      const pagina = 1000;
+      let filas = [];
+      for (let desde = 0; ; desde += pagina) {
+        const { data, error } = await supabaseClient.from(TABLA)
+          .select('id, nombre, tipo, sector, calificacion, num_opiniones')
+          .range(desde, desde + pagina - 1);
+        if (error) throw error;
+        filas = filas.concat(data || []);
+        if (!data || data.length < pagina) break;
+      }
+      datos.clear();
+      porNombre.clear();
+      filas.forEach((r) => {
+        const cal = Number(r.calificacion);
+        const n = parseInt(r.num_opiniones, 10);
+        const dato = {
+          id: r.id, nombre: r.nombre || 'Sin nombre', tipo: r.tipo,
+          calificacion: Number.isFinite(cal) ? cal : 0,
+          n: Number.isFinite(n) ? n : 0,
+        };
+        datos.set(String(r.id), dato);
+        porNombre.set(norm(dato.nombre), dato);
+      });
+      cargado = true;
+      errorCarga = '';
+    } catch (e) {
+      cargado = true;
+      errorCarga = 'No se pudieron leer las calificaciones (' + (e && e.message ? e.message : e) + '). Ejecuta calificaciones.sql en Supabase.';
+      console.warn('[comparador-top3]', e);
+    }
+    pintarPanel();
+    decorarLista();
+    agregarSeccion();
+  }
+
+  const conNota = (d) => d && d.n > 0 && d.calificacion > 0;
+
+  /** Ranking ponderado de un tipo («colegio» o «universidad»). */
+  function ranking(tipo) {
+    const todas = Array.from(datos.values()).filter((d) => tipoDe(d) === tipo && conNota(d));
+    if (!todas.length) return [];
+    const votos = todas.reduce((s, d) => s + d.n, 0);
+    const media = todas.reduce((s, d) => s + d.calificacion * d.n, 0) / votos;
+    todas.forEach((d) => { d.puntaje = (d.n / (d.n + PESO_PRIOR)) * d.calificacion + (PESO_PRIOR / (d.n + PESO_PRIOR)) * media; });
+    return todas.sort((a, b) =>
+      b.puntaje - a.puntaje || b.n - a.n || b.calificacion - a.calificacion || a.nombre.localeCompare(b.nombre, 'es'));
+  }
+
+  // ----------------------------------------------------------------
+  // Estilos
+  // ----------------------------------------------------------------
+  const estilos = document.createElement('style');
+  estilos.textContent = `
+    #cp-btn-sugeridas { display: none !important; }
+    .cpt-panel { margin: 0 0 20px; padding: 18px 20px; border-radius: 14px; border: 1px solid rgba(105, 181, 68, 0.35);
+      background: linear-gradient(135deg, rgba(12, 100, 52, 0.35), rgba(18, 41, 27, 0.9)); }
+    .cpt-panel__cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .cpt-panel__cab h3 { margin: 0; font-size: 15px; font-weight: 800; color: #fff; }
+    .cpt-panel__resumen { font-size: 12.5px; color: #a3bba8; }
+    .cpt-panel__resumen b { color: #f5c324; }
+    .cpt-panel__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .cpt-col { display: flex; flex-direction: column; padding: 14px; border-radius: 12px; background: rgba(0, 0, 0, 0.22); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .cpt-col h4 { margin: 0 0 10px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #fff; }
+    .cpt-col ol { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .cpt-col li { display: flex; align-items: baseline; gap: 8px; font-size: 13px; }
+    .cpt-col li .n { flex: 1; min-width: 0; color: #fff; font-weight: 600; }
+    .cpt-col li em { font-style: normal; font-weight: 700; color: #f5c324; white-space: nowrap; }
+    .cpt-col li small { color: #839d89; white-space: nowrap; }
+    .cpt-vacio { margin: 0; font-size: 12.5px; color: #839d89; }
+    .cpt-comparar { width: 100%; padding: 9px 12px; border-radius: 9px; border: 1px solid rgba(105, 181, 68, 0.55); background: rgba(105, 181, 68, 0.16);
+      color: #fff; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: background .15s; }
+    .cpt-comparar:hover:not(:disabled) { background: rgba(105, 181, 68, 0.32); }
+    .cpt-comparar:disabled { opacity: .45; cursor: not-allowed; }
+    .cpt-panel__nota { margin: 12px 0 0; font-size: 11.5px; line-height: 1.5; color: #839d89; }
+    @media (max-width: 720px) { .cpt-panel__grid { grid-template-columns: minmax(0, 1fr); } }
+    .cpt-rate { display: block; margin-top: 2px; font-size: 11.5px; font-weight: 700; color: #f5c324; white-space: nowrap; }
+    .cpt-rate small { display: inline; font-weight: 500; color: #839d89; }
+    .cpt-rate--nd { font-weight: 500; color: #839d89; }
+    .cpt-estrellas { color: #f5c324; letter-spacing: 1px; }
+    .cpt-estrellas i { font-style: normal; color: rgba(255, 255, 255, 0.2); }
+    #cpt-seccion .cp-bar-value { white-space: nowrap; }
+  `;
+  document.head.appendChild(estilos);
+
+  // ----------------------------------------------------------------
+  // Panel «Ranking por calificación» (siempre visible, encima de la comparación)
+  // ----------------------------------------------------------------
+  const panel = document.createElement('section');
+  panel.className = 'cpt-panel';
+  panel.id = 'cpt-panel';
+  panel.innerHTML =
+    '<div class="cpt-panel__cab"><h3>⭐ Ranking por calificación</h3><span class="cpt-panel__resumen" id="cpt-resumen">Cargando…</span></div>' +
+    '<div class="cpt-panel__grid">' +
+      '<div class="cpt-col"><h4>🏫 Top 3 Colegios</h4><ol id="cpt-ol-colegio"></ol>' +
+        '<button type="button" class="cpt-comparar" data-cpt-tipo="colegio" disabled>Comparar este Top 3</button></div>' +
+      '<div class="cpt-col"><h4>🎓 Top 3 Universidades</h4><ol id="cpt-ol-universidad"></ol>' +
+        '<button type="button" class="cpt-comparar" data-cpt-tipo="universidad" disabled>Comparar este Top 3</button></div>' +
+    '</div>' +
+    '<p class="cpt-panel__nota">Se ordena por la calificación (1 a 5 ★) que dejan las personas en el mapa; cada tipo tiene su propio Top 3. ' +
+    'Es el mismo ranking que ve el administrador.</p>';
+  resultado.parentNode.insertBefore(panel, resultado);
+
+  function pintarPanel() {
+    const resumen = $('cpt-resumen');
+    if (errorCarga) {
+      resumen.textContent = errorCarga;
+      ['colegio', 'universidad'].forEach((t) => { $('cpt-ol-' + t).innerHTML = ''; });
+      panel.querySelectorAll('.cpt-comparar').forEach((b) => { b.disabled = true; });
+      return;
+    }
+    const calificadas = Array.from(datos.values()).filter(conNota);
+    const total = calificadas.reduce((s, d) => s + d.n, 0);
+    const general = total ? calificadas.reduce((s, d) => s + d.calificacion * d.n, 0) / total : 0;
+    resumen.innerHTML = total
+      ? '<b>' + total + '</b> ' + (total === 1 ? 'opinión' : 'opiniones') + ' en ' + plural(calificadas.length, 'institución', 'instituciones') + ' · promedio general <b>★ ' + nota(general) + '</b>'
+      : 'Todavía no hay opiniones';
+
+    ['colegio', 'universidad'].forEach((tipo) => {
+      const ol = $('cpt-ol-' + tipo);
+      const rank = ranking(tipo).slice(0, TAMANO_TOP);
+      const etiqueta = tipo === 'universidad' ? 'universidades' : 'colegios';
+      ol.innerHTML = rank.length
+        ? rank.map((d, i) => '<li><span>' + MEDALLAS[i] + '</span><span class="n">' + esc(d.nombre) + '</span><em>★ ' + nota(d.calificacion) +
+            '</em><small>' + plural(d.n, 'opinión', 'opiniones') + '</small></li>').join('')
+        : '<p class="cpt-vacio">Aún no hay ' + etiqueta + ' con calificaciones.</p>';
+      const boton = panel.querySelector('.cpt-comparar[data-cpt-tipo="' + tipo + '"]');
+      boton.disabled = rank.length < 2 || !lista;
+      boton.title = rank.length < 2 ? 'Se necesitan al menos 2 instituciones calificadas para compararlas' : '';
+    });
+  }
+
+  panel.addEventListener('click', (e) => {
+    const b = e.target.closest('.cpt-comparar');
+    if (!b || b.disabled) return;
+    marcarEnLista(ranking(b.dataset.cptTipo).slice(0, TAMANO_TOP));
+    setTimeout(() => { resultado.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 350);
+  });
+
+  /** Nombre que muestra una fila de la lista, sin la calificación ni el texto pequeño. */
+  function nombreDeFila(label) {
+    const sp = label && label.querySelector('span');
+    if (!sp) return '';
+    const copia = sp.cloneNode(true);
+    copia.querySelectorAll('small, em, .cpt-rate').forEach((n) => n.remove());
+    return copia.textContent.trim();
+  }
+
+  /** Dato de una fila: primero por el id del checkbox y, si no coincide, por el nombre. */
+  function datoDeCaja(caja) {
+    return datos.get(String(caja.value)) || porNombre.get(norm(nombreDeFila(caja.closest('label')))) || null;
+  }
+
+  /** Checkbox de una institución dentro de la lista. */
+  function cajaDe(d) {
+    if (!lista) return null;
+    const porId = lista.querySelector('input[type="checkbox"][value="' + String(d.id).replace(/"/g, '') + '"]');
+    if (porId) return porId;
+    const cajas = Array.from(lista.querySelectorAll('input[type="checkbox"]'));
+    return cajas.find((c) => norm(nombreDeFila(c.closest('label'))) === norm(d.nombre)) || null;
+  }
+
+  function marcarEnLista(top) {
+    if (!lista) return;
+    // Los filtros pueden ocultar instituciones: se limpian primero para que todas estén en la lista.
+    const limpiarFiltros = $('cp-btn-limpiar-filtros');
+    if (limpiarFiltros) limpiarFiltros.click();
+    const limpiarTodo = $('cp-btn-limpiar');
+    if (limpiarTodo && !limpiarTodo.disabled) limpiarTodo.click();
+
+    let intentos = 0;
+    (function aplicar() {
+      let faltan = 0;
+      top.forEach((d) => {
+        const caja = cajaDe(d);
+        if (!caja) { faltan++; return; }
+        if (!caja.checked && !caja.disabled) caja.click();
+      });
+      if (faltan && ++intentos < 8) setTimeout(aplicar, 80);
+    })();
+  }
+
+  // ----------------------------------------------------------------
+  // Calificación visible en la lista de instituciones
+  // ----------------------------------------------------------------
+  function decorarLista() {
+    if (!lista) return;
+    lista.querySelectorAll('label').forEach((label) => {
+      const caja = label.querySelector('input[type="checkbox"]');
+      const texto = label.querySelector('span');
+      if (!caja || !texto) return;
+      const d = datoDeCaja(caja);
+      let rate = texto.querySelector('.cpt-rate');
+      if (!d) { if (rate) rate.remove(); return; }
+      const html = conNota(d)
+        ? '★ ' + nota(d.calificacion) + ' <small>(' + d.n + ')</small>'
+        : 'Sin calificar';
+      if (!rate) {
+        rate = document.createElement('span');
+        texto.appendChild(rate);
+      }
+      const clase = 'cpt-rate' + (conNota(d) ? '' : ' cpt-rate--nd');
+      if (rate.className !== clase) rate.className = clase;
+      if (rate.innerHTML !== html) rate.innerHTML = html;
+    });
+  }
+  if (lista) new MutationObserver(decorarLista).observe(lista, { childList: true });
+
+  // ----------------------------------------------------------------
+  // Apartado «Calificación de los usuarios» dentro de la comparación
+  // ----------------------------------------------------------------
+  function seleccionadas() {
+    if (!lista) return [];
+    return Array.from(lista.querySelectorAll('input[type="checkbox"]:checked')).map((caja) => {
+      const d = datoDeCaja(caja);
+      const label = caja.closest('label');
+      const color = label ? getComputedStyle(label).getPropertyValue('--c').trim() : '';
+      return d ? { d, color: color || '#69b544' } : null;
+    }).filter(Boolean);
+  }
+
+  function estrellasHtml(v) {
+    const r = Math.max(0, Math.min(5, Math.round(v)));
+    return '<span class="cpt-estrellas" aria-hidden="true">' + '★'.repeat(r) + '<i>' + '★'.repeat(5 - r) + '</i></span>';
+  }
+
+  function agregarSeccion() {
+    const previa = $('cpt-seccion');
+    const sel = seleccionadas();
+    if (!sel.length || !cargado) { if (previa) previa.remove(); return; }
+
+    const filas = sel.slice().sort((a, b) => (conNota(b.d) - conNota(a.d)) || b.d.calificacion - a.d.calificacion || b.d.n - a.d.n);
+    const conDato = filas.filter((f) => conNota(f.d));
+    let resumen = 'Sin calificaciones todavía';
+    if (conDato.length === 1) resumen = 'Calificación de <b>' + esc(nombreCorto(conDato[0].d.nombre)) + '</b>: ★ ' + nota(conDato[0].d.calificacion);
+    else if (conDato.length > 1) {
+      const top = conDato[0].d.calificacion;
+      const empatadas = conDato.filter((f) => f.d.calificacion === top);
+      resumen = empatadas.length > 1 ? 'Empate en <b>★ ' + nota(top) + '</b>' : 'Mayor promedio: <b>' + esc(nombreCorto(conDato[0].d.nombre)) + '</b> · ★ ' + nota(top);
+    }
+
+    const barras = filas.map((f) => {
+      const ancho = conNota(f.d) ? Math.max(2, Math.round((f.d.calificacion / 5) * 100)) : 0;
+      const etiqueta = tipoDe(f.d) === 'universidad' ? 'Universidad' : 'Colegio';
+      return '<div class="cp-bar-row">' +
+        '<div class="cp-inst-name">' + esc(f.d.nombre) + '<small>' + etiqueta + (conNota(f.d) ? ' · ' + plural(f.d.n, 'opinión', 'opiniones') : '') + '</small></div>' +
+        '<div class="cp-bar-track"><i style="width:' + ancho + '%;--bar-color:' + esc(f.color) + '"></i></div>' +
+        '<div class="cp-bar-value' + (conNota(f.d) ? '' : ' cp-bar-value--nd') + '">' +
+          (conNota(f.d) ? estrellasHtml(f.d.calificacion) + ' ' + nota(f.d.calificacion) : 'Sin calificar') + '</div></div>';
+    }).join('');
+
+    const abiertaAntes = previa ? previa.open : true;
+    const sec = document.createElement('details');
+    sec.className = 'cp-card-accordion';
+    sec.id = 'cpt-seccion';
+    sec.open = abiertaAntes;
+    sec.innerHTML = '<summary><span>⭐ Calificación de los usuarios</span><span class="cp-sec-resumen">' + resumen + '</span></summary>' +
+      '<div class="cp-bar-container"><p class="cp-metric-hint">Promedio de las estrellas (1 a 5) que las personas dejan en la ficha de cada institución en el mapa.</p>' + barras + '</div>';
+
+    observador.disconnect();
+    if (previa) previa.remove();
+    const primera = resultado.querySelector('details.cp-card-accordion');
+    if (primera) primera.parentNode.insertBefore(sec, primera);
+    else if (!resultado.querySelector('.cp-aviso-vacio')) resultado.appendChild(sec);
+    observador.observe(resultado, { childList: true });
+  }
+
+  const observador = new MutationObserver(() => { if (!$('cpt-seccion')) agregarSeccion(); });
+  observador.observe(resultado, { childList: true });
+  if (lista) lista.addEventListener('change', () => setTimeout(agregarSeccion, 0));
+
+  // ----------------------------------------------------------------
+  // Arranque y actualización automática
+  // ----------------------------------------------------------------
+  cargarCalificaciones();
+  setInterval(cargarCalificaciones, REFRESCO_MS);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) cargarCalificaciones(); });
+
+  try {
+    if (hayCliente() && typeof supabaseClient.channel === 'function') {
+      supabaseClient.channel('comparador-top3')
+        .on('postgres_changes', { event: '*', schema: 'public', table: TABLA }, () => cargarCalificaciones())
+        .subscribe();
+    }
+  } catch (e) { /* sin Realtime: queda el respaldo cada 30 s */ }
+
+  window.ComparadorTop3 = { ranking, recargar: cargarCalificaciones };
+})();
