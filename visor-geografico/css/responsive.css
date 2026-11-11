@@ -1,0 +1,596 @@
+/* ==========================================================================
+   responsive.css  ·  Geovisor Sabaneta
+   --------------------------------------------------------------------------
+   Adapta TODA la aplicación a celulares y tablets (index, comparador y
+   administración). No cambia nada del escritorio: todo está dentro de
+   @media (max-width: …).
+
+   Uso: guardar como css/responsive.css y enlazarlo en el <head> de las TRES
+   páginas, DESPUÉS de css/style.css y de cualquier <style> propio de la página:
+       <link rel="stylesheet" href="css/responsive.css" />
+   Se complementa con js/movil.js (menú de celular y panel de capas).
+
+   Puntos de corte:  860 px (menú hamburguesa)  ·  760 px (celular)  ·
+                     520 px (celular pequeño)
+   ========================================================================== */
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: 68px; }
+body { -webkit-tap-highlight-color: rgba(105, 181, 68, 0.18); }
+
+/* Elementos que solo existen en celular (los crea js/movil.js) */
+.mv-nav-toggle, .mv-fab, .mv-backdrop, .mv-sheet-head { display: none; }
+
+/* ==========================================================================
+   1) MENÚ SUPERIOR  (≤ 860 px) — hamburguesa con panel desplegable
+   ========================================================================== */
+@media (max-width: 860px) {
+  .top-navbar {
+    position: sticky;
+    top: 0;
+    padding: 0 10px 0 14px;
+    gap: 10px;
+    justify-content: space-between;
+  }
+  .top-navbar__brand { min-width: 0; flex: 1 1 auto; }
+  .top-navbar__brand span {
+    display: inline !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px;
+  }
+
+  .mv-nav-toggle {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .mv-nav-toggle:focus-visible { outline: 2px solid #f5c324; outline-offset: 2px; }
+  .mv-nav-toggle svg { width: 22px; height: 22px; }
+  .mv-nav-toggle .mv-l1, .mv-nav-toggle .mv-l2, .mv-nav-toggle .mv-l3 {
+    transform-origin: 12px 12px;
+    transition: transform .22s ease, opacity .18s ease;
+  }
+  .top-navbar.is-open .mv-nav-toggle .mv-l1 { transform: translateY(6px) rotate(45deg); }
+  .top-navbar.is-open .mv-nav-toggle .mv-l2 { opacity: 0; }
+  .top-navbar.is-open .mv-nav-toggle .mv-l3 { transform: translateY(-6px) rotate(-45deg); }
+
+  .top-navbar__links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px 16px;
+    max-height: calc(100dvh - var(--nav-h, 56px));
+    overflow-y: auto;
+    background: #07301a;
+    border-bottom: 3px solid #f5c324;
+    box-shadow: 0 22px 40px rgba(0, 0, 0, 0.55);
+  }
+  .top-navbar.is-open .top-navbar__links { display: flex; animation: mv-baja .2s ease-out; }
+  @keyframes mv-baja { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
+  .top-navbar__links a {
+    display: flex;
+    align-items: center;
+    min-height: 50px;
+    padding: 12px 16px !important;
+    font-size: 16px;
+    border-radius: 12px !important;
+  }
+  .top-navbar__links a[aria-current="page"] { font-weight: 700 !important; }
+  .top-navbar__links .btn-logout-nav,
+  .top-navbar__links button {
+    width: 100%;
+    min-height: 50px;
+    margin-top: 6px;
+    font-size: 15px;
+  }
+}
+
+/* ==========================================================================
+   2) PANTALLA DE BIENVENIDA
+   ========================================================================== */
+@media (max-width: 760px) {
+  .landing {
+    align-items: flex-start;
+    padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .landing__content { margin: auto; width: 100%; max-width: 440px; }
+  .landing__content::before { width: 72px; height: 98px; margin-bottom: 14px; }
+  .landing__eyebrow { margin-bottom: 10px; font-size: 12.5px; }
+  .landing__title { margin-bottom: 12px; font-size: clamp(27px, 8.2vw, 36px); }
+  .landing__subtitle { margin-bottom: 20px; font-size: 15px; line-height: 1.55; }
+  .landing__features { gap: 8px; margin-bottom: 22px; }
+  .landing__features li { padding: 12px 14px; text-align: left; }
+  .landing__cta { width: 100%; min-height: 54px; font-size: 17px; border-radius: 14px; }
+  .landing__footer { margin-top: 22px; font-size: 12px; line-height: 1.5; }
+}
+
+/* ==========================================================================
+   3) VISOR (index): mapa a pantalla completa + panel de capas como hoja inferior
+   ========================================================================== */
+@media (max-width: 760px) {
+  #app { height: calc(100dvh - var(--nav-h, 56px)); min-height: 460px; flex-direction: column; }
+  .map-container { flex: 1 1 auto; width: 100%; }
+
+  /* Panel «Herramientas espaciales» → hoja que sube desde abajo */
+  #app .sidebar,
+  #app .sidebar--right {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    flex: none;
+    height: auto;
+    max-height: min(84dvh, 680px);
+    padding: 0 14px calc(18px + env(safe-area-inset-bottom));
+    gap: 12px;
+    border: 0;
+    border-top: 1px solid var(--border-subtle, #21412e);
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.6);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    z-index: 1300;
+    transform: translateY(110%);
+    visibility: hidden;
+    transition: transform .3s cubic-bezier(.2, .9, .3, 1), visibility 0s linear .3s;
+  }
+  body.mv-sheet-open #app .sidebar {
+    transform: none;
+    visibility: visible;
+    transition: transform .3s cubic-bezier(.2, .9, .3, 1), visibility 0s;
+  }
+  .sidebar__header { display: none; }
+  .sidebar__footer { font-size: 11.5px; }
+
+  .mv-sheet-head {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0 -14px;
+    padding: 20px 14px 10px;
+    background: var(--bg-panel, #0d1f14);
+  }
+  .mv-sheet-head strong { font-size: 17px; font-weight: 800; color: #fff; }
+  .mv-grab {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 46px;
+    height: 5px;
+    border-radius: 5px;
+    background: #2f5a42;
+    transform: translateX(-50%);
+  }
+  .mv-sheet-close {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 18px;
+    color: var(--text-secondary, #a3bba8);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-subtle, #21412e);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .mv-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1250;
+    background: rgba(3, 10, 6, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  body.mv-sheet-open .mv-backdrop { opacity: 1; pointer-events: auto; }
+  body.mv-sheet-open { overflow: hidden !important; }
+
+  /* Botón flotante que abre el panel */
+  .mv-fab {
+    position: absolute;
+    z-index: 900;
+    left: 50%;
+    bottom: calc(34px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    height: 50px;
+    padding: 0 22px;
+    font: 800 15px/1 var(--font-display, 'Inter', sans-serif);
+    color: #fff;
+    white-space: nowrap;
+    background: linear-gradient(135deg, #0c6434, #3f9a3a);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 999px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+  }
+  .mv-fab svg { width: 20px; height: 20px; flex: none; }
+  .mv-fab:active { transform: translateX(-50%) scale(.97); }
+  body.mv-sheet-open .mv-fab { visibility: hidden; }
+
+  /* Título del mapa: una sola línea compacta */
+  .map-title { top: 10px; left: 10px; right: 10px; width: auto; transform: none; z-index: 1100; }
+  .map-title summary { min-height: 46px; padding: 8px 14px; }
+  .map-title__tag { display: none; }
+  .map-title p { max-height: 40dvh; overflow-y: auto; padding: 0 14px 14px; font-size: 13.5px; line-height: 1.6; }
+
+  /* Controles de Leaflet debajo del título y fáciles de tocar */
+  .leaflet-top { top: 64px; }
+  .leaflet-left .leaflet-control { margin-left: 10px; }
+  .leaflet-right .leaflet-control { margin-right: 10px; }
+  .leaflet-bottom.leaflet-left .leaflet-control { margin-bottom: 8px; }
+  .hm-btn, .ubic-btn { width: 46px !important; height: 46px !important; border-radius: 12px !important; }
+  .hm-btn svg, .ubic-btn svg { width: 22px; height: 22px; }
+  .hm-barra.leaflet-bar { gap: 8px !important; }
+  .leaflet-control-zoom a { width: 44px !important; height: 44px !important; line-height: 44px !important; font-size: 22px !important; }
+  .leaflet-control-scale { display: none; }
+  .leaflet-control-attribution { max-width: 70vw; font-size: 10px; }
+
+  /* Paneles de herramientas (medir, polígono…) caben en pantalla */
+  .mp-col { width: calc(100vw - 80px) !important; max-width: none !important; }
+  .hm-panel { max-height: 52dvh; }
+  .hm-chip, .hm-select { min-height: 40px; }
+  .hm-cerrar { width: 34px !important; height: 34px !important; }
+
+  /* Ventanitas del mapa (popups) */
+  .leaflet-popup-content-wrapper { border-radius: 14px; }
+  .leaflet-popup-content { width: auto !important; min-width: 210px; max-width: min(300px, calc(100vw - 92px)); margin: 16px 38px 16px 16px; }
+  .leaflet-popup-close-button { width: 40px !important; height: 40px !important; font-size: 24px !important; line-height: 38px !important; }
+  .leaflet-popup-content a { word-break: break-word; }
+
+  /* Pines un poco más grandes para el dedo */
+  .inst-pin svg { width: 36px; height: 47px; }
+}
+
+/* Selector de mapa base y capas: icono que se abre al tocar (celular y tablet; lo controla movil.js) */
+@media (max-width: 1024px) {
+  /* Selector de mapa base y capas: icono que se abre al tocar (lo controla movil.js) */
+  .leaflet-control-layers-expanded .leaflet-control-layers-toggle { display: block !important; }
+  .leaflet-control-layers-expanded .leaflet-control-layers-list { display: none !important; }
+  .leaflet-control-layers.mv-abierto .leaflet-control-layers-toggle { display: none !important; }
+  .leaflet-control-layers.mv-abierto .leaflet-control-layers-list { display: block !important; }
+  .leaflet-control-layers-toggle { width: 46px !important; height: 46px !important; border-radius: 12px; }
+  .leaflet-control-layers { border-radius: 12px; }
+  .leaflet-control-layers-list { padding: 8px 6px; font-size: 15px; max-width: calc(100vw - 96px); }
+  .leaflet-control-layers label { display: block; padding: 7px 8px; }
+  .leaflet-control-layers label > span, .leaflet-control-layers label > div { display: flex; align-items: center; gap: 10px; }
+  .leaflet-control-layers input { width: 20px; height: 20px; margin: 0; flex: none; }
+}
+
+/* ==========================================================================
+   4) BUSCADOR Y LISTAS DENTRO DEL PANEL (todos los anchos de celular)
+   ========================================================================== */
+@media (max-width: 760px) {
+  .buscador__input, .buscador__select, input, select, textarea { font-size: 16px !important; }
+  .buscador__input, .buscador__select { min-height: 48px; }
+  .buscador__limpiar { min-height: 48px; }
+  .buscador__item { min-height: 56px; padding: 12px 12px; }
+  .buscador__resultados { max-height: 38dvh; }
+  .category-toggle { min-height: 52px; padding: 10px 10px; font-size: 15px; }
+  .category-toggle input[type="checkbox"] { width: 22px; height: 22px; }
+  .category-count { font-size: 12px; }
+}
+
+/* ==========================================================================
+   5) FICHA DE LA INSTITUCIÓN, DIRECTORIO Y VENTANAS  (≤ 640 px: pantalla completa)
+   ========================================================================== */
+@media (max-width: 640px) {
+  .institucion-modal { padding: 0 !important; align-items: stretch !important; overflow-y: auto; }
+  .institucion-modal__panel {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100dvh;
+    max-height: none !important;
+    border-radius: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    box-shadow: none !important;
+    overflow-y: visible !important;
+  }
+  .institucion-modal__close {
+    position: fixed !important;
+    top: calc(10px + env(safe-area-inset-top)) !important;
+    right: 12px !important;
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    font-size: 26px !important;
+    color: #fff !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 50% !important;
+  }
+  .inst-card__header { height: 210px; border-radius: 0 !important; }
+  .inst-card__body { padding: 18px 16px calc(28px + env(safe-area-inset-bottom)); gap: 14px; }
+  .inst-card__title { font-size: 21px; line-height: 1.25; }
+
+  /* Cuadro «Calificar institución» */
+  .calificar-modal-backdrop { width: 100% !important; height: 100dvh !important; }
+  .calificar-modal-panel { width: calc(100% - 24px) !important; padding: 20px 16px !important; }
+  .rating-stars { gap: 6px; font-size: 44px; }
+  .rating-stars span { padding: 0 2px; }
+  .opinion-textarea { font-size: 16px !important; height: 130px !important; }
+}
+
+/* ==========================================================================
+   5b) DIRECTORIO DE INSTITUCIONES  (≤ 760 px: pantalla completa, filas = tarjetas)
+   ========================================================================== */
+@media (max-width: 760px) {
+  #informe-modal { padding: 0 !important; align-items: stretch !important; overflow: hidden !important; }
+  #informe-modal .informe-modal__panel {
+    width: 100% !important; max-width: none !important; margin: 0 !important;
+    height: 100dvh; min-height: 0 !important; max-height: 100dvh !important;
+    border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+    display: flex; flex-direction: column; overflow: hidden !important;
+  }
+  #informe-modal .institucion-modal__close { top: calc(12px + env(safe-area-inset-top)) !important; right: 12px !important; }
+
+  /* Cabecera */
+  #informe-modal .informe-modal__header {
+    flex-direction: column; align-items: stretch !important; flex-wrap: nowrap; gap: 12px;
+    padding: calc(16px + env(safe-area-inset-top)) 62px 14px 16px;
+  }
+  #informe-modal .informe-modal__title { font-size: 19px; line-height: 1.25; gap: 8px; }
+  #informe-modal .informe-modal__subtitle { margin-top: 4px; font-size: 13px; line-height: 1.4; }
+  #informe-modal .informe-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: auto; margin-right: -46px; }
+  #informe-modal .informe-actions .btn {
+    width: 100%; height: 44px; padding: 0 8px; justify-content: center; white-space: nowrap; font-size: 12.5px;
+  }
+
+  /* Buscador y filtros */
+  #informe-modal .dir-toolbar { flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 10px; padding: 12px 16px; }
+  #informe-modal .dir-buscar { flex: none; max-width: none; width: 100%; }
+  #informe-modal .dir-buscar input { height: 46px; font-size: 16px; }   /* 16 px: iOS no hace zoom */
+  #informe-modal .dir-chips { flex-wrap: nowrap; gap: 8px; }
+  #informe-modal .dir-chip { flex: 1 1 0; min-width: 0; height: 40px; padding: 0 6px; font-size: 13px; }
+
+  /* Lista */
+  #informe-modal .informe-modal__table-wrap {
+    flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+    padding: 12px 14px calc(20px + env(safe-area-inset-bottom));
+  }
+  #informe-modal .informe-table,
+  #informe-modal .informe-table tbody { display: block; width: 100%; min-width: 0; }
+  #informe-modal .informe-table thead { display: none; }
+
+  /* Cada institución = una tarjeta con barra de color según su clasificación */
+  #informe-modal .informe-table tbody tr {
+    position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin: 0 0 12px; padding: 14px 14px 14px 18px; overflow: hidden;
+    background: #10271a !important; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 14px;
+  }
+  #informe-modal .informe-table tbody tr::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--dir-acento, #69b544);
+  }
+  #informe-modal .informe-table tbody tr:not(.dir-fila)::before { display: none; }
+  #informe-modal .informe-table tbody tr[hidden] { display: none !important; }
+  #informe-modal .informe-table tbody td {
+    display: block; width: auto; min-width: 0 !important; padding: 0 !important; border: 0 !important;
+    font-family: inherit; font-size: 13.5px; font-weight: 500; line-height: 1.4; text-align: left !important; word-break: break-word;
+  }
+  #informe-modal .informe-table tbody td[colspan] { flex: 0 0 100%; padding: 22px 0 !important; text-align: center !important; }
+
+  /* Nombre */
+  #informe-modal .informe-table tbody td:nth-child(1) { flex: 0 0 100%; font-size: 16px; font-weight: 800; line-height: 1.3; color: #fff; }
+  #informe-modal .informe-table tbody td:nth-child(1):only-child { font-weight: 500; font-size: 14px; color: #94a3b8; }
+  #informe-modal .informe-table tbody tr.dir-fila td:first-child { box-shadow: none; }
+
+  /* Insignias: tipo · sector · estrato */
+  #informe-modal .informe-table tbody td:nth-child(2),
+  #informe-modal .informe-table tbody td:nth-child(3) { flex: none; }
+  #informe-modal .informe-table tbody td:nth-child(4) { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+  #informe-modal .informe-table tbody td:nth-child(4)::before {
+    content: 'Estrato'; font-size: 11.5px; font-weight: 600; color: #9db8a3;
+  }
+  #informe-modal .informe-table tbody td:nth-child(4) .dir-estrato { width: 24px; height: 24px; font-size: 12px; }
+
+  /* Dirección y contacto */
+  #informe-modal .informe-table tbody td:nth-child(5) { flex: 0 0 100%; margin-top: 2px; font-size: 13.5px; color: #b6ccbb; }
+  #informe-modal .informe-table tbody td:nth-child(5)::before { content: '📍 '; }
+  #informe-modal .informe-table tbody td:nth-child(9) { flex: 0 0 100%; font-size: 13px; color: #b6ccbb; }
+  #informe-modal .informe-table tbody td:nth-child(9)::before { content: '📞 '; }
+  #informe-modal .informe-table tbody td.dir-nd { color: #6f8a77; }
+
+  /* Cifras: tres casillas iguales */
+  #informe-modal .informe-table tbody td:nth-child(6),
+  #informe-modal .informe-table tbody td:nth-child(7),
+  #informe-modal .informe-table tbody td:nth-child(8) {
+    flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 4px;
+    padding: 9px 4px !important; text-align: center !important;
+    font: 700 17px/1.1 'JetBrains Mono', monospace; color: #fff;
+    background: rgba(255, 255, 255, 0.05); border-radius: 10px;
+  }
+  #informe-modal .informe-table tbody td:nth-child(6)::before,
+  #informe-modal .informe-table tbody td:nth-child(7)::before,
+  #informe-modal .informe-table tbody td:nth-child(8)::before {
+    font: 700 10px/1 'Outfit', system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; color: #8fa995;
+  }
+  #informe-modal .informe-table tbody td:nth-child(6)::before { content: 'Estudiantes'; }
+  #informe-modal .informe-table tbody td:nth-child(7)::before { content: 'Cupos'; }
+  #informe-modal .informe-table tbody td:nth-child(8)::before { content: 'Docentes'; }
+  #informe-modal .informe-table tbody td.dir-num.dir-nd { color: #6f8a77; }
+  #informe-modal .dir-vacio { margin: 24px 0; }
+}
+
+/* ==========================================================================
+   6) PIE DE PÁGINA Y PREGUNTAS FRECUENTES
+   ========================================================================== */
+@media (max-width: 1000px) {
+  .site-footer .faq__inner > *, .site-footer .sf-inner > * { min-width: 0; }
+  .faq-cats { max-width: 100%; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .faq-cats::-webkit-scrollbar { display: none; }
+}
+@media (max-width: 760px) {
+  .site-footer { overflow-x: hidden; }
+  .sf-inner { padding: 36px 16px 20px; }
+  .sf-btn, .sf-mini { min-height: 48px; }
+  .sf-cta .sf-btn { width: 100%; justify-content: center; }
+  .sf-chip { min-height: 40px; }
+  .sf-tel { font-size: 21px; word-break: keep-all; }
+  .sf-card-contacto { padding: 18px 16px; }
+  .faq-cat { min-height: 44px; }
+  .site-footer .faq__question { min-height: 56px; padding: 14px 14px; font-size: 14.5px; }
+  .site-footer .faq__answer { font-size: 14px; line-height: 1.65; }
+  #faq-buscar { min-height: 50px; }
+  .faq-rapidas { gap: 8px; }
+  .sf-toast { max-width: calc(100vw - 32px); bottom: calc(20px + env(safe-area-inset-bottom)); text-align: center; }
+  .sf-subir { min-height: 44px; }
+}
+
+/* ==========================================================================
+   7) COMPARADOR
+   ========================================================================== */
+@media (max-width: 860px) {
+  .cp-layout, .cp-grid, main.cp-wrap, .cp-container { grid-template-columns: minmax(0, 1fr) !important; }
+  .cp-sidebar, .cp-main-content, aside { min-width: 0; }
+}
+@media (max-width: 760px) {
+  main { padding-left: 14px !important; padding-right: 14px !important; }
+  .cp-hero h1, main h1 { font-size: clamp(26px, 8vw, 34px); line-height: 1.15; }
+  .cp-filtros-card, .cp-chips-card, .cp-list-card { padding: 16px 14px; }
+  .cp-list, #cp-lista { max-height: 46dvh; }
+  .cp-list label, #cp-lista label { min-height: 52px; padding: 10px 8px; }
+  .cp-list input[type="checkbox"], #cp-lista input[type="checkbox"] { width: 22px; height: 22px; }
+  .cp-actions-wrap { display: grid !important; grid-template-columns: 1fr; gap: 8px; }
+  .cp-btn-action, .cp-btn-reset { min-height: 48px; }
+  .cp-chips-wrap { gap: 8px; }
+
+  /* Tarjetas de resultados: nombre + valor arriba, barra debajo */
+  .cp-card-accordion summary { flex-wrap: wrap; gap: 4px 12px; min-height: 56px; padding: 14px 14px; }
+  .cp-sec-resumen { flex: 1 1 100%; font-size: 12.5px; }
+  .cp-bar-container { padding: 12px 14px 16px; }
+  .cp-bar-row { display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; gap: 6px 12px !important; align-items: center; padding: 8px 0; }
+  .cp-bar-row .cp-inst-name { grid-column: 1; }
+  .cp-bar-row .cp-bar-value { grid-column: 2; grid-row: 1; text-align: right; }
+  .cp-bar-row .cp-bar-track { grid-column: 1 / -1; grid-row: 2; height: 12px; }
+
+  /* Becas y convenios */
+  .cp-becas-tabla, #cp-resultado table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #cp-resultado { min-width: 0; }
+  #cp-resultado .cp-boton, #cp-resultado button { min-height: 44px; }
+}
+
+/* ==========================================================================
+   8) ADMINISTRACIÓN
+   ========================================================================== */
+@media (max-width: 760px) {
+  .admin-container { padding: 16px 14px 40px !important; }
+  .admin-header-title { flex-direction: column; align-items: stretch !important; gap: 12px; }
+  .admin-header-title h1 { font-size: clamp(24px, 7.2vw, 30px); line-height: 1.2; }
+  .admin-header-title .btn, #btn-nueva-institucion { width: 100%; min-height: 50px; }
+  .admin-login__card { padding: 24px 18px !important; }
+
+  /* Filtros y ranking */
+  .admin-filtros { padding: 16px 14px !important; }
+  .admin-filtros__grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .admin-filtros__cabecera { flex-direction: column; align-items: flex-start !important; gap: 4px; }
+  .admin-filtros__input, .admin-filtros__select, .admin-filtros__limpiar { min-height: 48px; }
+  .adm-rank { padding: 16px 14px !important; }
+
+  /* Tabla de instituciones → tarjetas */
+  .admin-table-wrap { overflow: visible !important; border: 0 !important; background: transparent !important; }
+  .admin-table, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; }
+  .admin-table thead { display: none; }
+  .admin-table tr {
+    margin: 0 0 14px;
+    padding: 16px 16px 14px;
+    border: 1px solid var(--border-subtle, #21412e) !important;
+    border-radius: 16px;
+    background: var(--bg-panel-alt, #12291b);
+  }
+  .admin-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    padding: 5px 0 !important;
+    border: 0 !important;
+    font-size: 14px;
+    text-align: right;
+    word-break: break-word;
+  }
+  .admin-table td::before { flex: none; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #839d89; text-align: left; }
+  .admin-table td:nth-child(1) { display: block; padding: 0 0 8px !important; font-size: 16px; text-align: left; }
+  .admin-table td:nth-child(2)::before { content: 'Tipo'; }
+  .admin-table td:nth-child(3)::before { content: 'Sector'; }
+  .admin-table td:nth-child(4)::before { content: 'Dirección'; }
+  .admin-table td:nth-child(5)::before { content: 'Estrato'; }
+  .admin-table td:nth-child(6)::before { content: 'Calificación'; }
+  .admin-table td.admin-table__acciones {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 12px 0 0 !important;
+    border-top: 1px solid var(--border-subtle, #21412e) !important;
+    text-align: center !important;
+  }
+  .admin-table td.admin-table__acciones::before { content: none; }
+  .admin-table__btn { min-height: 46px; margin: 0 !important; font-size: 14px; }
+  .admin-table td[colspan] { display: block; text-align: center; }
+  .admin-table td[colspan]::before { content: none; }
+
+  /* Mapa y herramientas */
+  .admin-grid { grid-template-columns: minmax(0, 1fr) !important; gap: 16px; }
+  .admin-map-card { padding: 14px !important; }
+  #admin-map { height: 55dvh !important; min-height: 300px; }
+  .admin-map-bottom-row { grid-template-columns: minmax(0, 1fr) !important; }
+
+  /* Formularios */
+  .admin-form__grupo { padding: 14px !important; }
+  .admin-form__grupo, .admin-form__grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .admin-field input, .admin-field select, .admin-field textarea { min-height: 48px; }
+  .admin-form__acciones { flex-direction: column-reverse; }
+  .admin-form__acciones .btn { width: 100%; min-height: 50px; }
+  #admin-modal .institucion-modal__panel { padding: 0 !important; }
+  #admin-modal .admin-form { max-height: none !important; overflow: visible !important; padding: 14px !important; }
+  #admin-modal .institucion-modal__nombre { padding: 18px 64px 14px 16px !important; }
+  #modal-opiniones-inst .institucion-modal__panel { padding: 16px !important; }
+}
+
+/* ==========================================================================
+   9) CELULARES MUY PEQUEÑOS (≤ 380 px)
+   ========================================================================== */
+@media (max-width: 380px) {
+  .top-navbar__brand span { font-size: 14px; }
+  .mv-fab { padding: 0 18px; font-size: 14px; }
+  .landing__title { font-size: 26px; }
+  .sf-stats { grid-template-columns: minmax(0, 1fr) 1fr; }
+  .rating-stars { font-size: 38px; }
+}
+
+/* Respeta a quien prefiere menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .top-navbar.is-open .top-navbar__links, #app .sidebar, .mv-backdrop { animation: none !important; transition: none !important; }
+}

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Administración · Visor Geográfico Sabaneta</title>
 
   <!-- Tipografías -->
@@ -370,6 +370,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/supabaseClient.js"></script>
+  <!-- Adaptación a celulares y tablets (debe ir después de los demás estilos) -->
+  <link rel="stylesheet" href="css/responsive.css" />
 </head>
 <body class="admin-body">
 
@@ -648,6 +650,22 @@
   <!-- SCRIPTS BASE DEL PROYECTO -->
   <script src="js/crs.js"></script>
   <script src="js/layers.js"></script>
+  <!-- Administración: la lista «Capas importadas» empieza SIEMPRE vacía.
+       layers.js recarga desde Supabase (tabla layers) las capas que se importaron antes;
+       aquí se desactiva esa carga automática. Solo aparecen las que importes en esta sesión. -->
+  <script>
+    (function () {
+      window.loadLayersFromSupabaseDB = async function () {
+        if (typeof renderLayersList === 'function') renderLayersList();
+      };
+      document.addEventListener('DOMContentLoaded', function () {
+        var lista = document.getElementById('layers-list');
+        if (lista && !lista.children.length) {
+          lista.innerHTML = '<li class="layers-list__empty">Aún no hay capas cargadas.</li>';
+        }
+      });
+    })();
+  </script>
   <script src="js/instituciones.js"></script>
   <script src="js/vias.js"></script>
   <script src="js/viviendas.js"></script>
@@ -1499,5 +1517,7 @@
 
   <!-- SCRIPT ADICIONAL DE ADMINISTRACIÓN -->
   <script src="js/admin.js"></script>
+  <!-- Menú y panel de capas para celular -->
+  <script src="js/movil.js"></script>
 </body>
 </html>

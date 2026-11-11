@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0c6434" />
   <title>Comparador de Instituciones y Becas · Sabaneta</title>
 
@@ -427,6 +427,8 @@
       .cp-card-accordion > summary { padding: 14px; }
     }
   </style>
+  <!-- Adaptación a celulares y tablets (debe ir después de los demás estilos) -->
+  <link rel="stylesheet" href="css/responsive.css" />
 </head>
 <body>
 
@@ -555,5 +557,7 @@
   <!-- SCRIPTS DEL PROYECTO -->
   <script src="js/supabaseClient.js"></script>
   <script src="js/comparador-instituciones.js"></script>
+  <!-- Menú y panel de capas para celular -->
+  <script src="js/movil.js"></script>
 </body>
 </html>

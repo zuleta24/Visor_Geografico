@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0c6434" />
   <title>Visor Geográfico · Sabaneta</title>
 
@@ -203,7 +203,7 @@
     #informe-modal .informe-table tbody tr:nth-child(even):hover { background: rgba(105, 181, 68, 0.09); }
     #informe-modal .informe-table td:first-child { font-weight: 700; color: #fff; min-width: 220px; }
     #informe-modal .informe-table td.dir-direccion { color: #a3bba8; min-width: 200px; }
-    #informe-modal .informe-table td.dir-contacto { color: #a3bba8; font-size: 12.5px; min-width: 130px; word-break: break-word; }
+    #informe-modal .informe-table td.dir-contacto { color: #a3bba8; font-size: 12.5px; min-width: 150px; overflow-wrap: anywhere; }
     #informe-modal .informe-table td.dir-num { text-align: center; font: 600 13px 'JetBrains Mono', monospace; color: #e6efe8; }
     #informe-modal .informe-table td.dir-nd, #informe-modal .informe-table td .dir-nd { color: #6f8a77; font-weight: 500; }
 
@@ -220,14 +220,37 @@
       font: 700 12.5px 'JetBrains Mono', monospace; color: #07130c; background: #d3d934;
     }
 
-    @media (max-width: 760px) {
-      #informe-modal { padding: 12px 8px; }
-      #informe-modal .informe-modal__panel { max-height: calc(100vh - 24px); border-radius: 14px; }
-      #informe-modal .informe-modal__header { padding: 20px 60px 16px 18px; }
-      #informe-modal .informe-actions { width: 100%; }
-      #informe-modal .informe-actions .btn { flex: 1 1 auto; justify-content: center; }
-      #informe-modal .informe-modal__table-wrap { padding: 0 4px 10px; }
+    /* Barra de búsqueda y filtros del directorio */
+    .dir-toolbar {
+      flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px;
+      padding: 14px 30px; background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
+    .dir-buscar { position: relative; display: block; flex: 1 1 280px; max-width: 460px; margin: 0; }
+    .dir-buscar svg { position: absolute; left: 13px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); color: #7f9a86; pointer-events: none; }
+    .dir-buscar input {
+      width: 100%; height: 42px; padding: 0 14px 0 40px; border-radius: 10px; outline: none;
+      font: inherit; font-size: 14px; color: #fff; background: #0a1b11; border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .dir-buscar input::placeholder { color: #7f9a86; }
+    .dir-buscar input:focus { border-color: #69b544; box-shadow: 0 0 0 3px rgba(105, 181, 68, 0.2); }
+    .dir-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .dir-chip {
+      height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700;
+      color: #cfe0d3; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14);
+      transition: background .15s ease, color .15s ease;
+    }
+    .dir-chip:hover { background: rgba(255, 255, 255, 0.12); }
+    .dir-chip.is-on { color: #07130c; background: #69b544; border-color: #69b544; }
+    .dir-vacio { margin: 30px 0; text-align: center; font-size: 14px; color: #8fa995; }
+
+    /* Color de cada fila según su clasificación (igual que los pines del mapa) */
+    #informe-modal .informe-table tbody tr[hidden] { display: none !important; }
+    #informe-modal .dir-fila { --dir-acento: #69b544; }
+    #informe-modal .dir-fila--colegio-publico { --dir-acento: #3b82f6; }
+    #informe-modal .dir-fila--colegio-privado { --dir-acento: #f97316; }
+    #informe-modal .dir-fila--universidad-privada { --dir-acento: #a855f7; }
+    #informe-modal .dir-fila--universidad-publica { --dir-acento: #14b8a6; }
+    #informe-modal .informe-table tbody tr.dir-fila td:first-child { box-shadow: inset 3px 0 0 var(--dir-acento); }
 
     /* Preguntas frecuentes */
     .faq { background: var(--bg-app); border-top: 1px solid var(--border-subtle); padding: 64px 24px 72px; }
@@ -522,6 +545,8 @@
       .sf-vivo { animation: none; }
     }
   </style>
+  <!-- Adaptación a celulares y tablets (debe ir después de los demás estilos) -->
+  <link rel="stylesheet" href="css/responsive.css" />
 </head>
 <body>
 
@@ -613,6 +638,18 @@
         </div>
       </div>
 
+      <div class="dir-toolbar">
+        <label class="dir-buscar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="dir-buscar" type="search" placeholder="Buscar institución…" autocomplete="off" aria-label="Buscar institución" />
+        </label>
+        <div class="dir-chips" role="group" aria-label="Filtrar por tipo">
+          <button type="button" class="dir-chip is-on" data-dir-filtro="todas">Todas</button>
+          <button type="button" class="dir-chip" data-dir-filtro="colegio">Colegios</button>
+          <button type="button" class="dir-chip" data-dir-filtro="universidad">Universidades</button>
+        </div>
+      </div>
+
       <div class="informe-modal__table-wrap">
         <table class="informe-table">
           <thead>
@@ -632,6 +669,7 @@
             <tr><td colspan="9" style="text-align:center; padding: 24px; color: #94a3b8;">Cargando instituciones...</td></tr>
           </tbody>
         </table>
+        <p class="dir-vacio" id="dir-vacio" hidden>No hay instituciones que coincidan con la búsqueda.</p>
       </div>
     </div>
   </div>
@@ -731,6 +769,48 @@
         </details>
       </div>
 
+      <!-- Preguntas frecuentes -->
+      <section class="faq sf-reveal" id="faq" aria-labelledby="faq-title">
+        <div class="faq__inner">
+          <div class="faq__cabecera">
+            <span class="sf-eyebrow">Centro de ayuda</span>
+            <h3 class="faq__title" id="faq-title">Preguntas frecuentes</h3>
+            <p class="faq__intro"><strong id="faq-total">0</strong> respuestas sobre cómo usar el visor, qué puedes buscar y cómo funciona cada herramienta.</p>
+            <div class="faq-buscar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input type="search" id="faq-buscar" placeholder="Busca tu duda: ubicación, becas, coordenadas…" autocomplete="off" aria-label="Buscar en las preguntas frecuentes" />
+              <button type="button" class="faq-limpiar" id="faq-limpiar" aria-label="Borrar búsqueda" hidden>&times;</button>
+            </div>
+            <div class="faq-rapidas" id="faq-rapidas"><span>Prueba con:</span></div>
+            <div class="faq-cats" id="faq-cats" role="group" aria-label="Categorías de preguntas"></div>
+            <a class="sf-btn sf-btn--primario faq__contacto" href="#contacto" data-sf-accion="contacto">¿Otra duda? Contáctanos</a>
+          </div>
+          <div class="faq-panel">
+            <div class="faq-panel__cab">
+              <h4 id="faq-cat-titulo">Más consultadas</h4>
+              <span id="faq-resumen"></span>
+            </div>
+            <div class="faq__list" id="faq-lista" aria-live="polite"></div>
+            <button type="button" class="sf-btn faq-mas" id="faq-mas" hidden></button>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- Tecnologías -->
+      <div class="sf-equipo sf-reveal">
+        <div class="sf-equipo__titulo">Construido con<small>Software libre y servicios abiertos</small></div>
+        <div class="sf-chips">
+          <a class="sf-chip sf-chip--tec" href="https://leafletjs.com/" target="_blank" rel="noopener noreferrer" style="--sf-color:#69b544"><i></i>Leaflet</a>
+          <a class="sf-chip sf-chip--tec" href="https://supabase.com/" target="_blank" rel="noopener noreferrer" style="--sf-color:#3ecf8e"><i></i>Supabase</a>
+          <a class="sf-chip sf-chip--tec" href="https://postgis.net/" target="_blank" rel="noopener noreferrer" style="--sf-color:#4a90e2"><i></i>PostGIS</a>
+          <a class="sf-chip sf-chip--tec" href="https://gdal.org/" target="_blank" rel="noopener noreferrer" style="--sf-color:#f5c324"><i></i>GDAL</a>
+          <a class="sf-chip sf-chip--tec" href="https://proj4js.org/" target="_blank" rel="noopener noreferrer" style="--sf-color:#d3d934"><i></i>proj4js</a>
+          <a class="sf-chip sf-chip--tec" href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer" style="--sf-color:#8fc374"><i></i>OpenStreetMap</a>
+          <a class="sf-chip sf-chip--tec" href="https://vercel.com/" target="_blank" rel="noopener noreferrer" style="--sf-color:#ffffff"><i></i>Vercel</a>
+        </div>
+      </div>
+
       <!-- Contáctanos -->
       <section class="sf-contacto sf-reveal" id="contacto" aria-labelledby="sf-contacto-titulo">
         <div class="sf-seccion-cab">
@@ -806,47 +886,6 @@
           </article>
         </div>
       </section>
-
-      <!-- Preguntas frecuentes -->
-      <section class="faq sf-reveal" id="faq" aria-labelledby="faq-title">
-        <div class="faq__inner">
-          <div class="faq__cabecera">
-            <span class="sf-eyebrow">Centro de ayuda</span>
-            <h3 class="faq__title" id="faq-title">Preguntas frecuentes</h3>
-            <p class="faq__intro"><strong id="faq-total">0</strong> respuestas sobre cómo usar el visor, qué puedes buscar y cómo funciona cada herramienta.</p>
-            <div class="faq-buscar">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-              <input type="search" id="faq-buscar" placeholder="Busca tu duda: ubicación, becas, coordenadas…" autocomplete="off" aria-label="Buscar en las preguntas frecuentes" />
-              <button type="button" class="faq-limpiar" id="faq-limpiar" aria-label="Borrar búsqueda" hidden>&times;</button>
-            </div>
-            <div class="faq-rapidas" id="faq-rapidas"><span>Prueba con:</span></div>
-            <div class="faq-cats" id="faq-cats" role="group" aria-label="Categorías de preguntas"></div>
-            <a class="sf-btn sf-btn--primario faq__contacto" href="#contacto" data-sf-accion="contacto">¿Otra duda? Contáctanos</a>
-          </div>
-          <div class="faq-panel">
-            <div class="faq-panel__cab">
-              <h4 id="faq-cat-titulo">Más consultadas</h4>
-              <span id="faq-resumen"></span>
-            </div>
-            <div class="faq__list" id="faq-lista" aria-live="polite"></div>
-            <button type="button" class="sf-btn faq-mas" id="faq-mas" hidden></button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Tecnologías -->
-      <div class="sf-equipo sf-reveal">
-        <div class="sf-equipo__titulo">Construido con<small>Software libre y servicios abiertos</small></div>
-        <div class="sf-chips">
-          <a class="sf-chip sf-chip--tec" href="https://leafletjs.com/" target="_blank" rel="noopener noreferrer" style="--sf-color:#69b544"><i></i>Leaflet</a>
-          <a class="sf-chip sf-chip--tec" href="https://supabase.com/" target="_blank" rel="noopener noreferrer" style="--sf-color:#3ecf8e"><i></i>Supabase</a>
-          <a class="sf-chip sf-chip--tec" href="https://postgis.net/" target="_blank" rel="noopener noreferrer" style="--sf-color:#4a90e2"><i></i>PostGIS</a>
-          <a class="sf-chip sf-chip--tec" href="https://gdal.org/" target="_blank" rel="noopener noreferrer" style="--sf-color:#f5c324"><i></i>GDAL</a>
-          <a class="sf-chip sf-chip--tec" href="https://proj4js.org/" target="_blank" rel="noopener noreferrer" style="--sf-color:#d3d934"><i></i>proj4js</a>
-          <a class="sf-chip sf-chip--tec" href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer" style="--sf-color:#8fc374"><i></i>OpenStreetMap</a>
-          <a class="sf-chip sf-chip--tec" href="https://vercel.com/" target="_blank" rel="noopener noreferrer" style="--sf-color:#ffffff"><i></i>Vercel</a>
-        </div>
-      </div>
 
       <!-- Base -->
       <div class="sf-base">
@@ -1108,8 +1147,12 @@
           tr.dataset.mejorada = '1';
 
           var tipo = normal(td[1].textContent);
-          insignia(td[1], tipo.indexOf('univ') === 0 ? 'dir-badge--universidad' : 'dir-badge--colegio');
+          var esUniv = tipo.indexOf('univ') === 0;
+          insignia(td[1], esUniv ? 'dir-badge--universidad' : 'dir-badge--colegio');
           var sector = normal(td[2].textContent);
+          var esPriv = sector.indexOf('priv') === 0;
+          tr.classList.add('dir-fila', 'dir-fila--' + (esUniv ? 'universidad' : 'colegio') + '-' + (esPriv ? (esUniv ? 'privada' : 'privado') : (esUniv ? 'publica' : 'publico')));
+          tr.dataset.tipo = esUniv ? 'universidad' : 'colegio';
           insignia(td[2], sector.indexOf('priv') === 0 ? 'dir-badge--privado' : 'dir-badge--publico');
 
           if (!td[3].children.length) {
@@ -1124,9 +1167,37 @@
           });
           td[8].classList.add('dir-contacto');
           if (!td[8].children.length && vacio(td[8].textContent)) { td[8].textContent = 'Sin contacto'; td[8].classList.add('dir-nd'); }
+          tr.dataset.texto = normal(tr.textContent);
         });
-        if (conteo) conteo.textContent = n ? n + (n === 1 ? ' institución' : ' instituciones') : '';
+        aplicarFiltro();
       }
+
+      // Buscador y filtros por tipo (solo cambian lo que se ve en pantalla)
+      var filtroTipo = 'todas';
+      var cajaBuscar = document.getElementById('dir-buscar');
+      var avisoVacio = document.getElementById('dir-vacio');
+      function aplicarFiltro() {
+        var q = cajaBuscar ? normal(cajaBuscar.value) : '';
+        var total = 0, visibles = 0;
+        cuerpo.querySelectorAll('tr.dir-fila').forEach(function (tr) {
+          total++;
+          var ok = (filtroTipo === 'todas' || tr.dataset.tipo === filtroTipo) && (!q || (tr.dataset.texto || '').indexOf(q) > -1);
+          tr.hidden = !ok;
+          if (ok) visibles++;
+        });
+        if (conteo) {
+          conteo.textContent = !total ? '' : (visibles === total ? total + (total === 1 ? ' institución' : ' instituciones') : visibles + ' de ' + total);
+        }
+        if (avisoVacio) avisoVacio.hidden = !(total && !visibles);
+      }
+      if (cajaBuscar) cajaBuscar.addEventListener('input', aplicarFiltro);
+      document.querySelectorAll('[data-dir-filtro]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          filtroTipo = b.getAttribute('data-dir-filtro');
+          document.querySelectorAll('[data-dir-filtro]').forEach(function (x) { x.classList.toggle('is-on', x === b); });
+          aplicarFiltro();
+        });
+      });
 
       new MutationObserver(mejorar).observe(cuerpo, { childList: true });
       mejorar();
@@ -2025,5 +2096,7 @@
     })();
   </script>
 
+  <!-- Menú y panel de capas para celular -->
+  <script src="js/movil.js"></script>
 </body>
 </html>
