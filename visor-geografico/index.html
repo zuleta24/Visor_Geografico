@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0c6434" />
-  <title>Visor Geográfico · Sabaneta</title>
+  <meta name="theme-color" content="#1b3375" />
+  <title>EduMap · Geovisor</title>
+  <link rel="icon" href="img/edumap-pin.png" />
 
   <!-- Tipografías -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -545,30 +546,38 @@
       .sf-vivo { animation: none; }
     }
   </style>
-  <!-- Adaptación a celulares y tablets (debe ir después de los demás estilos) -->
+    <!-- Adaptación a celulares y tablets (debe ir después de los demás estilos) -->
   <link rel="stylesheet" href="css/responsive.css" />
+  <!-- Tema EduMap: siempre el último -->
+  <link rel="stylesheet" href="css/edumap-theme.css" />
 </head>
 <body>
 
   <!-- PANTALLA DE BIENVENIDA -->
-  <div id="landing-screen" class="landing">
-    <div class="landing__content">
-      <span class="landing__eyebrow">Sistemas de información geográfica</span>
-      <h1 class="landing__title">Visor Geográfico de Sabaneta</h1>
-      <p class="landing__subtitle">Explora la distribución territorial, las vías y las instituciones educativas del municipio en un mapa interactivo.</p>
-      <ul class="landing__features">
-        <li><strong>Instituciones</strong><span>Colegios públicos, privados y universidades</span></li>
-        <li><strong>Red vial</strong><span>Más de mil tramos de vías del municipio</span></li>
-        <li><strong>Herramientas SIG</strong><span>Consulta de coordenadas en tiempo real</span></li>
-      </ul>
-      <button id="btn-acceder-geovisor" class="landing__cta">Abrir el geovisor</button>
+  <div id="landing-screen" class="landing edu-splash" role="dialog" aria-modal="true" aria-labelledby="splash-titulo">
+  <div class="edu-splash__card">
+    <div class="edu-splash__marca">
+      <img src="img/edumap-logo.png" alt="EduMap" />
+    </div>
+    <div class="edu-splash__texto">
+      <h1 id="splash-titulo" class="edu-splash__propuesta">Propuesta principal</h1>
+      <section class="edu-pilar">
+        <h2>Misión</h2>
+        <p>Democratizar y optimizar el acceso a la información espacial de la infraestructura educativa mediante una plataforma web geográfica ágil, intuitiva e interoperable. En EduMap transformamos datos territoriales y atributos institucionales en inteligencia visual accionable, facilitando la toma de decisiones estratégicas, la planificación territorial y la consulta ciudadana en cualquier entorno educativo.</p>
+      </section>
+      <section class="edu-pilar">
+        <h2>Visión</h2>
+        <p>Consolidarnos como la solución de referencia en cartografía web y gestión espacial del sector educativo a nivel regional y nacional, escalando hacia un ecosistema SaaS adaptable a múltiples territorios que impulse la transparencia, la equidad en el acceso a la educación y la modernización tecnológica de las instituciones y entidades territoriales.</p>
+      </section>
+      <button id="btn-acceder-geovisor" class="landing__cta" type="button">Ingresar al Geovisor</button>
       <p class="landing__footer">Jacobo Flórez · Sebastián Zuleta · Ana Sofía Sáenz</p>
     </div>
+  </div>
   </div>
 
   <!-- NAVBAR SUPERIOR -->
   <nav class="top-navbar">
-    <div class="top-navbar__brand"><span>Geovisor Sabaneta</span></div>
+    <div class="top-navbar__brand"><span>Edu<b>Map</b></span></div>
     <div class="top-navbar__links">
       <a href="index.html#app" id="btn-nav-inicio" aria-current="page">Inicio</a>
       <a href="index.html#instituciones" id="btn-nav-instituciones">Instituciones</a>
@@ -820,71 +829,73 @@
             <p>Somos el equipo detrás del Geovisor Sabaneta. Llámanos o escríbenos por WhatsApp.</p>
           </div>
         </div>
-        <div class="sf-contactos">
-          <article class="sf-card-contacto">
-            <div class="sf-card-contacto__cab">
-              <span class="sf-avatar" aria-hidden="true">SZ</span>
-              <div><strong>Sebastián Zuleta</strong><span>Equipo del proyecto</span></div>
-            </div>
-            <a class="sf-tel" href="tel:+573046621223" aria-label="Llamar a Sebastián Zuleta">304 662 1223</a>
-            <div class="sf-card-contacto__acciones">
-              <a class="sf-mini sf-mini--llamar" href="tel:+573046621223">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
-                Llamar
-              </a>
-              <a class="sf-mini sf-mini--wa" href="https://wa.me/573046621223?text=Hola%2C%20te%20escribo%20desde%20el%20Geovisor%20Sabaneta." target="_blank" rel="noopener noreferrer">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
-                WhatsApp
-              </a>
-              <button type="button" class="sf-mini" data-sf-copiar="3046621223" data-sf-copiado="Número de Sebastián copiado">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                Copiar
-              </button>
-            </div>
-          </article>
-          <article class="sf-card-contacto">
-            <div class="sf-card-contacto__cab">
-              <span class="sf-avatar" aria-hidden="true">AS</span>
-              <div><strong>Ana Sofía Sáenz</strong><span>Equipo del proyecto</span></div>
-            </div>
-            <a class="sf-tel" href="tel:+573052283997" aria-label="Llamar a Ana Sofía Sáenz">305 228 3997</a>
-            <div class="sf-card-contacto__acciones">
-              <a class="sf-mini sf-mini--llamar" href="tel:+573052283997">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
-                Llamar
-              </a>
-              <a class="sf-mini sf-mini--wa" href="https://wa.me/573052283997?text=Hola%2C%20te%20escribo%20desde%20el%20Geovisor%20Sabaneta." target="_blank" rel="noopener noreferrer">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
-                WhatsApp
-              </a>
-              <button type="button" class="sf-mini" data-sf-copiar="3052283997" data-sf-copiado="Número de Ana copiado">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                Copiar
-              </button>
-            </div>
-          </article>
-          <article class="sf-card-contacto">
-            <div class="sf-card-contacto__cab">
-              <span class="sf-avatar" aria-hidden="true">JF</span>
-              <div><strong>Jacobo Flórez</strong><span>Equipo del proyecto</span></div>
-            </div>
-            <a class="sf-tel" href="tel:+573194168742" aria-label="Llamar a Jacobo Flórez">319 416 8742</a>
-            <div class="sf-card-contacto__acciones">
-              <a class="sf-mini sf-mini--llamar" href="tel:+573194168742">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
-                Llamar
-              </a>
-              <a class="sf-mini sf-mini--wa" href="https://wa.me/573194168742?text=Hola%2C%20te%20escribo%20desde%20el%20Geovisor%20Sabaneta." target="_blank" rel="noopener noreferrer">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
-                WhatsApp
-              </a>
-              <button type="button" class="sf-mini" data-sf-copiar="3194168742" data-sf-copiado="Número de Jacobo copiado">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                Copiar
-              </button>
-            </div>
-          </article>
-        </div>
+       <div class="sf-contactos">
+  <article class="sf-card-contacto">
+    <div class="sf-card-contacto__cab">
+      <span class="sf-avatar" aria-hidden="true">SZ</span>
+      <div><strong>Sebastián Zuleta</strong><span>Equipo del proyecto</span></div>
+    </div>
+    <a class="sf-tel" href="tel:+573046621223" aria-label="Llamar a Sebastián Zuleta">304 662 1223</a>
+    <div class="sf-card-contacto__acciones">
+      <a class="sf-mini sf-mini--llamar" href="tel:+573046621223">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
+        Llamar
+      </a>
+      <a class="sf-mini sf-mini--wa" href="https://wa.me/573046621223?text=Hola%2C%20te%20escribo%20desde%20el%20Geovisor%20Sabaneta." target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
+        WhatsApp
+      </a>
+      <button type="button" class="sf-mini" data-sf-copiar="3046621223" data-sf-copiado="Número de Sebastián copiado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar
+      </button>
+    </div>
+  </article>
+
+  <article class="sf-card-contacto">
+    <div class="sf-card-contacto__cab">
+      <span class="sf-avatar" aria-hidden="true">AS</span>
+      <div><strong>Ana Sofía Sáenz</strong><span>Equipo del proyecto</span></div>
+    </div>
+    <a class="sf-tel" href="tel:+573052283997" aria-label="Llamar a Ana Sofía Sáenz">305 228 3997</a>
+    <div class="sf-card-contacto__acciones">
+      <a class="sf-mini sf-mini--llamar" href="tel:+573052283997">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
+        Llamar
+      </a>
+      <a class="sf-mini sf-mini--wa" href="https://wa.me/573052283997?text=Hola%2C%20te%20escribo%20desde%20el%20Geovisor%20Sabaneta." target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
+        WhatsApp
+      </a>
+      <button type="button" class="sf-mini" data-sf-copiar="3052283997" data-sf-copiado="Número de Ana copiado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar
+      </button>
+    </div>
+  </article>
+
+  <article class="sf-card-contacto">
+    <div class="sf-card-contacto__cab">
+      <span class="sf-avatar" aria-hidden="true">JF</span>
+      <div><strong>Jacobo Flórez</strong><span>Equipo del proyecto</span></div>
+    </div>
+    <a class="sf-tel" href="tel:+573194168742" aria-label="Llamar a Jacobo Flórez">319 416 8742</a>
+    <div class="sf-card-contacto__acciones">
+      <a class="sf-mini sf-mini--llamar" href="tel:+573194168742">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
+        Llamar
+      </a>
+      <a class="sf-mini sf-mini--wa" href="https://wa.me/573194168742?text=Hola%2C%20te%20escribo%20desde%20el%20Geovisor%20Sabaneta." target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
+        WhatsApp
+      </a>
+      <button type="button" class="sf-mini" data-sf-copiar="3194168742" data-sf-copiado="Número de Jacobo copiado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar
+      </button>
+    </div>
+  </article>
+</div>
       </section>
 
       <!-- Base -->
@@ -951,6 +962,7 @@
   <script src="js/vias.js"></script>
   <script src="js/viviendas.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/splash.js"></script>
   <script src="js/landing.js"></script>
   <script src="js/visor-buscador.js"></script>
   <script src="js/tiempo-real-instituciones.js"></script>

@@ -1,0 +1,497 @@
+/* EduMap · tema blanco. Todas las reglas llevan prioridad alta (html body …) para ganar
+   sobre los estilos de index.html sin importar el orden de carga.
+   Paleta del logo: azul #1B3375 · verde #0BAE78 */
+:root,
+html:root,
+html:root:root {--edu-azul: #1b3375;
+  --edu-azul-prof: #0e1c45;
+  --edu-verde: #0bae78;
+  --edu-verde-osc: #08805a;
+  --edu-menta: #5fe0b5;
+  --edu-bruma: #eaf7f2;
+  --ink: #14224f;
+  --ink-2: #3a4a7c;
+
+  --bg-app: #f4f7fc;
+  --bg-panel: #eef3fb;
+  --bg-panel-alt: #ffffff;
+  --border-subtle: #d6dfef;
+  --text-primary: #14224f;
+  --text-secondary: #5a6a96;
+  --accent: #0bae78;
+  --accent-dim: rgba(11, 174, 120, .12);
+  --accent-ink: #ffffff;
+
+  --sab-verde: #0bae78;
+  --sab-verde-medio: #3cc99a;
+  --sab-lima: #0bae78;
+  --sab-verde-oscuro: #1b3375;
+  --sab-amarillo: #0bae78;
+  --escudo: url("../img/edumap-pin.png");}
+html,
+html body {background: #fff !important; color: var(--text-primary); margin: 0;}
+html body.admin-body {background: var(--bg-app) !important;}
+html body .top-navbar {margin-top: 0; top: 0;}
+::selection {background: rgba(11, 174, 120, .25);}
+html body .top-navbar,
+html body .admin-nav {background: #fff; box-shadow: 0 2px 14px rgba(20, 34, 79, .12);}
+html body .top-navbar::after,
+html body .admin-nav::after {background: linear-gradient(90deg, var(--edu-azul) 0%, var(--edu-azul) 45%, var(--edu-verde) 100%);}
+html body .top-navbar__brand {color: var(--edu-azul); font-size: 19px; font-weight: 800; letter-spacing: -.01em;}
+html body .top-navbar__brand b {color: var(--edu-verde); font-weight: 800;}
+html body .top-navbar__brand::before,
+html body .admin-nav::before,
+html body .sf-marca__logo::before,
+html body .admin-login__card::before {background: var(--escudo) center / contain no-repeat; filter: none; border-radius: 0;}
+html body .top-navbar__brand::before,
+html body .admin-nav::before {width: 30px; height: 40px;}
+html body .sf-marca__logo::before {width: 40px; height: 50px;}
+html body .admin-login__card::before {width: 64px; height: 80px;}
+html body .top-navbar__links a {color: var(--ink-2);}
+html body .top-navbar__links a:hover {background: var(--edu-bruma); color: var(--edu-azul);}
+html body .top-navbar__links a[aria-current="page"] {background: var(--edu-verde) !important; color: #fff !important; font-weight: 700 !important;}
+html body .admin-nav__title {color: var(--edu-azul);}
+html body .admin-nav__link {color: var(--edu-verde-osc);}
+html body .admin-nav__logout {color: var(--edu-azul); border-color: #b9c6e4;}
+html body .admin-nav__logout:hover {background: var(--edu-bruma); border-color: var(--edu-azul); color: var(--edu-azul);}
+html body .sidebar {background: #fff;}
+html body .sidebar__header {border-bottom-color: var(--border-subtle);}
+html body .panel {background: #fff;}
+html body .category-toggle:hover {background: var(--bg-panel);}
+html body .category-swatch {border-color: rgba(20, 34, 79, .3);}
+html body .category-count {color: var(--edu-verde-osc); border-color: rgba(11, 174, 120, .4);}
+html body .panel__title::before,
+html body .admin-filtros__titulo::before {background: linear-gradient(180deg, var(--edu-verde), var(--edu-azul));}
+html body #map {background: #e8eef8;}
+html body .map-title,
+html body .sidebar-toggle {background: rgba(255, 255, 255, .94); border-color: var(--border-subtle); color: var(--ink); box-shadow: 0 6px 20px rgba(20, 34, 79, .15);}
+html body .map-title p {color: var(--ink-2);}
+html body .sidebar-toggle:hover {color: var(--edu-verde-osc); border-color: var(--edu-verde);}
+html body .leaflet-popup-content-wrapper,
+html body .leaflet-popup-tip {background: #fff; color: var(--ink);}
+html body .btn--accent {color: var(--edu-verde-osc);}
+html body .inst-card__title,
+html body .inst-nombre,
+html body .institucion-modal__nombre,
+html body .inst-card__title {color: var(--ink);}
+html body .institucion-modal__panel,
+html body .inst-stat {background: #fff;}
+html body .inst-stat {background: var(--bg-panel); border-color: var(--border-subtle);}
+html body .inst-detail-item,
+html body .inst-card__desc {color: var(--ink-2);}
+html body .inst-card__desc {background: var(--bg-panel);}
+html body .inst-detail-item strong,
+html body .inst-stat__label {color: var(--text-secondary);}
+html body .inst-stat__value,
+html body .inst-stat__valor {color: var(--edu-verde-osc);}
+html body .inst-tag--sector {background: var(--bg-panel); color: var(--ink-2);}
+html body .institucion-modal__close {background: rgba(20, 34, 79, .75);}
+html body #informe-modal .informe-modal__panel {background: #fff; border-color: var(--border-subtle); box-shadow: 0 30px 80px rgba(20, 34, 79, .35);}
+html body #informe-modal .informe-modal__panel::before {background: linear-gradient(90deg, var(--edu-azul), var(--edu-verde));}
+html body #informe-modal .institucion-modal__close {background: var(--bg-panel); border-color: var(--border-subtle); color: var(--ink);}
+html body #informe-modal .informe-modal__header {border-bottom-color: var(--border-subtle);}
+html body #informe-modal .informe-modal__title {color: var(--ink);}
+html body #informe-modal .informe-modal__subtitle {color: var(--text-secondary);}
+html body #informe-modal .informe-modal__count {color: var(--edu-verde-osc); background: var(--accent-dim); border-color: rgba(11, 174, 120, .35);}
+html body .dir-toolbar {background: var(--bg-panel); border-bottom-color: var(--border-subtle);}
+html body .dir-buscar input {background: #fff; color: var(--ink); border-color: #c5d0e8;}
+html body .dir-buscar input::placeholder,
+html body .dir-buscar svg {color: #7c8ab0;}
+html body .dir-chip {color: var(--ink-2); background: #fff; border-color: #c5d0e8;}
+html body .dir-chip:hover {background: var(--edu-bruma);}
+html body #informe-modal .informe-table {color: var(--ink-2);}
+html body #informe-modal .informe-table thead th {background: var(--bg-panel); color: var(--text-secondary); border-bottom: 2px solid var(--edu-verde);}
+html body #informe-modal .informe-table tbody td {border-bottom-color: var(--border-subtle);}
+html body #informe-modal .informe-table tbody tr:nth-child(even) {background: #f8faff;}
+html body #informe-modal .informe-table tbody tr:hover,
+html body #informe-modal .informe-table tbody tr:nth-child(even):hover {background: var(--edu-bruma);}
+html body #informe-modal .informe-table td:first-child,
+html body #informe-modal .informe-table td.dir-num {color: var(--ink);}
+html body #informe-modal .informe-table td.dir-direccion,
+html body #informe-modal .informe-table td.dir-contacto {color: var(--text-secondary);}
+html body #informe-modal .dir-fila {--dir-acento: var(--edu-verde);}
+html body .dir-badge--colegio {color: #1d4ed8; background: rgba(59, 130, 246, .1); border-color: rgba(59, 130, 246, .4);}
+html body .dir-badge--universidad {color: #7e22ce; background: rgba(168, 85, 247, .1); border-color: rgba(168, 85, 247, .4);}
+html body .dir-badge--publico {color: #15803d; background: rgba(34, 197, 94, .1); border-color: rgba(34, 197, 94, .4);}
+html body .dir-badge--privado {color: #c2410c; background: rgba(249, 115, 22, .1); border-color: rgba(249, 115, 22, .4);}
+html body .dir-estrato {background: var(--edu-menta); color: var(--edu-azul-prof);}
+html body .dir-vacio {color: var(--text-secondary);}
+html body #informe-modal .btn--excel,
+html body .btn-enviar-op {background: var(--edu-verde) !important; border-color: var(--edu-verde) !important; color: #fff !important;}
+html body #informe-modal .btn--excel:hover,
+html body .btn-enviar-op:hover {background: var(--edu-verde-osc) !important;}
+html body #informe-modal .btn--pdf {color: #b91c1c; background: rgba(239, 68, 68, .08); border-color: rgba(239, 68, 68, .45);}
+html body .calificar-modal-panel {background: #fff !important; border-color: var(--border-subtle) !important; box-shadow: 0 30px 70px rgba(20, 34, 79, .4) !important;}
+html body #calificacion-titulo {color: var(--ink) !important;}
+html body #calificacion-nombre-inst {color: var(--edu-verde-osc) !important;}
+html body #btn-cerrar-calificacion {color: var(--text-secondary) !important;}
+html body .calificar-modal-panel label {color: var(--text-secondary) !important;}
+html body .opinion-textarea {background: var(--bg-panel) !important; color: var(--ink) !important; border-color: #c5d0e8 !important;}
+html body .rating-stars span {color: #c3cbe0;}
+html .aviso-visor--ok {--av: #0bae78;}
+html .aviso-visor--info {--av: #1b3375;}
+html .aviso-visor__card {background: #fff; border-color: var(--border-subtle); box-shadow: 0 24px 60px rgba(20, 34, 79, .35);}
+html .aviso-visor h3 {color: var(--ink);}
+html .aviso-visor p {color: var(--text-secondary);}
+html .aviso-visor button {color: #fff;}
+html .aviso-visor--info button {color: #fff;}
+html body .site-footer {background: linear-gradient(180deg, #f8faff 0%, #e8eef9 100%); color: var(--text-secondary); border-top-color: var(--border-subtle);}
+html body .site-footer__franja {background: linear-gradient(90deg, var(--edu-azul), var(--edu-verde));}
+html body .sf-cta {background: linear-gradient(110deg, var(--edu-azul), #24458f); border-color: transparent; box-shadow: 0 18px 40px rgba(20, 34, 79, .25);}
+html body .sf-cta h2 {color: #fff;}
+html body .sf-cta p {color: #d5def5;}
+html body .sf-cta .sf-eyebrow {color: var(--edu-menta);}
+html body .sf-btn--primario {color: #fff; background: var(--edu-verde); border-color: transparent; box-shadow: 0 8px 22px rgba(11, 174, 120, .3);}
+html body .sf-btn--primario:hover {background: #12c389;}
+html body .sf-btn:not(.sf-btn--primario) {color: var(--edu-azul); background: #fff; border-color: #b9c6e4;}
+html body .sf-cta .sf-btn:not(.sf-btn--primario) {color: #fff; background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .5);}
+html body .sf-btn:not(.sf-btn--primario):hover {background: var(--edu-bruma);}
+html body .sf-cta .sf-btn:not(.sf-btn--primario):hover {background: rgba(255, 255, 255, .22);}
+html body .sf-eyebrow {color: var(--edu-verde-osc);}
+html body .sf-stat {background: #fff; box-shadow: 0 4px 14px rgba(20, 34, 79, .06);}
+html body .sf-stat:hover {background: #fff;}
+html body .sf-stat strong,
+html body .sf-marca__logo,
+html body .sf-summary,
+html body .sf-equipo__titulo,
+html body .sf-seccion-cab h3,
+html body .sf-card-contacto__cab strong,
+html body .faq__title,
+html body .site-footer .faq__title,
+html body .site-footer .faq__question,
+html body .faq-panel__cab h4,
+html body .faq-vacio strong,
+html body .sf-datos li span:last-child {color: var(--ink);}
+html body .sf-col li a:hover {color: var(--edu-azul);}
+html body .sf-col li a::before {color: var(--edu-verde);}
+html body .sf-datos li {border-bottom-color: var(--border-subtle);}
+html body .sf-datos li span:first-child,
+html body .sf-stats__nota,
+html body .sf-ayuda,
+html body .sf-vacio,
+html body .sf-equipo__titulo small,
+html body .sf-base,
+html body .faq-panel__cab span,
+html body .sf-card-contacto__cab span:not(.sf-avatar) {color: var(--text-secondary);}
+html body .sf-reloj {background: #fff;}
+html body .sf-reloj strong,
+html body .sf-tel {color: var(--edu-verde-osc);}
+html body .sf-tel:hover {color: var(--edu-azul);}
+html body .sf-chip {color: var(--ink-2); background: #fff;}
+html body .sf-chip:hover,
+html body .sf-chip[aria-pressed="true"] {color: var(--edu-azul);}
+html body .sf-chip[aria-pressed="true"] {background: var(--edu-bruma); border-color: var(--edu-verde);}
+html body .sf-card-contacto {background: #fff;}
+html body .sf-avatar {color: #fff; background: linear-gradient(135deg, var(--edu-azul), var(--edu-verde)) !important;}
+html body .sf-mini {color: var(--edu-azul); background: #fff; border-color: #b9c6e4;}
+html body .sf-mini:hover {background: var(--edu-bruma); border-color: var(--edu-azul);}
+html body .sf-mini--llamar {color: #fff; background: var(--edu-azul); border-color: transparent;}
+html body .sf-mini--llamar:hover {background: #24458f;}
+html body .sf-mini--wa {color: #fff;}
+html body .sf-subir {color: var(--edu-azul); background: #fff;}
+html body .sf-subir:hover {color: #fff;}
+html body .sf-base a:hover {color: var(--edu-azul);}
+html body .sf-toast {color: #fff; background: var(--edu-azul);}
+html body .site-footer .faq__intro,
+html body .site-footer .faq__answer,
+html body .site-footer .sf-seccion-cab p,
+html body .sf-seccion-cab p {color: var(--ink-2);}
+html body .site-footer .faq__item {background: #fff;}
+html body .site-footer .faq__item[open] {background: var(--edu-bruma); border-color: var(--edu-verde);}
+html body .site-footer .faq__answer a {color: var(--edu-verde-osc);}
+html body .site-footer .faq__question::before {background: var(--edu-verde);}
+html body .faq-buscar input {background: #fff; color: var(--ink);}
+html body .faq-cat {color: var(--ink-2);}
+html body .faq-cat:hover {color: var(--ink); background: var(--bg-panel);}
+html body .faq-cat[aria-pressed="true"] {color: var(--ink); background: var(--edu-bruma);}
+html body .faq-cat b {color: var(--text-secondary); background: var(--bg-panel);}
+html body .faq-cat[aria-pressed="true"] b {color: #fff; background: var(--edu-verde);}
+html body .faq-rapida {color: var(--text-secondary);}
+html body .faq-limpiar {color: var(--ink); background: var(--bg-panel);}
+html body mark.faq-resalte {color: var(--ink); background: rgba(11, 174, 120, .25);}
+html body .faq__etiqueta {color: #fff;}
+body.splash-activo {overflow: hidden !important;}
+html body .edu-splash {display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; background: radial-gradient(circle at 15% 15%, rgba(11, 174, 120, .18), transparent 50%), #eaf0fa;}
+html body .edu-splash__card {display: grid; grid-template-columns: minmax(280px, 5fr) minmax(0, 7fr); width: min(1060px, 100%); margin: auto; border-radius: 22px; overflow: hidden; box-shadow: 0 30px 80px rgba(20, 34, 79, .3); animation: edu-entra .6s cubic-bezier(.2, .8, .2, 1) both;}
+@keyframes edu-entra{ from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: none; } }
+html body .edu-splash__marca {display: flex; align-items: center; justify-content: center; padding: 40px 28px; background: #fff;}
+html body .edu-splash__marca img {width: min(100%, 360px); height: auto; display: block;}
+html body .edu-splash__texto {display: flex; flex-direction: column; gap: 26px; padding: 44px 48px; color: #fff; background: linear-gradient(160deg, var(--edu-azul) 0%, var(--edu-azul-prof) 100%);}
+html body .edu-splash__propuesta {margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.01em; color: #fff;}
+html body .edu-pilar {padding-left: 18px; border-left: 4px solid var(--edu-verde);}
+html body .edu-pilar h2 {margin: 0 0 8px; font-size: 19px; font-weight: 800; color: var(--edu-menta);}
+html body .edu-pilar p {margin: 0; max-width: 62ch; font-size: 15px; line-height: 1.7; color: #dbe4ff;}
+html body .edu-splash .landing__cta {align-self: flex-start; margin-top: 4px; padding: 15px 34px; border-radius: 12px; font-size: 16px; font-weight: 800; color: #fff; background: var(--edu-verde); box-shadow: 0 10px 28px rgba(11, 174, 120, .4);}
+html body .edu-splash .landing__cta:hover {background: #12c389; filter: none;}
+html body .edu-splash .landing__cta:focus-visible {outline: 3px solid var(--edu-menta); outline-offset: 3px;}
+html body .edu-splash .landing__footer {margin: 0; font-size: 12px; color: #8fa0d0;}
+@media (max-width: 860px) {
+html body .edu-splash {align-items: flex-start; padding: 12px;}
+html body .edu-splash__card {grid-template-columns: 1fr; border-radius: 18px;}
+html body .edu-splash__marca {padding: 26px 20px 20px;}
+html body .edu-splash__marca img {width: min(70%, 240px);}
+html body .edu-splash__texto {padding: 26px 22px 30px;}
+html body .edu-splash .landing__cta {align-self: stretch;}
+
+
+}
+@media (prefers-reduced-motion: reduce) {
+html body .edu-splash__card {animation: none;}
+ 
+}
+html body .top-navbar__brand::before,
+html body .admin-nav::before,
+html body .sf-marca__logo::before,
+html body .admin-login__card::before,
+html body .landing__content::before {background-image: url("../img/edumap-pin.png") !important;
+  background-color: transparent !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  filter: none !important;
+  border-radius: 0 !important;}
+html body .edu-splash .landing__content::before {display: none;}
+
+
+
+/* ============================================================
+   DIRECTORIO DE INSTITUCIONES · tabla rediseñada (tema blanco)
+   ============================================================ */
+html body #informe-modal .informe-modal__table-wrap {
+  flex: 1 1 auto; min-height: 0; overflow: auto;
+  margin: 18px 24px 24px; padding: 0;
+  background: #fff !important;
+  border: 1px solid #dbe3f2 !important; border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(20, 34, 79, .06);
+  scrollbar-width: thin; scrollbar-color: #b9c6e4 transparent;
+}
+html body #informe-modal .informe-table { width: 100%; min-width: 980px; border-collapse: separate; border-spacing: 0; background: #fff; }
+
+/* Encabezado */
+html body #informe-modal .informe-table thead th {
+  position: sticky; top: 0; z-index: 2; padding: 14px 16px; white-space: nowrap;
+  font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: #5a6a96; background: #eef3fb;
+  border-bottom: 2px solid #0bae78;
+}
+
+/* Filas: todas blancas, con cebra suave (se acabaron las filas oscuras) */
+html body #informe-modal .informe-table tbody tr { background: #fff !important; transition: background .12s ease; }
+html body #informe-modal .informe-table tbody tr:nth-child(even) { background: #f7f9fe !important; }
+html body #informe-modal .informe-table tbody tr:hover { background: #eaf7f2 !important; }
+html body #informe-modal .informe-table tbody td {
+  padding: 15px 16px; vertical-align: middle; line-height: 1.45;
+  color: #3a4a7c; border-bottom: 1px solid #e6ecf7;
+}
+html body #informe-modal .informe-table tbody tr:last-child td { border-bottom: 0; }
+
+/* Nombre: azul oscuro, en negrita, con franja de color por categoría */
+html body #informe-modal .informe-table tbody td:first-child {
+  min-width: 230px; font-weight: 800; color: #14224f !important; font-size: 14px;
+}
+html body #informe-modal .informe-table tbody tr.dir-fila td:first-child { box-shadow: inset 4px 0 0 var(--dir-acento); padding-left: 18px; }
+html body #informe-modal .dir-fila--colegio-publico { --dir-acento: #3b82f6; }
+html body #informe-modal .dir-fila--colegio-privado { --dir-acento: #f97316; }
+html body #informe-modal .dir-fila--universidad-privada { --dir-acento: #a855f7; }
+html body #informe-modal .dir-fila--universidad-publica { --dir-acento: #14b8a6; }
+
+/* Dirección, cifras y contacto */
+html body #informe-modal .informe-table td.dir-direccion { min-width: 210px; color: #5a6a96; }
+html body #informe-modal .informe-table td.dir-num {
+  text-align: center; color: #14224f !important; font: 700 14px 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;
+}
+html body #informe-modal .informe-table td.dir-contacto { color: #3a4a7c; font-size: 12.5px; min-width: 150px; }
+html body #informe-modal .informe-table td.dir-nd,
+html body #informe-modal .informe-table td .dir-nd { color: #9aa6c6 !important; font-weight: 500; }
+
+/* Insignias de tipo y sector */
+html body .dir-badge { padding: 4px 11px; font-size: 11px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+html body .dir-estrato { width: 30px; height: 30px; color: #fff; background: #1b3375; }
+
+/* Filtros de arriba */
+html body .dir-toolbar { padding: 16px 24px; background: #f4f7fc; border-bottom: 1px solid #dbe3f2; }
+html body .dir-buscar input { height: 44px; border-radius: 12px; }
+html body .dir-buscar input:focus { border-color: #0bae78; box-shadow: 0 0 0 3px rgba(11, 174, 120, .18); }
+html body .dir-chip { font-weight: 700; }
+html body .dir-chip.is-on { background: #0bae78 !important; border-color: #0bae78 !important; color: #fff !important; }
+
+/* Encabezado de la ventana */
+html body #informe-modal .informe-modal__header { padding: 24px 76px 20px 28px; }
+html body #informe-modal .informe-actions .btn { height: 42px; border-radius: 12px; }
+
+@media (max-width: 760px) {
+  html body #informe-modal .informe-modal__table-wrap { margin: 12px 12px 16px; }
+}
+
+/* ============================================================
+   COMPARADOR & BECAS · tema blanco (comparador.html)
+   ============================================================ */
+html body .top-navbar__brand { color: #1b3375 !important; }
+html body .top-navbar__brand b { color: #0bae78 !important; }
+html body.comparador-body, html body.comparador-body .cp-page-wrap { background: #f4f7fc !important; }
+
+html body .cp-eyebrow { color: #08805a; }
+html body .cp-title { color: #14224f; }
+html body .cp-subtitle { color: #5a6a96; }
+html body .cp-page-header { border-bottom-color: #d6dfef; }
+
+html body .cp-filter-card, html body .cp-list-card, html body .cp-chips-card,
+html body .cp-card-accordion, html body .cp-aviso-vacio {
+  background: #fff; border-color: #dbe3f2; box-shadow: 0 4px 16px rgba(20, 34, 79, .07);
+}
+html body .cp-card-accordion[open] { border-color: #0bae78; }
+html body .cp-card-accordion > summary { color: #14224f; background: #f4f7fc; }
+html body .cp-filter-card__title, html body .cp-aviso-vacio strong { color: #14224f; }
+html body .cp-accent-bar { background: #0bae78; }
+html body .cp-filter-card__count, html body .cp-sec-resumen b, html body .cp-bar-value--top { color: #08805a; }
+html body .cp-label, html body .cp-section-label, html body .cp-metric-hint,
+html body .cp-sec-resumen, html body .cp-filter-hint, html body .cp-aviso-vacio,
+html body .cp-vacio-li { color: #5a6a96; }
+
+html body .cp-input, html body .cp-select { color: #14224f; background: #fff; border-color: #c5d0e8; }
+html body .cp-input:focus, html body .cp-select:focus { border-color: #0bae78; box-shadow: 0 0 0 3px rgba(11, 174, 120, .18); }
+html body .cp-btn-reset, html body .cp-btn-action { color: #1b3375; background: #fff; border-color: #b9c6e4; }
+html body .cp-btn-reset:hover, html body .cp-btn-action:hover:not(:disabled) { color: #08805a; border-color: #0bae78; background: #eaf7f2; }
+
+html body .cp-list { background: #f4f7fc; border-color: #dbe3f2; }
+html body .cp-list label { color: #14224f; }
+html body .cp-list label:hover { background: #eaf7f2; }
+html body .cp-list label.sel { background: #eaf7f2; }
+html body .cp-list small { color: #5a6a96; }
+html body .cp-list input { accent-color: #0bae78; }
+html body .cp-chip-item { color: #14224f; background: #fff; }
+html body .cp-chip-item button { color: #5a6a96; }
+
+html body .cp-bar-container { background: #fff; }
+html body .cp-inst-name { color: #14224f; }
+html body .cp-inst-name small { color: #5a6a96; }
+html body .cp-bar-track { background: #e8eef9; }
+html body .cp-bar-track i { background: var(--bar-color, #0bae78); }
+html body .cp-bar-value { color: #3a4a7c; }
+
+html body .beca-item-card { background: #fff; border-color: #dbe3f2; box-shadow: 0 4px 14px rgba(20, 34, 79, .06); }
+html body .beca-item-title { color: #14224f; }
+html body .beca-item-desc { color: #3a4a7c; }
+html body .beca-item-req { color: #5a6a96; background: #f4f7fc; border-left-color: #0bae78; }
+html body .beca-item-card a { color: #08805a; }
+
+/* Nombre de la barra: "Edu" azul + "Map" verde en todas las páginas */
+html body .top-navbar__brand span { color: #1b3375 !important; }
+html body .top-navbar__brand span b { color: #0bae78 !important; }
+
+/* ============================================================
+   BECAS Y SUBSIDIOS · tarjetas (cubre las dos familias de clases)
+   ============================================================ */
+html body .becas-grid-container, html body .becas-grid, html body .acordeon-content--becas { background: transparent !important; }
+html body .beca-card, html body .beca-item-card {
+  background: #fff !important; border: 1px solid #dbe3f2 !important; border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(20, 34, 79, .08) !important;
+}
+html body .beca-card:hover, html body .beca-item-card:hover { border-color: #0bae78 !important; transform: translateY(-2px); }
+html body .beca-card__title, html body .beca-item-title { color: #14224f !important; }
+html body .beca-card__desc, html body .beca-item-desc { color: #3a4a7c !important; }
+html body .beca-card__req, html body .beca-item-req {
+  background: #f1f6fc !important; color: #3a4a7c !important; border-left: 3px solid #0bae78 !important;
+}
+html body .beca-card__req strong, html body .beca-item-req strong { color: #14224f !important; }
+
+/* Etiquetas (Condonable 100 %, Descuento, Cobertura total…) */
+html body .beca-badge, html body [class*="beca"][class*="badge"], html body [class*="beca"][class*="tag"] {
+  background: rgba(11, 174, 120, .12) !important; color: #08805a !important;
+  border: 1px solid rgba(11, 174, 120, .4) !important; border-radius: 8px;
+}
+html body .beca-badge--descuento { background: rgba(27, 51, 117, .08) !important; color: #1b3375 !important; border-color: rgba(27, 51, 117, .3) !important; }
+
+/* Enlace «Consultar convocatoria» */
+html body .beca-card__link, html body [class*="beca"][class*="link"], html body .beca-card a, html body .beca-item-card a {
+  color: #fff !important; background: #0bae78 !important; text-decoration: none !important;
+  padding: 9px 14px; border-radius: 10px; font-weight: 700; width: fit-content;
+}
+html body .beca-card__link:hover, html body [class*="beca"][class*="link"]:hover, html body .beca-card a:hover, html body .beca-item-card a:hover {
+  background: #08805a !important; color: #fff !important;
+}
+
+/* ============================================================
+   ADMINISTRACIÓN · login y panel (administracion.html)
+   ============================================================ */
+html body .admin-login__card { background: #fff; border: 1px solid #dbe3f2; box-shadow: 0 20px 50px rgba(20, 34, 79, .15); }
+html body .admin-login__title { color: #14224f; }
+html body .admin-login__hint { color: #5a6a96; }
+html body .admin-field { color: #5a6a96; }
+html body .admin-field input, html body .admin-field select, html body .admin-field textarea {
+  background: #fff; color: #14224f; border-color: #c5d0e8; color-scheme: light;
+}
+html body .admin-field input:focus, html body .admin-field select:focus, html body .admin-field textarea:focus {
+  border-color: #0bae78; box-shadow: 0 0 0 3px rgba(11, 174, 120, .18);
+}
+html body .admin-field input::placeholder, html body .admin-field textarea::placeholder { color: #8a97bb; }
+html body .admin-login .btn--accent, html body .admin-form__acciones .btn--accent, html body .admin-panel .btn--accent {
+  background: #0bae78; border-color: #0bae78; color: #fff;
+}
+html body .admin-login .btn--accent:hover, html body .admin-form__acciones .btn--accent:hover, html body .admin-panel .btn--accent:hover { background: #08805a; }
+html body .admin-panel__heading { color: #14224f; }
+html body .admin-table-wrap { background: #fff; border-color: #dbe3f2; }
+html body .admin-table th { background: #eef3fb; color: #5a6a96; }
+html body .admin-table td { color: #14224f; border-bottom-color: #e6ecf7; }
+html body .admin-table tr:hover td { background: #eaf7f2; }
+html body .admin-filtros, html body .admin-filtros__vacio { background: #fff; border-color: #dbe3f2; }
+html body .admin-filtros__input, html body .admin-filtros__select { background: #fff; color: #14224f; border-color: #c5d0e8; color-scheme: light; }
+html body .admin-filtros__select option, html body #admin-modal .admin-field select option { background: #fff; color: #14224f; }
+html body #admin-modal .institucion-modal__panel { --modal-bg: #fff; background: #fff; border-color: #dbe3f2; }
+html body #admin-modal .institucion-modal__nombre { color: #14224f; border-bottom-color: #dbe3f2; }
+html body #admin-modal .admin-form__grupo { background: #f8faff; border-color: #dbe3f2; }
+html body #admin-modal .admin-form__grupo > legend { color: #08805a; }
+html body #admin-modal .admin-field input, html body #admin-modal .admin-field select, html body #admin-modal .admin-field textarea { background: #fff; color: #14224f; border-color: #c5d0e8; color-scheme: light; }
+html body #admin-modal .admin-field > span { color: #5a6a96; }
+
+/* ============================================================
+   ADMINISTRACIÓN · colores que trae el <style> de administracion.html
+   ============================================================ */
+html body .admin-header-title { border-bottom-color: #d6dfef; }
+html body .admin-header-title h1, html body .admin-filtros__titulo { color: #14224f; }
+html body .admin-map-card { background: #fff; border-color: #dbe3f2; box-shadow: 0 4px 16px rgba(20, 34, 79, .07); }
+html body #admin-map, html body #ubicacion-mapa { border-color: #dbe3f2; }
+html body .admin-filtros__sync, html body .admin-filtros__campo span { color: #5a6a96; }
+html body .admin-filtros__contador { color: #08805a; }
+html body .admin-filtros__limpiar { color: #3a4a7c; background: #fff; border-color: #b9c6e4; }
+html body .admin-filtros__limpiar:hover:not(:disabled) { color: #08805a; border-color: #0bae78; }
+html body .admin-panel .select { color-scheme: light; }
+html body .admin-panel .select option { background: #fff; color: #14224f; }
+html body .panel--readout { background: #f1f6fc; border-color: #0bae78; }
+html body .readout { color: #08805a; }
+
+/* Botones de la tabla y de la barra */
+html body .btn-logout-nav { color: #b91c1c; background: rgba(239, 68, 68, .1); border-color: rgba(239, 68, 68, .4); }
+html body .btn-logout-nav:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+html body .admin-table__btn--opinion { background: rgba(11, 174, 120, .1) !important; color: #08805a !important; border-color: rgba(11, 174, 120, .4) !important; }
+html body .admin-table__btn--opinion:hover { background: #0bae78 !important; color: #fff !important; }
+html body .admin-table__btn { color: #3a4a7c; border-color: #c5d0e8; }
+html body .admin-table__btn:hover { color: #08805a; border-color: #0bae78; }
+html body .admin-table__btn--danger:hover { color: #b91c1c; border-color: #dc2626; }
+html body .mapa-ampliar__btn { background: #fff !important; color: #14224f !important; border-color: #b9c6e4 !important; }
+
+/* Selector de ubicación del formulario */
+html body .ubicacion-picker { background: #f4f7fc; border-color: #dbe3f2; }
+html body .ubicacion-picker__titulo, html body .ubicacion-picker__ayuda { color: #5a6a96; }
+html body .ubicacion-picker__buscar { background: #0bae78; color: #fff; }
+html body .ubicacion-picker__buscar:hover { background: #08805a; }
+
+/* Ventana de reseñas */
+html body .modal-opiniones { background: rgba(14, 28, 69, .55); }
+html body .modal-opiniones__panel { background: #fff; border-color: #dbe3f2; box-shadow: 0 24px 60px rgba(20, 34, 79, .35); }
+html body .modal-opiniones__panel > div:first-child { border-bottom-color: #dbe3f2 !important; }
+html body #modal-opiniones-titulo { color: #14224f !important; }
+html body #modal-opiniones-resumen { color: #5a6a96 !important; }
+html body #modal-opiniones-resumen strong { color: #b7791f !important; }
+html body #btn-cerrar-modal-opiniones { color: #5a6a96 !important; }
+html body .modal-opiniones__panel .informe-table th { background: #eef3fb; color: #5a6a96; border-bottom: 2px solid #0bae78; }
+html body #modal-opiniones-tabla-body td { color: #14224f !important; border-bottom-color: #e6ecf7; }
+html body #modal-opiniones-tabla-body td:first-child { color: #e0a800 !important; }
+html body #modal-opiniones-tabla-body td:nth-child(3) { color: #5a6a96 !important; }
+
+/* Confirmar cierre de sesión */
+html body .confirmar-salida { background: rgba(14, 28, 69, .55); }
+html body .confirmar-salida__caja { background: #fff; border-color: #dbe3f2; box-shadow: 0 24px 60px rgba(20, 34, 79, .3); }
+html body .confirmar-salida__titulo { color: #14224f; }
+html body .confirmar-salida__texto { color: #5a6a96; }
+html body .confirmar-salida__btn--cancelar { background: #eef3fb; color: #14224f; }

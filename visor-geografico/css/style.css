@@ -2421,3 +2421,14 @@ body.mapa-ampliado-activo { overflow: hidden; }
   background: var(--accent, #29e2b8);
   color: #0b1220;
 }
+
+.sf-mini.sf-mini--wa {
+  background-color: #007bff !important; /* Fondo azul forzado */
+  color: #ffffff !important; /* Texto blanco forzado */
+  border: 1px solid #007bff !important; /* Borde azul para que no quede la línea blanca */
+}
+
+/* Forzar que el icono (la nube) sea blanco */
+.sf-mini.sf-mini--wa svg {
+  stroke: #ffffff !important;
+}

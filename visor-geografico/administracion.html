@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Administración · Visor Geográfico Sabaneta</title>
+  <title>EduMap · Administración</title>
+  <link rel="icon" href="img/edumap-pin.png" />
 
   <!-- Tipografías -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,6 +13,8 @@
   <!-- Leaflet CSS y Estilos del Proyecto -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="css/style.css" />
+
+  
 
   <style>
     /* ESTILOS BASE Y TEMA VERDE SIG */
@@ -366,18 +369,20 @@
     .confirmar-salida__btn { flex: 1; height: 38px; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; }
     .confirmar-salida__btn--cancelar { background: rgba(255, 255, 255, 0.08); color: #fff; }
     .confirmar-salida__btn--confirmar { background: #dc2626; color: #fff; }
-  </style>
+    </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/supabaseClient.js"></script>
-  <!-- Adaptación a celulares y tablets (debe ir después de los demás estilos) -->
+  <!-- Adaptación a celulares y tablets -->
   <link rel="stylesheet" href="css/responsive.css" />
+  <!-- Tema EduMap: SIEMPRE el último -->
+  <link rel="stylesheet" href="css/edumap-theme.css" />
 </head>
 <body class="admin-body">
 
   <!-- NAVBAR PRINCIPAL -->
   <nav class="top-navbar">
-    <a class="top-navbar__brand" href="index.html#app"><span>Geovisor Sabaneta</span></a>
+    <a class="top-navbar__brand" href="index.html#app"><span>Edu<b>Map</b></span></a>
     <div class="top-navbar__links">
       <a href="index.html#app">Inicio</a>
       <a href="index.html#instituciones">Instituciones</a>
