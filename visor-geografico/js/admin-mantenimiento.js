@@ -1196,57 +1196,177 @@
     }
   }
 
-  /* ===================================================================
-     PDF — formato oficial
+/* ===================================================================
+     GESTIÓN DE ESCUDOS DESDE LA TABLA instituciones_educativas
      =================================================================== */
-  var _escudo;
-  function escudoPNG() {
-    if (_escudo !== undefined) return Promise.resolve(_escudo);
+  var _mapaEscudosDB = null;      // Caché de { id / nombre: escudo_url }
+  var _listaEscudosDB = [];       // Lista auxiliar para búsqueda flexible
+  var _logosBase64Cache = {};     // Caché de { url: { dataUrl, w, h } }
+
+  // 1. Obtiene el cliente Supabase del proyecto (detecta 'c' o supabaseClient.js)
+  function obtenerClienteSupabase() {
+    if (typeof c === 'function') return c();
+    if (typeof c !== 'undefined' && c && typeof c.from === 'function') return c;
+    if (typeof sb !== 'undefined' && sb && typeof sb.from === 'function') return sb;
+    if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof supabaseClient.from === 'function') return supabaseClient;
+    if (window.supabaseClient && typeof window.supabaseClient.from === 'function') return window.supabaseClient;
+    if (window.sb && typeof window.sb.from === 'function') return window.sb;
+    return null;
+  }
+
+  // 2. Consulta la tabla instituciones_educativas una sola vez y guarda las URLs en memoria
+  async function cargarMapaEscudosDB() {
+    if (_mapaEscudosDB !== null) return _mapaEscudosDB;
+    _mapaEscudosDB = {};
+    _listaEscudosDB = [];
+    try {
+      var cliente = obtenerClienteSupabase();
+      console.log('[PDF Escudo] 1. Cliente Supabase:', cliente ? 'OK conectado' : 'NULL (No encontrado)');
+      if (!cliente) return _mapaEscudosDB;
+
+      var res = await cliente
+        .from('instituciones_educativas')
+        .select('id, nombre, escudo_url');
+
+      console.log('[PDF Escudo] 2. Consulta instituciones_educativas:', res);
+
+      if (!res.error && Array.isArray(res.data)) {
+        res.data.forEach(function (row) {
+          if (row.escudo_url) {
+            var nom = row.nombre ? String(row.nombre).trim().toLowerCase() : '';
+            if (nom) _mapaEscudosDB[nom] = row.escudo_url;
+            if (row.id != null) _mapaEscudosDB['id_' + row.id] = row.escudo_url;
+            _listaEscudosDB.push({ id: row.id, nombre: nom, url: row.escudo_url });
+          }
+        });
+      }
+      console.log('[PDF Escudo] 3. Escudos cargados en memoria:', _listaEscudosDB);
+    } catch (e) {
+      console.error('[PDF Escudo] Error consultando Supabase:', e);
+    }
+    return _mapaEscudosDB;
+  }
+
+  // 3. Resuelve la URL del escudo para el reporte actual
+  async function obtenerUrlEscudo(rep) {
+    console.log('[PDF Escudo] 4. Datos del reporte recibido:', rep);
+    if (!rep) return '';
+    if (rep.institucion_escudo) return rep.institucion_escudo;
+
+    var mapa = await cargarMapaEscudosDB();
+
+    // Búsqueda 1: Por ID de institución (institucion_id)
+    if (rep.institucion_id != null && mapa['id_' + rep.institucion_id]) {
+      console.log('[PDF Escudo] 5. Encontrado por ID:', mapa['id_' + rep.institucion_id]);
+      return mapa['id_' + rep.institucion_id];
+    }
+
+    if (rep.institucion_nombre) {
+      var clave = String(rep.institucion_nombre).trim().toLowerCase();
+
+      // Búsqueda 2: Por nombre exacto
+      if (mapa[clave]) {
+        console.log('[PDF Escudo] 5. Encontrado por nombre exacto:', mapa[clave]);
+        return mapa[clave];
+      }
+
+      // Búsqueda 3: Por coincidencia parcial
+      var coincidencia = _listaEscudosDB.find(function (item) {
+        return item.nombre && (clave.indexOf(item.nombre) !== -1 || item.nombre.indexOf(clave) !== -1);
+      });
+      if (coincidencia) {
+        console.log('[PDF Escudo] 5. Encontrado por coincidencia parcial:', coincidencia.url);
+        return coincidencia.url;
+      }
+    }
+
+    console.warn('[PDF Escudo] 5. No se encontró escudo_url para:', rep.institucion_nombre);
+    return '';
+  }
+
+  // 4. Descarga la imagen de escudo_url y la convierte a PNG Base64 para jsPDF
+  function cargarLogoInstitucion(url) {
+    if (!url) return Promise.resolve(null);
+    if (_logosBase64Cache[url] !== undefined) return Promise.resolve(_logosBase64Cache[url]);
+
     return new Promise(function (ok) {
       try {
-        var v = getComputedStyle(document.documentElement).getPropertyValue('--escudo') || '';
-        var m = v.match(/url\(\s*["']?([^"')]+)["']?\s*\)/);
-        if (!m) { _escudo = null; return ok(null); }
         var im = new Image();
+        im.crossOrigin = 'anonymous';
         im.onload = function () {
-          var cv = document.createElement('canvas');
-          cv.width = im.naturalWidth; cv.height = im.naturalHeight;
-          cv.getContext('2d').drawImage(im, 0, 0);
-          _escudo = { dataUrl: cv.toDataURL('image/png'), w: im.naturalWidth, h: im.naturalHeight };
-          ok(_escudo);
+          try {
+            var cv = document.createElement('canvas');
+            cv.width = im.naturalWidth;
+            cv.height = im.naturalHeight;
+            cv.getContext('2d').drawImage(im, 0, 0);
+            _logosBase64Cache[url] = {
+              dataUrl: cv.toDataURL('image/png'),
+              w: im.naturalWidth,
+              h: im.naturalHeight
+            };
+            console.log('[PDF Escudo] 6. Imagen convertida a Base64 OK:', im.naturalWidth + 'x' + im.naturalHeight);
+            ok(_logosBase64Cache[url]);
+          } catch (err) {
+            console.error('[PDF Escudo] Error de CORS al procesar el escudo:', url, err);
+            _logosBase64Cache[url] = null;
+            ok(null);
+          }
         };
-        im.onerror = function () { _escudo = null; ok(null); };
-        im.src = m[1];
-      } catch (e) { _escudo = null; ok(null); }
+        im.onerror = function (err) {
+          console.error('[PDF Escudo] Error descargando la imagen:', url, err);
+          _logosBase64Cache[url] = null;
+          ok(null);
+        };
+        im.src = url;
+      } catch (e) {
+        _logosBase64Cache[url] = null;
+        ok(null);
+      }
     });
   }
 
+  /* ===================================================================
+     GENERACIÓN DEL PDF OFICIAL CON ESCUDO DE LA INSTITUCIÓN
+     =================================================================== */
   async function generarPDF(rep, items, fotos) {
     var lib = window.jspdf && window.jspdf.jsPDF;
     if (!lib) throw new Error('No se cargó la librería de PDF (jsPDF). Revisa tu conexión a internet.');
     var doc = new lib({ unit: 'mm', format: 'a4', compress: true });
     if (typeof doc.autoTable !== 'function') throw new Error('No se cargó jsPDF-AutoTable.');
+
     var W = 210, H = 297, M = 15, CW = W - 2 * M, PIE = 18;
     var VERDE = [12, 100, 52], CLARO = [231, 243, 226], GRIS = [90, 100, 94];
     var y = 0;
-    var escudo = await escudoPNG();
+
+    // Buscar escudo_url en instituciones_educativas y prepararlo para jsPDF
+    var urlEscudo = await obtenerUrlEscudo(rep);
+    var escudo = await cargarLogoInstitucion(urlEscudo);
     var estadoTxt = (ESTADOS[rep.estado] || ESTADOS.radicado).t;
 
     /* ---- cabecera ---- */
     doc.setFillColor(VERDE[0], VERDE[1], VERDE[2]);
     doc.rect(0, 0, W, 4, 'F');
+
+    // Dibujar escudo proporcionalmente en la esquina superior izquierda (M=15, máx 34x25 mm)
     if (escudo) {
-      var eh = 25, ew = eh * escudo.w / escudo.h;
-      doc.addImage(escudo.dataUrl, 'PNG', M, 9, ew, eh);
+      var maxW = 34, maxH = 25;
+      var escala = Math.min(maxW / escudo.w, maxH / escudo.h);
+      var ew = escudo.w * escala;
+      var eh = escudo.h * escala;
+      var ex = M + (maxW - ew) / 2;
+      var ey = 9 + (maxH - eh) / 2;
+      doc.addImage(escudo.dataUrl, 'PNG', ex, ey, ew, eh);
     }
+
     doc.setTextColor(20, 40, 28);
     doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
-    doc.text('ALCALDÍA DE SABANETA', 92, 15, { align: 'center' });
+    doc.text('ALCALDÍA DE SABANETA', 96, 15, { align: 'center' });
     doc.setFontSize(10.5);
-    doc.text('SECRETARÍA DE EDUCACIÓN', 92, 21, { align: 'center' });
+    doc.text('SECRETARÍA DE EDUCACIÓN', 96, 21, { align: 'center' });
     doc.setFontSize(9.5);
-    doc.text('FORMATO OFICIAL DE REPORTE DE ESTADO Y FALLAS', 92, 28, { align: 'center' });
-    doc.text('DE LA INSTITUCIÓN EDUCATIVA', 92, 33, { align: 'center' });
+    doc.text('FORMATO OFICIAL DE REPORTE DE ESTADO Y FALLAS', 96, 28, { align: 'center' });
+    doc.text('DE LA INSTITUCIÓN EDUCATIVA', 96, 33, { align: 'center' });
+
     // recuadro folio
     var bx = W - M - 50;
     doc.setDrawColor(VERDE[0], VERDE[1], VERDE[2]); doc.setLineWidth(0.5);

@@ -211,34 +211,314 @@ html body .faq-limpiar {color: var(--ink); background: var(--bg-panel);}
 html body mark.faq-resalte {color: var(--ink); background: rgba(11, 174, 120, .25);}
 html body .faq__etiqueta {color: #fff;}
 body.splash-activo {overflow: hidden !important;}
-html body .edu-splash {display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; background: radial-gradient(circle at 15% 15%, rgba(11, 174, 120, .18), transparent 50%), #eaf0fa;}
-html body .edu-splash__card {display: grid; grid-template-columns: minmax(280px, 5fr) minmax(0, 7fr); width: min(1060px, 100%); margin: auto; border-radius: 22px; overflow: hidden; box-shadow: 0 30px 80px rgba(20, 34, 79, .3); animation: edu-entra .6s cubic-bezier(.2, .8, .2, 1) both;}
-@keyframes edu-entra{ from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: none; } }
-html body .edu-splash__marca {display: flex; align-items: center; justify-content: center; padding: 40px 28px; background: #fff;}
-html body .edu-splash__marca img {width: min(100%, 360px); height: auto; display: block;}
-html body .edu-splash__texto {display: flex; flex-direction: column; gap: 26px; padding: 44px 48px; color: #fff; background: linear-gradient(160deg, var(--edu-azul) 0%, var(--edu-azul-prof) 100%);}
-html body .edu-splash__propuesta {margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.01em; color: #fff;}
-html body .edu-pilar {padding-left: 18px; border-left: 4px solid var(--edu-verde);}
-html body .edu-pilar h2 {margin: 0 0 8px; font-size: 19px; font-weight: 800; color: var(--edu-menta);}
-html body .edu-pilar p {margin: 0; max-width: 62ch; font-size: 15px; line-height: 1.7; color: #dbe4ff;}
-html body .edu-splash .landing__cta {align-self: flex-start; margin-top: 4px; padding: 15px 34px; border-radius: 12px; font-size: 16px; font-weight: 800; color: #fff; background: var(--edu-verde); box-shadow: 0 10px 28px rgba(11, 174, 120, .4);}
-html body .edu-splash .landing__cta:hover {background: #12c389; filter: none;}
-html body .edu-splash .landing__cta:focus-visible {outline: 3px solid var(--edu-menta); outline-offset: 3px;}
-html body .edu-splash .landing__footer {margin: 0; font-size: 12px; color: #8fa0d0;}
+
+/* ==========================================
+   EDUMAP - PANTALLA DE BIENVENIDA
+   DISEÑO HORIZONTAL: LOGO ARRIBA
+   MISIÓN Y VISIÓN LADO A LADO ABAJO
+========================================== */
+
+/* CONTENEDOR GENERAL */
+html body .edu-splash {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+    overflow-y: auto;
+
+    background:
+        radial-gradient(
+            circle at 15% 15%,
+            rgba(11, 174, 120, .18),
+            transparent 50%
+        ),
+        #eaf0fa;
+}
+
+/* TARJETA PRINCIPAL */
+html body .edu-splash__card {
+    display: flex;
+    flex-direction: column;
+
+    width: min(1100px, 100%);
+    margin: auto;
+
+    border-radius: 22px;
+    overflow: hidden;
+
+    box-shadow: 0 30px 80px rgba(20, 34, 79, .3);
+
+    animation: edu-entra .6s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+/* ANIMACIÓN */
+@keyframes edu-entra {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* ==========================================
+   PARTE SUPERIOR - LOGO EDUMAP
+========================================== */
+
+html body .edu-splash__marca {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    min-height: 210px;
+
+    padding: 25px 28px;
+
+    background: #fff;
+}
+
+html body .edu-splash__marca img {
+    width: min(100%, 350px);
+    height: auto;
+    display: block;
+}
+
+/* ==========================================
+   PARTE INFERIOR - MISIÓN Y VISIÓN
+========================================== */
+
+html body .edu-splash__texto {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+
+    width: 100%;
+    padding: 35px 45px 22px;
+
+    color: #fff;
+
+    background: linear-gradient(
+        160deg,
+        var(--edu-azul) 0%,
+        var(--edu-azul-prof) 100%
+    );
+}
+
+/* TÍTULO */
+html body .edu-splash__propuesta {
+    margin: 0;
+
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -.01em;
+
+    color: #fff;
+    text-align: center;
+}
+
+/* CONTENEDOR DE LOS DOS PILARES (MISIÓN Y VISIÓN LADO A LADO) */
+html body .edu-splash__pilares {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 35px;
+    align-items: start;
+
+    width: 100%;
+}
+
+/* BLOQUE INDIVIDUAL (MISIÓN / VISIÓN) */
+html body .edu-pilar {
+    min-width: 0;
+    padding-left: 18px;
+
+    border-left: 4px solid var(--edu-verde);
+}
+
+/* TÍTULOS DE MISIÓN Y VISIÓN */
+html body .edu-pilar h2 {
+    margin: 0 0 10px;
+
+    font-size: 20px;
+    font-weight: 800;
+
+    color: var(--edu-menta);
+}
+
+/* TEXTO DE MISIÓN Y VISIÓN */
+html body .edu-pilar p {
+    margin: 0;
+
+    max-width: none;
+
+    font-size: 15px;
+    line-height: 1.7;
+
+    color: #dbe4ff;
+    text-align: left;
+}
+
+/* ==========================================
+   BOTÓN DE INGRESO
+========================================== */
+
+html body .edu-splash .landing__cta {
+    align-self: center;
+
+    margin-top: 0;
+    padding: 15px 34px;
+
+    border-radius: 12px;
+
+    font-size: 16px;
+    font-weight: 800;
+
+    color: #fff;
+
+    background: var(--edu-verde);
+
+    box-shadow: 0 10px 28px rgba(11, 174, 120, .4);
+
+    cursor: pointer;
+
+    transition: all .3s ease;
+}
+
+html body .edu-splash .landing__cta:hover {
+    background: #12c389;
+    filter: none;
+    transform: translateY(-2px);
+}
+
+html body .edu-splash .landing__cta:focus-visible {
+    outline: 3px solid var(--edu-menta);
+    outline-offset: 3px;
+}
+
+/* ==========================================
+   AUTORES
+========================================== */
+
+html body .edu-splash .landing__footer {
+    margin: 0;
+
+    font-size: 12px;
+
+    color: #8fa0d0;
+
+    text-align: center;
+}
+
+/* ==========================================
+   TABLETS
+========================================== */
+
 @media (max-width: 860px) {
-html body .edu-splash {align-items: flex-start; padding: 12px;}
-html body .edu-splash__card {grid-template-columns: 1fr; border-radius: 18px;}
-html body .edu-splash__marca {padding: 26px 20px 20px;}
-html body .edu-splash__marca img {width: min(70%, 240px);}
-html body .edu-splash__texto {padding: 26px 22px 30px;}
-html body .edu-splash .landing__cta {align-self: stretch;}
 
+    html body .edu-splash {
+        align-items: flex-start;
+        padding: 12px;
+    }
 
+    html body .edu-splash__card {
+        width: 100%;
+        border-radius: 18px;
+    }
+
+    html body .edu-splash__marca {
+        min-height: 160px;
+        padding: 25px 20px;
+    }
+
+    html body .edu-splash__marca img {
+        width: min(70%, 240px);
+    }
+
+    html body .edu-splash__texto {
+        padding: 28px 25px;
+    }
+
+    html body .edu-splash__pilares {
+        gap: 22px;
+    }
+
+    html body .edu-pilar p {
+        font-size: 14px;
+    }
 }
+
+/* ==========================================
+   CELULARES
+========================================== */
+
+@media (max-width: 600px) {
+
+    html body .edu-splash {
+        padding: 10px;
+    }
+
+    html body .edu-splash__marca {
+        min-height: 130px;
+        padding: 20px;
+    }
+
+    html body .edu-splash__marca img {
+        width: min(80%, 220px);
+    }
+
+    html body .edu-splash__texto {
+        padding: 25px 20px;
+        gap: 22px;
+    }
+
+    html body .edu-splash__propuesta {
+        font-size: 20px;
+    }
+
+    html body .edu-splash__pilares {
+        grid-template-columns: 1fr;
+        gap: 22px;
+    }
+
+    html body .edu-pilar h2 {
+        font-size: 18px;
+    }
+
+    html body .edu-pilar p {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    html body .edu-splash .landing__cta {
+        width: 100%;
+        max-width: 280px;
+    }
+
+    html body .edu-splash .landing__footer {
+        font-size: 10px;
+        line-height: 1.5;
+    }
+}
+
+/* ==========================================
+   ACCESIBILIDAD - REDUCIR ANIMACIONES
+========================================== */
+
 @media (prefers-reduced-motion: reduce) {
-html body .edu-splash__card {animation: none;}
- 
+
+    html body .edu-splash__card {
+        animation: none;
+    }
+
+    html body .edu-splash .landing__cta {
+        transition: none;
+    }
 }
+
 html body .top-navbar__brand::before,
 html body .admin-nav::before,
 html body .sf-marca__logo::before,

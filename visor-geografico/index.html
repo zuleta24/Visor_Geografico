@@ -554,26 +554,71 @@
 <body>
 
   <!-- PANTALLA DE BIENVENIDA -->
-  <div id="landing-screen" class="landing edu-splash" role="dialog" aria-modal="true" aria-labelledby="splash-titulo">
-  <div class="edu-splash__card">
-    <div class="edu-splash__marca">
-      <img src="img/edumap-logo.png" alt="EduMap" />
+ 
+<div id="landing-screen" class="landing edu-splash" role="dialog"
+     aria-modal="true" aria-labelledby="splash-titulo">
+    <div class="edu-splash__card">
+        <!-- SECCIÓN SUPERIOR: LOGO -->
+        <div class="edu-splash__marca">
+            <img src="img/edumap-logo.png" alt="EduMap" />
+        </div>
+        <!-- SECCIÓN INFERIOR: MISIÓN Y VISIÓN -->
+        <div class="edu-splash__texto">
+            <h1 id="splash-titulo" class="edu-splash__propuesta">
+                Nuestra propuesta
+            </h1>
+            <div class="edu-splash__pilares">
+                <!-- MISIÓN -->
+                <section class="edu-pilar">
+                    <h2>
+                        <span class="edu-pilar__icono">◎</span>
+                        Misión
+                    </h2>
+                    <p>
+                        Democratizar y optimizar el acceso a la información
+                        espacial de la infraestructura educativa mediante
+                        una plataforma web geográfica ágil, intuitiva e
+                        interoperable. En EduMap transformamos datos
+                        territoriales y atributos institucionales en
+                        inteligencia visual accionable, facilitando la toma
+                        de decisiones estratégicas, la planificación
+                        territorial y la consulta ciudadana en cualquier
+                        entorno educativo.
+                    </p>
+                </section>
+                
+                <!-- VISIÓN -->
+                <section class="edu-pilar">
+                    <h2>
+                        <span class="edu-pilar__icono">◉</span>
+                        Visión
+                    </h2>
+                    <p>
+                        Consolidarnos como la solución de referencia en
+                        cartografía web y gestión espacial del sector
+                        educativo a nivel regional y nacional, escalando
+                        hacia un ecosistema SaaS adaptable a múltiples
+                        territorios que impulse la transparencia, la
+                        equidad en el acceso a la educación y la
+                        modernización tecnológica de las instituciones
+                        y entidades territoriales.
+                    </p>
+                </section>
+            </div>
+            <!-- BOTÓN DE INGRESO -->
+            <button id="btn-acceder-geovisor"
+                    class="landing__cta"
+                    type="button">
+                Ingresar al Geovisor
+            </button>
+            <!-- INTEGRANTES -->
+            <p class="landing__footer">
+                Jacobo Flórez · Sebastián Zuleta · Ana Sofía Sáenz
+            </p>
+        </div>
     </div>
-    <div class="edu-splash__texto">
-      <h1 id="splash-titulo" class="edu-splash__propuesta">Propuesta principal</h1>
-      <section class="edu-pilar">
-        <h2>Misión</h2>
-        <p>Democratizar y optimizar el acceso a la información espacial de la infraestructura educativa mediante una plataforma web geográfica ágil, intuitiva e interoperable. En EduMap transformamos datos territoriales y atributos institucionales en inteligencia visual accionable, facilitando la toma de decisiones estratégicas, la planificación territorial y la consulta ciudadana en cualquier entorno educativo.</p>
-      </section>
-      <section class="edu-pilar">
-        <h2>Visión</h2>
-        <p>Consolidarnos como la solución de referencia en cartografía web y gestión espacial del sector educativo a nivel regional y nacional, escalando hacia un ecosistema SaaS adaptable a múltiples territorios que impulse la transparencia, la equidad en el acceso a la educación y la modernización tecnológica de las instituciones y entidades territoriales.</p>
-      </section>
-      <button id="btn-acceder-geovisor" class="landing__cta" type="button">Ingresar al Geovisor</button>
-      <p class="landing__footer">Jacobo Flórez · Sebastián Zuleta · Ana Sofía Sáenz</p>
-    </div>
-  </div>
-  </div>
+</div>
+
 
   <!-- NAVBAR SUPERIOR -->
   <nav class="top-navbar">
